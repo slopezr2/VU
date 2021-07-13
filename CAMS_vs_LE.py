@@ -28,13 +28,13 @@ vmax=0.6
 n_levels_plot=30
 ini_dia=0
 end_dia=31
-cams.graph_map(variable='aod550',title='CAMS AOD 550nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=True, ini_period=ini_dia,end_period=end_dia*8-1,lon_lim=lon_lim,lat_lim=lat_lim)
-cams.graph_map(variable='aod670',title='CAMS AOD 670nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=True, ini_period=ini_dia,end_period=end_dia*8-1,lon_lim=lon_lim,lat_lim=lat_lim)
-cams.graph_map(variable='aod865',title='CAMS AOD 8650nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=True, ini_period=ini_dia,end_period=end_dia*8-1,lon_lim=lon_lim,lat_lim=lat_lim)
+cams.graph_map(variable='aod550',title='CAMS AOD 550nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=False, ini_period=ini_dia,end_period=end_dia*8-1,lon_lim=lon_lim,lat_lim=lat_lim)
+cams.graph_map(variable='aod670',title='CAMS AOD 670nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=False, ini_period=ini_dia,end_period=end_dia*8-1,lon_lim=lon_lim,lat_lim=lat_lim)
+cams.graph_map(variable='aod865',title='CAMS AOD 8650nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=False, ini_period=ini_dia,end_period=end_dia*8-1,lon_lim=lon_lim,lat_lim=lat_lim)
 
-LE.graph_map(variable='aod_563nm',title='LE AOD 550nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=True, ini_period=ini_dia,end_period=end_dia*24-3,step_period=3)
-LE.graph_map(variable='aod_670nm',title='LE AOD 670nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=True, ini_period=ini_dia,end_period=end_dia*24-1,step_period=3)
-LE.graph_map(variable='aod_865nm',title='LE AOD 865nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=True, ini_period=ini_dia,end_period=end_dia*24-1,step_period=3)
+LE.graph_map(variable='aod_563nm',title='LE AOD 550nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=False, ini_period=ini_dia,end_period=end_dia*24-3,step_period=3)
+LE.graph_map(variable='aod_670nm',title='LE AOD 670nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=False, ini_period=ini_dia,end_period=end_dia*24-1,step_period=3)
+LE.graph_map(variable='aod_865nm',title='LE AOD 865nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=False, ini_period=ini_dia,end_period=end_dia*24-1,step_period=3)
 
 
 for i in [2,3,4,5,6,7,8,9,10,11]:
@@ -55,18 +55,18 @@ for i in [2,3,4,5,6,7,8,9,10,11]:
         end_dia=end_dia+31
         
         
-    cams.graph_map(variable='aod550',title='CAMS AOD 550nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=True, ini_period=ini_dia*(8),end_period=end_dia*8-1,lon_lim=lon_lim,lat_lim=lat_lim)
-    cams.graph_map(variable='aod670',title='CAMS AOD 670nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=True, ini_period=ini_dia*(8),end_period=end_dia*8-1,lon_lim=lon_lim,lat_lim=lat_lim)
-    cams.graph_map(variable='aod865',title='CAMS AOD 865nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=True, ini_period=ini_dia*(8),end_period=end_dia*8-1,lon_lim=lon_lim,lat_lim=lat_lim)
-    LE.graph_map(variable='aod_563nm',title='LE AOD 550nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=True, ini_period=ini_dia*24,end_period=end_dia*24-3,step_period=3)
-    LE.graph_map(variable='aod_670nm',title='LE AOD 670nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=True, ini_period=ini_dia*24,end_period=end_dia*24-1,step_period=3)
-    LE.graph_map(variable='aod_865nm',title='LE AOD 865nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=True, ini_period=ini_dia*24,end_period=end_dia*24-1,step_period=3)
+    cams.graph_map(variable='aod550',title='CAMS AOD 550nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=False, ini_period=ini_dia*(8),end_period=end_dia*8-1,lon_lim=lon_lim,lat_lim=lat_lim)
+    cams.graph_map(variable='aod670',title='CAMS AOD 670nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=False, ini_period=ini_dia*(8),end_period=end_dia*8-1,lon_lim=lon_lim,lat_lim=lat_lim)
+    cams.graph_map(variable='aod865',title='CAMS AOD 865nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=False, ini_period=ini_dia*(8),end_period=end_dia*8-1,lon_lim=lon_lim,lat_lim=lat_lim)
+    LE.graph_map(variable='aod_563nm',title='LE AOD 550nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=False, ini_period=ini_dia*24,end_period=end_dia*24-3,step_period=3)
+    LE.graph_map(variable='aod_670nm',title='LE AOD 670nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=False, ini_period=ini_dia*24,end_period=end_dia*24-1,step_period=3)
+    LE.graph_map(variable='aod_865nm',title='LE AOD 865nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=False, ini_period=ini_dia*24,end_period=end_dia*24-1,step_period=3)
 
 
-cams.graph_map(variable='aod550',title='CAMS AOD 550nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=True, ini_period=end_dia*8,end_period=-1,lon_lim=lon_lim,lat_lim=lat_lim)
-cams.graph_map(variable='aod670',title='CAMS AOD 670nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=True, ini_period=end_dia*8,end_period=-1,lon_lim=lon_lim,lat_lim=lat_lim)
-cams.graph_map(variable='aod865',title='CAMS AOD 865nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=True, ini_period=end_dia*8,end_period=-1,lon_lim=lon_lim,lat_lim=lat_lim)
-LE.graph_map(variable='aod_563nm',title='LE AOD 550nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=True, ini_period=end_dia*24,end_period=-1,step_period=3)
-LE.graph_map(variable='aod_670nm',title='LE AOD 670nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=True, ini_period=end_dia*24,end_period=-1,step_period=3)
-LE.graph_map(variable='aod_865nm',title='LE AOD 865nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=True, ini_period=end_dia*24,end_period=-1,step_period=3)
+cams.graph_map(variable='aod550',title='CAMS AOD 550nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=False, ini_period=end_dia*8,end_period=-1,lon_lim=lon_lim,lat_lim=lat_lim)
+cams.graph_map(variable='aod670',title='CAMS AOD 670nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=False, ini_period=end_dia*8,end_period=-1,lon_lim=lon_lim,lat_lim=lat_lim)
+cams.graph_map(variable='aod865',title='CAMS AOD 865nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=False, ini_period=end_dia*8,end_period=-1,lon_lim=lon_lim,lat_lim=lat_lim)
+LE.graph_map(variable='aod_563nm',title='LE AOD 550nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=False, ini_period=end_dia*24,end_period=-1,step_period=3)
+LE.graph_map(variable='aod_670nm',title='LE AOD 670nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=False, ini_period=end_dia*24,end_period=-1,step_period=3)
+LE.graph_map(variable='aod_865nm',title='LE AOD 865nm',cmap=custom_ramp,n_levels_plot=n_levels_plot,vmin=vmin, vmax=vmax,type_graph='mean',save=False, ini_period=end_dia*24,end_period=-1,step_period=3)
 

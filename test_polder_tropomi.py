@@ -34,15 +34,17 @@ for i in ['01','02','03','04','05','06','07','08','09','10','11','12']:
             longitude_polder=longitude_polder.reshape((longitude_polder.shape[0]*longitude_polder.shape[1]))
             aod_polder=aod_polder.reshape((aod_polder.shape[0]*aod_polder.shape[1]))
             
-            
+            # dimensions
+            npixel = latitude_polder[np.logical_not(aod_polder.mask)].size
+            if npixel<10:
+                continue
             #Creating netcdf4
             cso_file='CSO_POLDER_'+file_name[16:24]+'.nc'
             root_grp = Dataset(cso_path+cso_file, 'w', format='NETCDF4')
             root_grp.description = 'POLDER observation following CSO estructure'
             
             
-            # dimensions
-            npixel = latitude_polder[np.logical_not(aod_polder.mask)].size 
+            
             root_grp.createDimension('pixel', npixel)
             root_grp.createDimension('retr', 1)
             root_grp.createDimension('corner', 4)
