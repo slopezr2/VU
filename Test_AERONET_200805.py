@@ -37,6 +37,7 @@ from matplotlib import cm
 
 viridis = cm.get_cmap('viridis', 256)
 RdYlGn=cm.get_cmap('Spectral', 256)
+bwr=cm.get_cmap('bwr', 256)
 #===Create Color bar====
 def make_Ramp( ramp_colors ): 
     from colour import Color
@@ -53,13 +54,17 @@ gridded_500=DataManager_GRIDDED('/Users/santiago/Documents/LE_outputs/2008_Compl
 gridded_870=DataManager_GRIDDED('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_aeronet_870_2008.nc')
 
 gridded_440.hist2d(biascorr=[1,1],cmap=white_viridis,xlim=[0.01,1.05],ylim=[0.01,1.05],log=True,save=True,title='AERONET 440 scatter',xlabel='AERONET 440')
-# gridded_500.hist2d(biascorr=[1,1],cmap=white_viridis,xlim=[0.01,1.05],ylim=[0.01,1.05],log=True,save=True,title='AERONET 500 scatter',xlabel='AERONET 500')
+gridded_500.hist2d(biascorr=[1,1],cmap=white_viridis,xlim=[0.0,0.3],ylim=[0.0,0.3],log=False,save=False,title='AERONET 500 scatter',xlabel='AERONET 500')
 # gridded_870.hist2d(biascorr=[1,1],cmap=white_viridis,xlim=[0.01,1.05],ylim=[0.01,1.05],log=True,save=True,title='AERONET 870 scatter',xlabel='AERONET 870')
 
 gridded_440.graph_map(variable='yr',biascorr=1,vmin=0,vmax=0.5,n_levels_plot=10,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='AERONET AOD440')
 # gridded_440.graph_map(variable='ys',biascorr=1,vmin=0,vmax=0.5,n_levels_plot=10,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='LE AOD440')
 
 gridded_500.graph_map(variable='yr',biascorr=1,vmin=0,vmax=0.7,n_levels_plot=10,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='AERONET AOD500')
+gridded_500.graph_diff_map(facecolor=(1,1,1),size_scatter=20,scatter=True,dif_porcentage=True,biascorr=1,vmin=-100,vmax=100,n_levels_plot=20,cmap=bwr,date=False,save=True,title='Percentage diff obs-mod AERONET AOD500')
+
+
+
 # gridded_500.graph_map(variable='ys',biascorr=1,vmin=0,vmax=0.5,n_levels_plot=10,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='LE AOD500')
 
 gridded_870.graph_map(variable='yr',biascorr=1,vmin=0,vmax=0.5,n_levels_plot=10,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='AERONET AOD870')

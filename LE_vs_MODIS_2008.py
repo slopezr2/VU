@@ -164,5 +164,5 @@ cax = fig.add_axes([ax.get_position().x1+0.02,
 
 plt.colorbar(cax=cax,extend='both')
 plt.savefig('./Figures/'+title+'.png',format='png', dpi=1000,bbox_inches = "tight")
-plt.show()
 
+plt.show()
