@@ -20,14 +20,106 @@ from scipy.stats import pearsonr
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 from matplotlib.ticker import ScalarFormatter
+from matplotlib.colors import TwoSlopeNorm
+from cartopy.io.shapereader import Reader
+from cartopy.feature import ShapelyFeature
+
+
+
 def moving_average(x, w):
     return np.convolve(x, np.ones(w), 'valid') / w
+
+def graph_map(lon=0,lat=0,vmin=0,vmax=0.3,date=True,vcenter=0,date_plot='',level=0,n_levels_plot=20,cmap=1,variable=1,variable_title='',title='default',title_on=True,save=False,extend='max',norm2=False,grid=False,ocean=False, orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],shape_file=False,shape_name=''):
+    
+    fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
+    levels = MaxNLocator(nbins=n_levels_plot).tick_values(vmin, vmax)
+    ax.set_facecolor((0.6, 0.6, 0.6))
+    if norm2==True:
+        norm=TwoSlopeNorm(vmin=vmin, vcenter=vcenter, vmax=vmax)
+    else:    
+        norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
+    plt.pcolormesh(lon, lat, variable, 
+                        transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')
+    european_borders=cfeature.NaturalEarthFeature(
+              category='cultural',
+              name='admin_0_countries',
+              scale='50m',
+              facecolor='none')
+    
+    
+    coastlines=cfeature.NaturalEarthFeature(
+                      category='physical',
+                      name='coastline',
+                      scale='50m',
+                      facecolor='none')
+    ax.add_feature(european_borders,edgecolor='black',linewidth=0.2)
+    ax.add_feature(coastlines,edgecolor='black',linewidth=1)
+    if shape_file==True:
+        
+        shape_feature = ShapelyFeature(Reader(shape_name).geometries(),
+                                ccrs.PlateCarree(), facecolor='none')
+        ax.add_feature(shape_feature,edgecolor='black',linewidth=0.8)
+
+
+    if ocean==True:
+           ax.add_feature(cart.feature.OCEAN, zorder=100, edgecolor='k',facecolor=ocean_color)
+    
+    if grid==True:
+        gl = ax.gridlines(draw_labels=True,color='black', alpha=0.5,linestyle='--',zorder=100000)
+        gl.top_labels = False
+        gl.right_labels = False
+    
+    if subdomain==True:
+        plt.xlim(lon[lon_lim[0]],lon[lon_lim[1]])
+        plt.ylim(lat[lat_lim[0]],lat[lat_lim[1]])
+
+    else:
+        plt.xlim(lon[0],lon[-1])
+        plt.ylim(lat[0],lat[-1])       
+    if title=='default':
+        title=variable
+        if variable.ndim==4:
+            title=title+'_level_'+str(level+1)
+ 
+    title_plot=title
+           
+    if date==True:
+        title_plot=title_plot+'  '+date_plot
+        
+    if title_on==True:    
+        plt.title(title_plot)
+    
+    if orientation=='vertical': 
+        cax = fig.add_axes([ax.get_position().x1+0.02,
+                 ax.get_position().y0+0.09,
+                 0.08,
+                 ax.get_position().height-0.2])
+    elif orientation=='horizontal':
+        cax = fig.add_axes([ax.get_position().x0,
+                 ax.get_position().y0-0.12,
+                 ax.get_position().width+0.02,
+                 0.05])
+    
+    cbar=plt.colorbar(cax=cax,extend=extend,orientation=orientation)
+    cbar.formatter.set_powerlimits((-3, 4))
+    cbar.update_ticks()
+    
+    if save==True:
+        if date==True:
+            plt.savefig('./Figures/'+title_plot+'.png',format='png', dpi=1000,bbox_inches = "tight")
+        else:
+            plt.savefig('./Figures/'+title+'.png',format='png', dpi=1000,bbox_inches = "tight")
+                   
+    plt.show()
+
+
+
 class DataManager_LE:
 
    def __init__(self,file):
         self.nc = Dataset(file, "r", format="NETCDF4")
         
-   def graph_map(self,biascorr=1,variable='aod_550nm',time=0,sum_level=False,level=1,vmin=0, vmax=1, n_levels_plot=10,cmap='Oranges', date=True,title='default',title_on=True,type_graph='instant',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',grid=False):     
+   def graph_map(self,biascorr=1,variable='aod_550nm',time=0,sum_level=False,level=1,vmin=0, vmax=1,vcenter=0.5,norm2=False, n_levels_plot=10,cmap='Oranges', date=True,title='default',title_on=True,type_graph='instant',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',grid=False,orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],shape_file=False,shape_name=''):     
        
        if 'lon' in self.nc.variables.keys():
            lon=self.nc.variables['lon'][:]
@@ -39,17 +131,6 @@ class DataManager_LE:
            lat=self.nc.variables['latitude'][:]
        
        aux=self.nc.variables[variable][:]
-       fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
-       levels = MaxNLocator(nbins=n_levels_plot).tick_values(vmin, vmax)
-    
-        # pick the desired colormap, sensible levels, and define a normalization
-        # instance which takes data values and translates those into levels.
-        
-       norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
-       if vmax==None or vmin==None:
-           levels = n_levels_plot
-       else:
-           levels = np.linspace(vmin, vmax, n_levels_plot)
        timestamp_2012 = datetime.timestamp(datetime.strptime('2008-1-1 00:00:00', '%Y-%m-%d %H:%M:%S'))
        if type_graph=='instant':
            
@@ -57,39 +138,36 @@ class DataManager_LE:
            date_plot=datetime.fromtimestamp(timestamp)
            date_plot=date_plot.strftime("%d-%b-%Y (%H:%M:%S)")
            if aux.ndim==3:
+               var_graph= biascorr*aux[time,:,:]
                
-               plt.pcolormesh(lon, lat, biascorr*aux[time,:,:], 
-                          transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')
            elif aux.ndim==2:
-               
-               plt.pcolormesh(lon, lat, biascorr*aux[:,:], 
-                          transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')    
+               var_graph=biascorr*aux[:,:]
+              
            elif aux.ndim==4:
                
                if sum_level==True:
-                   plt.pcolormesh(lon, lat,  biascorr*np.sum(aux[time,level,:,:],1), 
-                              transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')
+                   var_graph=biascorr*np.sum(aux[time,level,:,:],1)
+                   
                else:
-                   plt.pcolormesh(lon, lat,  biascorr*aux[time,level,:,:], 
-                              transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')    
+                   var_graph=biascorr*aux[time,level,:,:]
+                  
         
        elif type_graph=='mean':
            
            if aux.ndim==3:
-               plt.pcolormesh(lon, lat, np.nanmean( biascorr*aux[ini_period:end_period:step_period,:,:],axis=0), 
-                              transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')
+               var_graph=np.nanmean( biascorr*aux[ini_period:end_period:step_period,:,:],axis=0)
+              
            elif aux.ndim==4:
                if sum_level==True:
                    aux=np.sum(aux,axis=1)
-                   plt.pcolormesh(lon, lat, np.nanmean(biascorr*aux[ini_period:end_period:step_period,:,:],axis=0), 
-                                  transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')
+                   var_graph= np.nanmean(biascorr*aux[ini_period:end_period:step_period,:,:],axis=0)
+                   
                else:
-                   plt.pcolormesh(lon, lat, np.nanmean( biascorr*aux[ini_period:end_period:step_period,level,:,:],axis=0), 
-                                  transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')
+                   var_graph=np.nanmean( biascorr*aux[ini_period:end_period:step_period,level,:,:],axis=0)
+                   
            elif aux.ndim==2:
-
-                   plt.pcolormesh(lon, lat, np.nanmean( biascorr*aux[:,:],axis=0), 
-                                  transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')
+                   var_graph= np.nanmean( biascorr*aux[:,:],axis=0)
+                   
            
            date_plot_ini=datetime.fromtimestamp(timestamp_2012+self.nc.variables['time'][ini_period])
            date_plot_ini=date_plot_ini.strftime("%d-%b-%Y")
@@ -97,128 +175,13 @@ class DataManager_LE:
            date_plot_end=date_plot_end.strftime("%d-%b-%Y")
            
            date_plot=date_plot_ini+' - '+date_plot_end
-
-       european_borders=cfeature.NaturalEarthFeature(
-                    category='cultural',
-                    name='admin_0_countries',
-                    scale='50m',
-                    facecolor='none')
-
-
-       coastlines=cfeature.NaturalEarthFeature(
-                            category='physical',
-                            name='coastline',
-                            scale='50m',
-                            facecolor='none')
-       
-       if grid==True:
-            gl = ax.gridlines(draw_labels=True,color='black', alpha=0.5,linestyle='--')
-            gl.top_labels = False
-            gl.right_labels = False
-       ax.add_feature(european_borders,edgecolor='black',linewidth=0.2)
-       ax.add_feature(coastlines,edgecolor='black',linewidth=1)
-       if ocean==True:
-           ax.add_feature(cart.feature.OCEAN, zorder=100, edgecolor='k',facecolor='w')
-       plt.xlim(lon[0],lon[-1])
-       plt.ylim(lat[0],lat[-1])
-       if title=='default':
-           title=variable
-           if aux.ndim==4:
-               title=title+'_level_'+str(level+1)
- 
-       title_plot=title
            
-       if date==True:
-           title_plot=title_plot+'  '+date_plot
            
-       if title_on==True:    
-           plt.title(title_plot)
+       graph_map(lon=lon,lat=lat,vmin=vmin,vmax=vmax,vcenter=vcenter,n_levels_plot=n_levels_plot,date=date,date_plot=date_plot,title_on=title_on,cmap=cmap,variable_title=variable,variable=var_graph,title=title,save=save,extend=extend,norm2=norm2,grid=grid,ocean=ocean, orientation=orientation,lat_lim=lat_lim,lon_lim=lon_lim,subdomain=subdomain,ocean_color=ocean_color,shape_file=shape_file,shape_name=shape_name)
+           
        
-       cax = fig.add_axes([ax.get_position().x1+0.02,
-                    ax.get_position().y0+0.09,
-                    0.08,
-                    ax.get_position().height-0.2])
        
-       plt.colorbar(cax=cax,extend=extend)
-       
-       if save==True:
-           if date==True:
-               plt.savefig('./Figures/'+title_plot+'.png',format='png', dpi=1000,bbox_inches = "tight")
-           else:
-               plt.savefig('./Figures/'+title+'.png',format='png', dpi=1000,bbox_inches = "tight")
-                   
-       plt.show()
 
-class DataManager_POLDER:   
-    def __init__(self,path):
-        self.path = path
-    def graph_map(self,variable='AOD565',time=100,vmin=0, vmax=1, n_levels_plot=10,cmap='Oranges',title='default',title_on=True,type_graph='instant',ini_period=0,end_period=-1,step_period=1,save=False,grid=False):     
-        onlyfiles = [f for f in listdir(self.path) if isfile(join(self.path, f)) and f[0:12]=='GRASP_POLDER']
-
-        onlyfiles.sort()
-
-        #polder=Dataset('/Users/santiago/Documents/POLDER/GRASP_POLDER_L3_20120813.01degree.nc')
-        polder=Dataset(self.path+onlyfiles[0])
-        aux=polder.variables[variable][:]
-        aod_polder=np.empty([aux.shape[0],aux.shape[1],len(onlyfiles)])
-        i=0
-        aod_polder[:,:,i]=aux.filled(fill_value=np.nan)
-        
-        for file_name in onlyfiles[1:]:
-            if file_name[0:12]=='GRASP_POLDER':
-                i=i+1
-                polder=Dataset(self.path+file_name)
-                aux=polder.variables[variable][:]
-                aod_polder[:,:,i]=aux.filled(fill_value=np.nan)
-            
-                latitude=polder.variables['Latitude'][:]
-                longitude=polder.variables['Longitude'][:]
-                
-            
-        fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
-        european_borders=cfeature.NaturalEarthFeature(
-                            category='cultural',
-                            name='admin_0_countries',
-                            scale='50m',
-                            facecolor='none')
-        
-        
-        coastlines=cfeature.NaturalEarthFeature(
-                            category='physical',
-                            name='coastline',
-                            scale='50m',
-                            facecolor='none')
-        ax.add_feature(european_borders,edgecolor='black',linewidth=0.2)
-        ax.add_feature(coastlines,edgecolor='black',linewidth=1)
-        if grid==True:
-            gl = ax.gridlines(draw_labels=True,color='black', alpha=0.5,linestyle='--')
-            gl.top_labels = False
-            gl.right_labels = False
-        
-        n_levels_plot=n_levels_plot
-        vmin=vmin
-        vmax=vmax
-        levels = MaxNLocator(nbins=n_levels_plot).tick_values(vmin, vmax)
-        
-        
-        # pick the desired colormap, sensible levels, and define a normalization
-        # instance which takes data values and translates those into levels.
-        #cmap = cmap
-        #cmap.set_bad([0.7, 0.7, 0.7],1.)
-        norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
-        # im=ax.contour(longitude[0,1652:2148],latitude[0:350,0],aod_polder[0:350,1652:2148,i],levels=levels,cmap=custom_ramp,extend=extend)
-        if not(title=='default') and title_on==True:
-            plt.title(title)      
-        im=plt.pcolor(longitude[0,1652:2148],latitude[0:350,0],np.nanmean(aod_polder[0:350,1652:2148,:],axis=2),cmap=cmap,norm=norm,vmin=vmin,vmax=vmax)
-        cax = fig.add_axes([ax.get_position().x1+0.02,
-                            ax.get_position().y0+0.09,
-                            0.08,
-                            ax.get_position().height-0.2])
-         
-        plt.colorbar(im,cax=cax,extend=extend)
-        if save==True:
-            plt.savefig('./Figures/'+title+'.png',format='png', dpi=1000,bbox_inches = "tight")
-        plt.show()
 
 class DataManager_GRIDDED:
 
@@ -299,7 +262,7 @@ class DataManager_GRIDDED:
        plt.show()
 
        return aod_sat,aod_le
-   def graph_map(self,biascorr=1,variable='aod_550nm',level=0,facecolor=(0.6,0.6,0.6),time=100,vmin=0, vmax=1, n_levels_plot=10,cmap='Oranges', date=True,title='default',title_on=True,type_graph='instant',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',grid=False):     
+   def graph_map(self,biascorr=1,variable='aod_550nm',level=0,facecolor=(0.6,0.6,0.6),time=100,vmin=0, vcenter=0.5,vmax=1,norm2=False, n_levels_plot=10,cmap='Oranges', date=True,title='default',title_on=True,type_graph='instant',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',grid=False,orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],shape_file=False,shape_name=''):     
        
        if 'lon' in self.nc.variables.keys():
            lon=self.nc.variables['lon'][:]
@@ -318,21 +281,13 @@ class DataManager_GRIDDED:
            aux[aux<0]=np.nan
            aux_mask=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:,level])
        
-       
+       else:
+           aux=np.ma.masked_invalid(self.nc.variables[variable][:,:,:])
+           aux[aux<0]=np.nan
+           aux_mask=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:])
        aux.mask=aux_mask.mask
        
-       fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
-       levels = MaxNLocator(nbins=n_levels_plot).tick_values(vmin, vmax)
-       ax.set_facecolor(facecolor)
-    
-        # pick the desired colormap, sensible levels, and define a normalization
-        # instance which takes data values and translates those into levels.
-        
-       norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
-       if vmax==None or vmin==None:
-           levels = n_levels_plot
-       else:
-           levels = np.linspace(vmin, vmax, n_levels_plot)
+
        timestamp_2012 = datetime.timestamp(datetime.strptime('2008-1-1 00:00:00', '%Y-%m-%d %H:%M:%S'))
        if type_graph=='instant':
            
@@ -340,77 +295,27 @@ class DataManager_GRIDDED:
            date_plot=datetime.fromtimestamp(timestamp)
            date_plot=date_plot.strftime("%d-%b-%Y (%H:%M:%S)")
            if aux.ndim==3:
-               plt.pcolormesh(lon, lat, biascorr*aux[time,:,:], 
-                          transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')
+               var_graph=biascorr*aux[time,:,:]
+             
            elif aux.ndim==4:
-               plt.pcolormesh(lon, lat,  biascorr*aux[time,:,:,level], 
-                          transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')
-        
+               var_graph=biascorr*aux[time,:,:,level]
+               
        elif type_graph=='mean':
            if aux.ndim==3:
-               plt.pcolormesh(lon, lat, np.nanmean( biascorr*aux[ini_period:end_period:step_period,:,:],axis=0), 
-                              transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')
+               var_graph=np.nanmean( biascorr*aux[ini_period:end_period:step_period,:,:],axis=0)
+               
            elif aux.ndim==4:
-               plt.pcolormesh(lon, lat, np.nanmean( biascorr*aux[ini_period:end_period:step_period,:,:,level],axis=0), 
-                              transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')
+               var_graph= np.nanmean( biascorr*aux[ini_period:end_period:step_period,:,:,level],axis=0)
+               
            date_plot_ini=datetime.fromtimestamp(timestamp_2012+self.nc.variables['time'][ini_period])
            date_plot_ini=date_plot_ini.strftime("%d-%b-%Y")
            date_plot_end=datetime.fromtimestamp(timestamp_2012+self.nc.variables['time'][end_period])
            date_plot_end=date_plot_end.strftime("%d-%b-%Y")
            
            date_plot=date_plot_ini+' - '+date_plot_end
-
-       european_borders=cfeature.NaturalEarthFeature(
-                    category='cultural',
-                    name='admin_0_countries',
-                    scale='50m',
-                    facecolor='none')
-
-
-       coastlines=cfeature.NaturalEarthFeature(
-                            category='physical',
-                            name='coastline',
-                            scale='50m',
-                            facecolor='none')
-       ax.add_feature(european_borders,edgecolor='black',linewidth=0.2)
-       ax.add_feature(coastlines,edgecolor='black',linewidth=1)
-       if grid==True:
-            gl = ax.gridlines(draw_labels=True,color='black', alpha=0.5,linestyle='--')
-            gl.top_labels = False
-            gl.right_labels = False
-       if ocean==True:
-           ax.add_feature(cart.feature.OCEAN, zorder=100, edgecolor='k',facecolor='w')
-       plt.xlim(lon[0],lon[-1])
-       plt.ylim(lat[0],lat[-1])
-       if title=='default':
-           title=variable
+       graph_map(lon=lon,lat=lat,vmin=vmin,vmax=vmax,vcenter=vcenter,n_levels_plot=n_levels_plot,date=date,date_plot=date_plot,title_on=title_on,cmap=cmap,variable_title=variable,variable=var_graph,title=title,save=save,extend=extend,norm2=norm2,grid=grid,ocean=ocean, orientation=orientation,lat_lim=lat_lim,lon_lim=lon_lim,subdomain=subdomain,ocean_color=ocean_color,shape_file=shape_file,shape_name=shape_name)
            
- 
-       title_plot=title
-           
-       if date==True:
-           title_plot=title_plot+'  '+date_plot
-           
-       if title_on==True:    
-           plt.title(title_plot)
        
-       cax = fig.add_axes([ax.get_position().x1+0.02,
-                    ax.get_position().y0+0.09,
-                    0.08,
-                    ax.get_position().height-0.2])
-       
-       cbar=plt.colorbar(cax=cax,extend=extend)
-       cbar.formatter.set_powerlimits((0, 0))
-       cbar.update_ticks()
-       
-       if save==True:
-           if date==True:
-               plt.savefig('./Figures/'+title_plot+'.png',format='png', dpi=1000,bbox_inches = "tight")
-           else:
-               plt.savefig('./Figures/'+title+'.png',format='png', dpi=1000,bbox_inches = "tight")
-                   
-       plt.show()
-       return fig,ax
    
     
    def transversal(self,biascorr=1,extern=False,calipso_mean=1,le_mean=1,layer_meters=600,variable='aod_550nm',facecolor=(0.6,0.6,0.6),time=100,vmin=0, vmax=1, n_levels_plot=10,cmap='Oranges', date=True,title='default',title_on=True,type_graph='instant',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',direction='row',position=10,cut=True,normalize=False):
@@ -572,7 +477,7 @@ class DataManager_GRIDDED:
                     ax.get_position().height-0.2])
        
        cbar=plt.colorbar(im,cax=cax,extend=extend)
-       cbar.formatter.set_powerlimits((0, 0))
+       cbar.formatter.set_powerlimits((-3, 4))
        cbar.update_ticks()
        if save==True:
            if date==True:
@@ -632,7 +537,7 @@ class DataManager_GRIDDED:
        
        return fig,ax
     
-   def graph_diff_map (self,biascorr=1,scatter=True,size_scatter=15,dif_porcentage=True,facecolor=(0.6,0.6,0.6),vmin=0, vmax=1, n_levels_plot=10,cmap='Oranges', date=True,title='default',title_on=True,ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',grid=False):     
+   def graph_diff_map (self,biascorr=1,scatter=True,size_scatter=15,dif_porcentage=True,facecolor=(0.6,0.6,0.6),vmin=0, vmax=1, n_levels_plot=10,cmap='Oranges', date=True,title='default',title_on=True,ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',grid=False,orientation='vertical'):     
        
        if 'lon' in self.nc.variables.keys():
            lon=self.nc.variables['lon'][:]
@@ -721,12 +626,20 @@ class DataManager_GRIDDED:
        if title_on==True:    
            plt.title(title_plot)
        
-       cax = fig.add_axes([ax.get_position().x1+0.02,
+       if orientation=='vertical': 
+           cax = fig.add_axes([ax.get_position().x1+0.02,
                     ax.get_position().y0+0.09,
                     0.08,
                     ax.get_position().height-0.2])
+       elif orientation=='horizontal':
+           cax = fig.add_axes([ax.get_position().x0,
+                    ax.get_position().y0-0.12,
+                    ax.get_position().width+0.02,
+                    0.05])
        
-       plt.colorbar(cax=cax,extend=extend)
+       cbar=plt.colorbar(cax=cax,extend=extend)
+       cbar.formatter.set_powerlimits((-3, 4))
+       cbar.update_ticks()
        
        if save==True:
            if date==True:
@@ -781,103 +694,3 @@ class DataManager_GRIDDED:
            if save==True:
                plt.savefig('./Figures/'+title+'.png',format='png', dpi=1000,bbox_inches = "tight")
            plt.show()
-class DataManager_CAMS:
-
-   def __init__(self,file):
-        self.nc = Dataset(file, "r", format="NETCDF4")
-        
-   def graph_map(self,biascorr=1,variable='aod_550nm',time=100,level=1,vmin=0, vmax=1, n_levels_plot=10,cmap='Oranges', date=True,title='default',title_on=True,type_graph='instant',ini_period=0,end_period=-1,step_period=1,save=False,lon_lim=[-25,44],lat_lim=[30,69],grid=False,extend='both'):     
-       
-       lon=self.nc.variables['longitude'][:]
-       lat=self.nc.variables['latitude'][:]
-       lat=np.flip(lat)
-       aux=self.nc.variables[variable][:]
-       aux=np.flip(aux,axis=1)
-       fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
-       levels = MaxNLocator(nbins=n_levels_plot).tick_values(vmin, vmax)
-    
-    
-        # pick the desired colormap, sensible levels, and define a normalization
-        # instance which takes data values and translates those into levels.
-        
-       norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
-       base = date_datetime(1900, 1, 1)
-       if vmax==None or vmin==None:
-           levels = n_levels_plot
-       else:
-           levels = np.linspace(vmin, vmax, n_levels_plot)
-       if type_graph=='instant':
-           
-           timestamp=self.nc.variables['time'][time].data
-           
-           date_plot=base+timedelta(hours=int(timestamp))
-           
-           date_plot=date_plot.strftime("%d-%b-%Y (%H:%M:%S)")
-           if aux.ndim==3:
-               plt.pcolormesh(lon, lat, biascorr*aux[time,:,:], 
-                          transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')
-           elif aux.ndim==4:
-               plt.pcolormesh(lon, lat,  biascorr*aux[time,level,:,:], 
-                          transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')
-        
-       elif type_graph=='mean':
-           if aux.ndim==3:
-               plt.pcolormesh(lon, lat, np.nanmean( biascorr*aux[ini_period:end_period:step_period,:,:],axis=0), 
-                              transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')
-           elif aux.ndim==4:
-               plt.pcolormesh(lon, lat, np.nanmean( biascorr*aux[ini_period:end_period:step_period,level,:,:],axis=0), 
-                              transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')
-           date_plot_ini=base+timedelta(hours=int(self.nc.variables['time'][ini_period].data))
-           date_plot_ini=date_plot_ini.strftime("%d-%b-%Y")
-           date_plot_end=base+timedelta(hours=int(self.nc.variables['time'][end_period].data))
-           date_plot_end=date_plot_end.strftime("%d-%b-%Y")
-           
-           date_plot=date_plot_ini+' - '+date_plot_end
-
-       european_borders=cfeature.NaturalEarthFeature(
-                    category='cultural',
-                    name='admin_0_countries',
-                    scale='50m',
-                    facecolor='none')
-
-
-       coastlines=cfeature.NaturalEarthFeature(
-                            category='physical',
-                            name='coastline',
-                            scale='50m',
-                            facecolor='none')
-       ax.add_feature(european_borders,edgecolor='black',linewidth=0.2)
-       ax.add_feature(coastlines,edgecolor='black',linewidth=1)
-       if grid==True:
-            gl = ax.gridlines(draw_labels=True,color='black', alpha=0.5,linestyle='--')
-            gl.top_labels = False
-            gl.right_labels = False
-       plt.xlim(lon_lim[0],lon_lim[-1])
-       plt.ylim(lat_lim[0],lat_lim[-1])
-       if title=='default':
-           title=variable
-           if aux.ndim==4:
-               title=title+'_level_'+str(level+1)
- 
-       title_plot=title
-           
-       if date==True:
-           title_plot=title_plot+'  '+date_plot
-           
-       if title_on==True:    
-           plt.title(title_plot)
-       
-       cax = fig.add_axes([ax.get_position().x1+0.02,
-                    ax.get_position().y0+0.09,
-                    0.08,
-                    ax.get_position().height-0.2])
-       
-       plt.colorbar(cax=cax,extend=extend)
-       
-       if save==True:
-           if date==True:
-               plt.savefig('./Figures/'+title_plot+'.png',format='png', dpi=1000,bbox_inches = "tight")
-           else:
-               plt.savefig('./Figures/'+title+'.png',format='png', dpi=1000,bbox_inches = "tight")
-                   
-       plt.show()        

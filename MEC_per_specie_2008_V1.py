@@ -65,8 +65,10 @@ def graph_map(lon=0,lat=0,vmin=0,vmax=0.3,vcenter=0,n_levels_plot=20,cmap=1,vari
               ax.get_position().y0+0.09,
               0.08,
               ax.get_position().height-0.2])
-    
-    plt.colorbar(cax=cax,extend=extend)
+    cbar=plt.colorbar(cax=cax,extend=extend)
+    cbar.formatter.set_powerlimits((0, 1))
+    cbar.update_ticks()
+
     if save:        
         plt.savefig('./Figures/'+title+'.png',format='png', dpi=1000,bbox_inches = "tight")
     
@@ -95,45 +97,32 @@ RdYlGn=cm.get_cmap('Spectral', 256)
 oranges=cm.get_cmap('Oranges', 256)
 bwr=cm.get_cmap('bwr', 256)
 
-aod_dry_file=Dataset('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dry_aod_2008.nc')
-tau_dry_file=Dataset('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dry_tau_2008.nc')
-aod_dry_datamanager=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dry_aod_2008.nc')
 
-aod_wet_file=Dataset('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_aod_2008.nc')
-tau_wet_file=Dataset('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_wet_tau_2008.nc')
-aod_wet_datamanager=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_aod_2008.nc')
+LE_ec=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_ec_aod_2008.nc')
+LE_na=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_na_aod_2008.nc')
+LE_nh4a=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_nh4a_aod_2008.nc')
+LE_no3a=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_no3a_aod_2008.nc')
+LE_pom=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_pom_aod_2008.nc')
+LE_ppm=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_ppm_aod_2008.nc')
+LE_so4a=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_so4a_aod_2008.nc')
+LE_dust=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dust_aod_2008.nc')
+LE_aod=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_aod_2008.nc')
 
 
+
+
+aod_ec_year=LE_ec.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+aod_na_year=LE_na.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+aod_nh4a_year=LE_nh4a.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+aod_no3a_year=LE_no3a.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+aod_pom_year=LE_pom.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+aod_ppm_year=LE_ppm.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+aod_so4a_year=LE_so4a.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+aod_dust_year=LE_dust.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+aod_total_year=LE_aod.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+aod_sum_year=aod_ec_year+aod_na_year+aod_nh4a_year+aod_no3a_year+aod_pom_year+aod_ppm_year+aod_so4a_year+aod_dust_year
 
 h_file=Dataset('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_h_2008.nc')
-gridded_emis=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_emis_2008.nc')
-gridded_drydepo=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_drydepo_2008.nc')
-gridded_wetdepo=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_wetdepo_2008.nc')
-gridded_dust_aod=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dust_aod_2008.nc')
-
-
-gridded_LE=DataManager_GRIDDED('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_polder-aod-563_2008.nc')
-# gridded_LE.graph_map(variable='ys',biascorr=1,vmin=0,vmax=0.3,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',ini_period=86,end_period=266,date=False,save=True,title='LE AOD565 Apr-Sept')
-# gridded_LE.graph_map(variable='yr',biascorr=1,vmin=0,vmax=0.3,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',ini_period=86,end_period=266,date=False,save=True,title='POLDER AOD565 Apr-Sept')
-    
-# gridded_LE.graph_map(variable='ys',biascorr=1,vmin=0,vmax=0.3,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='LE AOD565 Yearly')
-# gridded_LE.graph_map(variable='yr',biascorr=1,vmin=0,vmax=0.3,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='POLDER AOD565 Yearly')
-
-# gridded_emis.graph_map(variable='tpm10',biascorr=1,vmin=0,vmax=2e-10,n_levels_plot=20,level=0,cmap=oranges,type_graph='mean',date=False,save=True,title='Total Aerosol Emissions')
-# gridded_drydepo.graph_map(variable='tpm10_dflux',biascorr=1,vmin=0,vmax=2e-10,n_levels_plot=20,level=0,cmap=oranges,type_graph='mean',date=False,save=True,title='Aerosol Dry Deposition')
-# gridded_wetdepo.graph_map(variable='tpm10_wflux',biascorr=1,vmin=0,vmax=2e-10,n_levels_plot=20,level=0,cmap=oranges,type_graph='mean',date=False,save=True,title='Aerosol Wet Deposition')
-
-
-emis_year=np.squeeze(np.nanmean(gridded_emis.nc.variables['tpm10'][:],axis=0))
-depo_year=np.squeeze(np.nanmean(gridded_drydepo.nc.variables['tpm10_dflux'][:],axis=0))+np.squeeze(np.nanmean(gridded_wetdepo.nc.variables['tpm10_wflux'][:],axis=0))
-
-
-aod_dry_year=aod_dry_file.variables['aod_563nm'][:,:,:] #Todo el ano
-aod_wet_year=aod_wet_file.variables['aod_563nm'][:,:,:] #Todo el ano
-
-
-tau_dry_year=tau_dry_file.variables['tau_563nm'][:,0,:,:] #Todo el ano
-tau_wet_year=tau_wet_file.variables['tau_563nm'][:,0,:,:] #Todo el ano
 
 
 i=0
@@ -144,7 +133,14 @@ for month in ['01','02','03','04','05','06','07','08','09','10','11','12']: #Abr
     print(month)
     file_conc='/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_conc_2008'+month+'.nc'
     conc_file_month=Dataset(file_conc)
-    conc_month=conc_file_month.variables['tpm10'][:]
+    conc_ec_month=(conc_file_month.variables['ec_f'][:]+conc_file_month.variables['ec_c'][:])*1e3
+    conc_na_month=(conc_file_month.variables['na_ff'][:]+conc_file_month.variables['na_f'][:]+conc_file_month.variables['na_c'][:]+conc_file_month.variables['na_cc'][:]+conc_file_month.variables['na_ccc'][:])*1e3*3.26
+    conc_nh4a_month=(conc_file_month.variables['nh4a_f'][:])*1e3
+    conc_no3a_month=(conc_file_month.variables['no3a_f'][:]+conc_file_month.variables['no3a_c'][:])*1e3
+    conc_pom_month=(conc_file_month.variables['pom_f'][:]+conc_file_month.variables['pom_c'][:])*1e3
+    conc_ppm_month=(conc_file_month.variables['ppm_f'][:]+conc_file_month.variables['ppm_c'][:])*1e3
+    conc_so4a_month=(conc_file_month.variables['so4a_f'][:]+conc_file_month.variables['so4a_c'][:])*1e3
+    conc_dust_month=(conc_file_month.variables['dust_ff'][:]+conc_file_month.variables['dust_f'][:]+conc_file_month.variables['dust_c'][:]+conc_file_month.variables['dust_cc'][:]+conc_file_month.variables['dust_ccc'][:])*1e3
     
     if i==3: #Marzo, sumo solo 29 dias
         ini_dia=ini_dia+29
@@ -168,99 +164,226 @@ for month in ['01','02','03','04','05','06','07','08','09','10','11','12']: #Abr
     if end_dia>357:
         end_dia=-1
     
-    # gridded_LE.graph_map(variable='ys',biascorr=1,vmin=0,vmax=0.3,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',ini_period=ini_dia,end_period=end_dia,date=False,save=True,title='LE AOD565 2008-'+month)
-    # gridded_LE.graph_map(variable='yr',biascorr=1,vmin=0,vmax=0.3,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',ini_period=ini_dia,end_period=end_dia,date=False,save=True,title='POLDER AOD565 2008-'+month)
-    # aod_datamanager.graph_map(variable='aod_563nm',biascorr=1,vmin=0,vmax=0.3,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',ini_period=ini_dia*24,end_period=end_dia*24,date=False,save=True,title='LE output AOD565 2008-'+month)    
-    
     if end_dia==-1:
         h_month=h_file.variables['h'][ini_dia*24:,:,:,:]
     else:
         h_month=h_file.variables['h'][ini_dia*24:end_dia*24,:,:,:]
     
-    burden=0
+    burden_ec=0
+    burden_na=0
+    burden_nh4a=0
+    burden_no3a=0
+    burden_pom=0
+    burden_ppm=0
+    burden_so4a=0
+    burden_dust=0
     
-    for j in range(conc_month.shape[1]):
+    for j in range(conc_ec_month.shape[1]):
         if j>0:
-            burden=burden+conc_month[:,j,:,:]*(h_month[:,j,:,:]-h_month[:,j-1,:,:])
+            burden_ec=burden_ec+conc_ec_month[:,j,:,:]*(h_month[:,j,:,:]-h_month[:,j-1,:,:])
+            burden_na=burden_na+conc_na_month[:,j,:,:]*(h_month[:,j,:,:]-h_month[:,j-1,:,:])
+            burden_nh4a=burden_nh4a+conc_nh4a_month[:,j,:,:]*(h_month[:,j,:,:]-h_month[:,j-1,:,:])
+            burden_no3a=burden_no3a+conc_no3a_month[:,j,:,:]*(h_month[:,j,:,:]-h_month[:,j-1,:,:])
+            burden_pom=burden_pom+conc_pom_month[:,j,:,:]*(h_month[:,j,:,:]-h_month[:,j-1,:,:])
+            burden_ppm=burden_ppm+conc_ppm_month[:,j,:,:]*(h_month[:,j,:,:]-h_month[:,j-1,:,:])
+            burden_so4a=burden_so4a+conc_so4a_month[:,j,:,:]*(h_month[:,j,:,:]-h_month[:,j-1,:,:])
+            burden_dust=burden_dust+conc_dust_month[:,j,:,:]*(h_month[:,j,:,:]-h_month[:,j-1,:,:])
         else:
-            burden=burden+conc_month[:,j,:,:]*(h_month[:,j,:,:])
-            burden_surface=conc_month[:,j,:,:]*(h_month[:,j,:,:])
+            burden_ec=burden_ec+conc_ec_month[:,j,:,:]*(h_month[:,j,:,:])
+            burden_na=burden_na+conc_na_month[:,j,:,:]*(h_month[:,j,:,:])
+            burden_nh4a=burden_nh4a+conc_nh4a_month[:,j,:,:]*(h_month[:,j,:,:])
+            burden_no3a=burden_no3a+conc_no3a_month[:,j,:,:]*(h_month[:,j,:,:])
+            burden_pom=burden_pom+conc_pom_month[:,j,:,:]*(h_month[:,j,:,:])
+            burden_ppm=burden_ppm+conc_ppm_month[:,j,:,:]*(h_month[:,j,:,:])
+            burden_so4a=burden_so4a+conc_so4a_month[:,j,:,:]*(h_month[:,j,:,:])
+            burden_dust=burden_dust+conc_dust_month[:,j,:,:]*(h_month[:,j,:,:])
+            
     
     if i==1:
-        burden_year=np.array(burden)
-        burden_surface_year=np.array(burden_surface)
+        burden_ec_year=np.array(burden_ec)
+        burden_na_year=np.array(burden_na)
+        burden_nh4a_year=np.array(burden_nh4a)
+        burden_no3a_year=np.array(burden_no3a)
+        burden_pom_year=np.array(burden_pom)
+        burden_ppm_year=np.array(burden_ppm)
+        burden_so4a_year=np.array(burden_so4a)
+        burden_dust_year=np.array(burden_dust)
+        
     else:
-        burden_year=np.append(burden_year,burden,axis=0)
-        burden_surface_year=np.append(burden_surface_year,burden_surface,axis=0)
-burden_year=burden_year*1e3 #En gramos
-burden_surface_year=burden_surface_year*1e3
+        burden_ec_year=np.append(burden_ec_year,burden_ec,axis=0)
+        burden_na_year=np.append(burden_na_year,burden_na,axis=0)
+        burden_nh4a_year=np.append(burden_nh4a_year,burden_nh4a,axis=0)
+        burden_no3a_year=np.append(burden_no3a_year,burden_no3a,axis=0)
+        burden_pom_year=np.append(burden_pom_year,burden_pom,axis=0)
+        burden_ppm_year=np.append(burden_ppm_year,burden_ppm,axis=0)
+        burden_so4a_year=np.append(burden_so4a_year,burden_so4a,axis=0)
+        burden_dust_year=np.append(burden_dust_year,burden_dust,axis=0)
+        
 
 
+burden_total_year=burden_ec_year+burden_na_year+burden_nh4a_year+burden_no3a_year+burden_pom_year+burden_ppm_year+burden_so4a_year+burden_dust_year
+
+MEC_ec=aod_ec_year/burden_ec_year
+MEC_na=aod_na_year/burden_na_year
+MEC_nh4a=aod_nh4a_year/burden_nh4a_year
+MEC_no3a=aod_no3a_year/burden_no3a_year
+MEC_pom=aod_pom_year/burden_pom_year
+MEC_ppm=aod_ppm_year/burden_ppm_year
+MEC_so4a=aod_so4a_year/burden_so4a_year
+MEC_dust=aod_dust_year/burden_dust_year
+MEC_total=aod_total_year/burden_total_year
 
 
-MEC_dry=aod_dry_year/burden_year
-MEC_wet=aod_wet_year/burden_year
+MEC_ec[MEC_ec>20]=np.nan
+MEC_na[MEC_na>20]=np.nan
+MEC_nh4a[MEC_nh4a>20]=np.nan
+MEC_no3a[MEC_no3a>20]=np.nan
+MEC_pom[MEC_pom>20]=np.nan
+MEC_ppm[MEC_ppm>20]=np.nan
+MEC_dust[MEC_dust>20]=np.nan
+MEC_total[MEC_total>20]=np.nan
 
-MEC_dry_surface=tau_dry_year/burden_surface_year
-MEC_wet_surface=tau_wet_year/burden_surface_year
+lon=LE_ec.nc.variables['lon'][:]
+lat=LE_ec.nc.variables['lat'][:]
 
-lon=aod_dry_file.variables['lon'][:]
-lat=aod_dry_file.variables['lat'][:]
+#==aod per specie===
+LE_ec.graph_map(variable='aod_563nm',vmin=0,vmax=0.1,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm EC 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
+LE_na.graph_map(variable='aod_563nm',vmin=0,vmax=0.1,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm Na 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
+LE_nh4a.graph_map(variable='aod_563nm',vmin=0,vmax=0.1,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm NH4 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
+LE_no3a.graph_map(variable='aod_563nm',vmin=0,vmax=0.1,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm NO3 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
+LE_pom.graph_map(variable='aod_563nm',vmin=0,vmax=0.1,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm pom 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
+LE_ppm.graph_map(variable='aod_563nm',vmin=0,vmax=0.1,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm ppm 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
+LE_so4a.graph_map(variable='aod_563nm',vmin=0,vmax=0.1,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm SO4 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
+LE_dust.graph_map(variable='aod_563nm',vmin=0,vmax=0.1,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm Dust 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
+LE_aod.graph_map(variable='aod_563nm',vmin=0,vmax=0.3,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
 
-#==MEC Dry===
-graph_map(lon=lon,lat=lat,variable=MEC_dry.mean(axis=0),vmin=0,vmax=3,n_levels_plot=20,cmap=viridis,title='MEC dry',save=False,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=aod_sum_year.mean(axis=0),vmin=0,vmax=0.3,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm sum 2008',save=True,extend='max',grid=True)
 
 #==MEC ambient===
-graph_map(lon=lon,lat=lat,variable=MEC_wet.mean(axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ambient',save=False,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_ec,axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC EC ambient',save=True,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_na,axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC Na ambient',save=True,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_nh4a,axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC NH4 ambient',save=True,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_no3a,axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC NO3 ambient',save=True,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_pom,axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC pom ambient',save=True,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_ppm,axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ppm ambient',save=True,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_so4a,axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC SO4 ambient',save=True,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_dust,axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC Dust ambient',save=True,extend='max',grid=True)
 
-#==MEC Surface Dry===
-graph_map(lon=lon,lat=lat,variable=MEC_dry_surface.mean(axis=0),vmin=0,vmax=3,n_levels_plot=20,cmap=viridis,title='MEC dry surface',save=False,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_total,axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC All ambient',save=False,extend='max',grid=True)
 
-#==MEC Surface ambient===
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface.mean(axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ambient surface',save=False,extend='max',grid=True)
-
-#==MEC Surface ambient/dry===
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface.mean(axis=0)/MEC_dry_surface.mean(axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=bwr,title='MEC relation ambient dry',save=False,extend='max',vcenter=1,norm2=True,grid=True)
-
-
-#===Seasonal Surface Dry===
-graph_map(lon=lon,lat=lat,variable=MEC_dry_surface[np.r_[335*24:366*24-1,1:59*24],:,:].mean(axis=0),vmin=0,vmax=3,n_levels_plot=20,cmap=viridis,title='MEC dry surface DJF',save=False,extend='max',vcenter=1,norm2=False,grid=True)
-graph_map(lon=lon,lat=lat,variable=MEC_dry_surface[59*24:152*24,:,:].mean(axis=0),vmin=0,vmax=3,n_levels_plot=20,cmap=viridis,title='MEC dry surface MAM',save=False,extend='max',vcenter=1,norm2=False,grid=True)
-graph_map(lon=lon,lat=lat,variable=MEC_dry_surface[152*24:244*24,:,:].mean(axis=0),vmin=0,vmax=3,n_levels_plot=20,cmap=viridis,title='MEC dry surface JJA',save=False,extend='max',vcenter=1,norm2=False,grid=True)
-graph_map(lon=lon,lat=lat,variable=MEC_dry_surface[244*24:335*24,:,:].mean(axis=0),vmin=0,vmax=3,n_levels_plot=20,cmap=viridis,title='MEC dry surface SON',save=False,extend='max',vcenter=1,norm2=False,grid=True)
-
-#===Seasonal Surface wet===
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[np.r_[335*24:366*24-1,1:59*24],:,:].mean(axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ambient surface DJF',save=False,extend='max',vcenter=1,norm2=False,grid=True)
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[59*24:152*24,:,:].mean(axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ambient surface MAM',save=False,extend='max',vcenter=1,norm2=False,grid=True)
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[152*24:244*24,:,:].mean(axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ambient surface JJA',save=False,extend='max',vcenter=1,norm2=False,grid=True)
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[244*24:335*24,:,:].mean(axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ambient surface SON',save=False,extend='max',vcenter=1,norm2=False,grid=True)
-
-#====Seasonal Surface relationship===
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[np.r_[335*24:366*24-1,1:59*24],:,:].mean(axis=0)/MEC_dry_surface[np.r_[335*24:366*24-1,1:59*24],:,:].mean(axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=bwr,title='MEC relation ambient dry DJF',save=False,extend='max',vcenter=1,norm2=True,grid=True)
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[59*24:152*24,:,:].mean(axis=0)/MEC_dry_surface[59*24:152*24,:,:].mean(axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=bwr,title='MEC relation ambient dry MAM',save=False,extend='max',vcenter=1,norm2=True,grid=True)
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[152*24:244*24,:,:].mean(axis=0)/MEC_dry_surface[152*24:244*24,:,:].mean(axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=bwr,title='MEC relation ambient dry JJA',save=False,extend='max',vcenter=1,norm2=True,grid=True)
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[244*24:335*24,:,:].mean(axis=0)/MEC_dry_surface[244*24:335*24,:,:].mean(axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=bwr,title='MEC relation ambient dry SON',save=False,extend='max',vcenter=1,norm2=True,grid=True)
 
 lat_cabauw=65
 lon_cabauw=38
-cabauw=pd.DataFrame()
-cabauw['MEC_dry']=MEC_dry_surface[:,lat_cabauw,lon_cabauw]
-cabauw['MEC_wet']=MEC_wet_surface[:,lat_cabauw,lon_cabauw]
-cabauw.index=pd.date_range(start='1/1/2008',end='31/12/2008 23:00:00',freq='h')
+MEC_series=pd.DataFrame()
+MEC_series['MEC_ec_cabauw']=MEC_ec[:,lat_cabauw,lon_cabauw]
+MEC_series['MEC_na_cabauw']=MEC_na[:,lat_cabauw,lon_cabauw]
+MEC_series['MEC_nh4a_cabauw']=MEC_nh4a[:,lat_cabauw,lon_cabauw]
+MEC_series['MEC_no3a_cabauw']=MEC_no3a[:,lat_cabauw,lon_cabauw]
+MEC_series['MEC_pom_cabauw']=MEC_pom[:,lat_cabauw,lon_cabauw]
+MEC_series['MEC_ppm_cabauw']=MEC_ppm[:,lat_cabauw,lon_cabauw]
+MEC_series['MEC_so4a_cabauw']=MEC_so4a[:,lat_cabauw,lon_cabauw]
+MEC_series['MEC_dust_cabauw']=MEC_dust[:,lat_cabauw,lon_cabauw]
+MEC_series['MEC_total_cabauw']=MEC_total[:,lat_cabauw,lon_cabauw]
 
-#==Time series monthly average===
-fig, ax = plt.subplots()
-cabauw[['MEC_dry','MEC_wet']].resample('M').mean().plot(ax=ax)
-ax.legend(['MEC surface dry','MEC surface ambient'])
-plt.savefig('./Figures/MEC_temporal_series.png',format='png', dpi=1000,bbox_inches = "tight")
+MEC_series['MEC_ec_domain']=MEC_ec.mean(axis=1).mean(axis=1)
+MEC_series['MEC_na_domain']=MEC_na.mean(axis=1).mean(axis=1)
+MEC_series['MEC_nh4a_domain']=MEC_nh4a.mean(axis=1).mean(axis=1)
+MEC_series['MEC_no3a_domain']=MEC_no3a.mean(axis=1).mean(axis=1)
+MEC_series['MEC_pom_domain']=MEC_pom.mean(axis=1).mean(axis=1)
+MEC_series['MEC_ppm_domain']=MEC_ppm.mean(axis=1).mean(axis=1)
+MEC_series['MEC_so4a_domain']=MEC_so4a.mean(axis=1).mean(axis=1)
+MEC_series['MEC_dust_domain']=MEC_dust.mean(axis=1).mean(axis=1)
+MEC_series['MEC_total_domain']=MEC_total.mean(axis=1).mean(axis=1)
 
-bins=np.arange(1,23)
-bins_label=['[0,1]','(1,2]','(2,3]','(3,4]','(4,5]','(5,6]','(6,7]','(7,8]','(8,9]','(9,10]','(10,11]','(11,12]','(12,13]','(13,14]','(14,15]','(15,16]','(16,17]','(17,18]','(18,19]','(19,20]','(21,22]','(22,23]']
+
+MEC_series['aod_ec_domain']=aod_ec_year.mean(axis=1).mean(axis=1)
+MEC_series['aod_na_domain']=aod_na_year.mean(axis=1).mean(axis=1)
+MEC_series['aod_nh4a_domain']=aod_nh4a_year.mean(axis=1).mean(axis=1)
+MEC_series['aod_no3a_domain']=aod_no3a_year.mean(axis=1).mean(axis=1)
+MEC_series['aod_pom_domain']=aod_pom_year.mean(axis=1).mean(axis=1)
+MEC_series['aod_ppm_domain']=aod_ppm_year.mean(axis=1).mean(axis=1)
+MEC_series['aod_so4a_domain']=aod_so4a_year.mean(axis=1).mean(axis=1)
+MEC_series['aod_dust_domain']=aod_dust_year.mean(axis=1).mean(axis=1)
+MEC_series['aod_total_domain']=aod_total_year.mean(axis=1).mean(axis=1)
+MEC_series['aod_sum_domain']=aod_sum_year.mean(axis=1).mean(axis=1)
+
+
+MEC_series['burden_ec_domain']=aod_ec_year.mean(axis=1).mean(axis=1)
+MEC_series['burden_na_domain']=burden_na_year.mean(axis=1).mean(axis=1)
+MEC_series['burden_nh4a_domain']=burden_nh4a_year.mean(axis=1).mean(axis=1)
+MEC_series['burden_no3a_domain']=burden_no3a_year.mean(axis=1).mean(axis=1)
+MEC_series['burden_pom_domain']=burden_pom_year.mean(axis=1).mean(axis=1)
+MEC_series['burden_ppm_domain']=burden_ppm_year.mean(axis=1).mean(axis=1)
+MEC_series['burden_so4a_domain']=burden_so4a_year.mean(axis=1).mean(axis=1)
+MEC_series['burden_dust_domain']=burden_dust_year.mean(axis=1).mean(axis=1)
+MEC_series['burden_total_domain']=burden_total_year.mean(axis=1).mean(axis=1)
+
+
+MEC_series.index=pd.date_range(start='1/1/2008',end='31/12/2008 23:00:00',freq='h')
+
+labels=['EC','pom',r'NH$_{4}$',r'NO$_{3}$','Na','ppm',r'SO$_{4}$','Dust','All','Sum']
+# #==Time series MEC monthly average===
 fig, ax = plt.subplots()
-cabauw['MEC_dry'].resample('D').mean().hist(bins=bins,rwidth = 0.7 , ax=ax)
-cabauw['MEC_wet'].resample('D').mean().hist(bins=bins,rwidth = 0.7 ,ax=ax,alpha=0.7)
-bins_labels(bins,bins_label, fontsize=10)
-ax.legend(['MEC surface dry','MEC surface ambient'])
-plt.xticks(rotation=90)
-ax.grid(False,axis='x')
-plt.savefig('./Figures/MEC_histogram.png',format='png', dpi=1000,bbox_inches = "tight")
+MEC_series[['MEC_ec_domain','MEC_pom_domain','MEC_nh4a_domain','MEC_no3a_domain','MEC_na_domain','MEC_ppm_domain','MEC_so4a_domain','MEC_dust_domain','MEC_total_domain',]].resample('M').mean().plot(ax=ax,linewidth=2,marker='s')
+ax.legend(labels,loc='upper center', bbox_to_anchor=(0.5, 1.15),ncol=5, fancybox=True, shadow=True)
+plt.rcParams['axes.titley'] = 1.13    # y is in axes-relative coordinates.
+plt.title(r'Average ambient MEC value m$^{2}$ g$^{-1}$')
+plt.savefig('./Figures/MEC_species_temporal_series.png',format='png', dpi=1000,bbox_inches = "tight")
+
+
+
+# #==Time series MEC monthly average===
+fig, ax = plt.subplots()
+MEC_series[['MEC_ec_cabauw','MEC_pom_cabauw','MEC_nh4a_cabauw','MEC_no3a_cabauw','MEC_na_cabauw','MEC_ppm_cabauw','MEC_so4a_cabauw','MEC_dust_cabauw','MEC_total_cabauw',]].resample('M').mean().plot(ax=ax,linewidth=2,marker='s')
+ax.legend(labels,loc='upper center', bbox_to_anchor=(0.5, 1.15),ncol=5, fancybox=True, shadow=True)
+plt.rcParams['axes.titley'] = 1.13    # y is in axes-relative coordinates.
+plt.title(r'Cabauw ambient MEC value m$^{2}$ g$^{-1}$')
+plt.savefig('./Figures/MEC_species_temporal_series_cabauw.png',format='png', dpi=1000,bbox_inches = "tight")
+
+
+# #==Time series aod monthly average===
+fig, ax = plt.subplots()
+MEC_series[['aod_ec_domain','aod_pom_domain','aod_nh4a_domain','aod_no3a_domain','aod_na_domain','aod_ppm_domain','aod_so4a_domain','aod_dust_domain','aod_total_domain','aod_sum_domain']].resample('M').mean().plot(ax=ax,linewidth=2,marker='s')
+ax.legend(labels,loc='upper center', bbox_to_anchor=(0.5, 1.15),ncol=5, fancybox=True, shadow=True)
+plt.rcParams['axes.titley'] = 1.13    # y is in axes-relative coordinates.
+plt.title(r'Average ambient AOD 563nm')
+plt.savefig('./Figures/aod_species_temporal_series.png',format='png', dpi=1000,bbox_inches = "tight")
+
+
+# #==Time series burden monthly average===
+fig, ax = plt.subplots()
+MEC_series[['burden_ec_domain','burden_pom_domain','burden_nh4a_domain','burden_no3a_domain','burden_na_domain','burden_ppm_domain','burden_so4a_domain','burden_dust_domain','burden_total_domain',]].resample('M').mean().plot(ax=ax,linewidth=2,marker='s')
+ax.legend(labels,loc='upper center', bbox_to_anchor=(0.5, 1.15),ncol=5, fancybox=True, shadow=True)
+plt.rcParams['axes.titley'] = 1.13    # y is in axes-relative coordinates.
+plt.title(r'Average burden g m$^{-2}$')
+plt.savefig('./Figures/burden_species_temporal_series.png',format='png', dpi=1000,bbox_inches = "tight")
+
+
+# #==Pie aod chart average===
+fig, ax = plt.subplots()
+
+explode=(0,0.5,0,0,0,0.5,0,0)
+MEC_series[['aod_ec_domain','aod_pom_domain','aod_nh4a_domain','aod_no3a_domain','aod_na_domain',
+            'aod_ppm_domain','aod_so4a_domain','aod_dust_domain']].mean().plot.pie(ax=ax,normalize=True,
+       labels=labels, wedgeprops={'linewidth': 2.0, 'edgecolor': 'white'}, textprops={'size': 13},
+       autopct='%.1f%%',pctdistance=0.6,labeldistance=1.1,explode=explode,counterclock=False,startangle=0)
+
+plt.rcParams['axes.titley'] = 1                                                                                                                                                                    
+plt.title('Ambient AOD 563nm composition',fontsize=12)
+plt.ylabel('')
+plt.savefig('./Figures/aod_species_composition.png',format='png', dpi=1000,bbox_inches = "tight")
+
+# #==Pie burden chart average===
+fig, ax = plt.subplots()
+labels=['EC','pom',r'NH$_{4}$',r'NO$_{3}$','Na','ppm',r'SO$_{4}$','Dust','All']
+explode=(0,0.5,0,0,0.2,0.5,0,0)
+h=MEC_series[['burden_ec_domain','burden_pom_domain','burden_nh4a_domain','burden_no3a_domain','burden_na_domain',
+            'burden_ppm_domain','burden_so4a_domain','burden_dust_domain']].mean().plot.pie(ax=ax,normalize=True,
+       labels=labels, wedgeprops={'linewidth': 2.0, 'edgecolor': 'white'}, textprops={'size': 13},
+       autopct='%.1f%%',pctdistance=0.6,labeldistance=1.1,explode=explode,counterclock=False,startangle=0)
+
+plt.rcParams['axes.titley'] = 1                                                                                                                                                              
+plt.title('Burden composition',fontsize=12)
+plt.ylabel('')
+plt.savefig('./Figures/burden_species_composition.png',format='png', dpi=1000,bbox_inches = "tight")
+

@@ -57,7 +57,7 @@ path_calipso='/Users/santiago/Documents/CALIPSO/2008/'
 onlyfiles = [f for f in listdir(path_calipso) if isfile(join(path_calipso, f))]
 onlyfiles.sort()
 
-orbit=630
+orbit=10
 
 calipso=Dataset(path_calipso+onlyfiles[orbit])
 calipso.set_auto_mask(False)
@@ -195,46 +195,46 @@ plt.show()
 # plt.show()
 
 
-# vmin=0
-# vmax=0.5
-# n_levels_plot=10
-# #cmap=viridis
-# cmap=RdYlGn.reversed()
-# biascorr=1
-# title='Orbit'
-# fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
-# levels = MaxNLocator(nbins=n_levels_plot).tick_values(vmin, vmax)
-# ax.set_facecolor((1, 1, 1))
-# norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
-# plt.scatter(lon, lat, 3 ,10*np.ones(lat.shape), 's',
-#                     transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax)
+vmin=0
+vmax=0.5
+n_levels_plot=10
+#cmap=viridis
+cmap=RdYlGn.reversed()
+biascorr=1
+title='Orbit'
+fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
+levels = MaxNLocator(nbins=n_levels_plot).tick_values(vmin, vmax)
+ax.set_facecolor((1, 1, 1))
+norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
+plt.scatter(lon, lat, 3 ,10*np.ones(lat.shape), 's',
+                    transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax)
 
-# european_borders=cfeature.NaturalEarthFeature(
-#           category='cultural',
-#           name='admin_0_countries',
-#           scale='50m',
-#           facecolor='none')
+european_borders=cfeature.NaturalEarthFeature(
+          category='cultural',
+          name='admin_0_countries',
+          scale='50m',
+          facecolor='none')
 
 
-# coastlines=cfeature.NaturalEarthFeature(
-#                   category='physical',
-#                   name='coastline',
-#                   scale='50m',
-#                   facecolor='none')
-# ax.add_feature(european_borders,edgecolor='black',linewidth=0.2)
-# ax.add_feature(coastlines,edgecolor='black',linewidth=1)
-# ax.stock_img()
-# plt.xlim(-15,35)
-# plt.ylim(35,70)
-# plt.title(title)
+coastlines=cfeature.NaturalEarthFeature(
+                  category='physical',
+                  name='coastline',
+                  scale='50m',
+                  facecolor='none')
+ax.add_feature(european_borders,edgecolor='black',linewidth=0.2)
+ax.add_feature(coastlines,edgecolor='black',linewidth=1)
+ax.stock_img()
+plt.xlim(-15,35)
+plt.ylim(35,70)
+plt.title(title)
         
-# # cax = fig.add_axes([ax.get_position().x1+0.02,
-# #          ax.get_position().y0+0.09,
-# #          0.08,
-# #          ax.get_position().height-0.2])
+# cax = fig.add_axes([ax.get_position().x1+0.02,
+#          ax.get_position().y0+0.09,
+#          0.08,
+#          ax.get_position().height-0.2])
 
-# #plt.colorbar(cax=cax,extend='both')
-# #plt.savefig('./Figures/'+title+'.png',format='png', dpi=1000,bbox_inches = "tight")
-# plt.show()
+#plt.colorbar(cax=cax,extend='both')
+#plt.savefig('./Figures/'+title+'.png',format='png', dpi=1000,bbox_inches = "tight")
+plt.show()
 
 

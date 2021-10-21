@@ -27,7 +27,7 @@ from matplotlib import cm
 
 #====Graph map===
 
-def graph_map(lon=0,lat=0,vmin=0,vmax=0.3,vcenter=0,n_levels_plot=20,cmap=1,variable=1,title='AOD',save=False,extend='max',norm2=False,grid=False):
+def graph_map(lon=0,lat=0,vmin=0,vmax=0.3,vcenter=0,n_levels_plot=20,cmap=1,variable=1,title='AOD',save=True,extend='max',norm2=False,grid=False):
     
 
     fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
@@ -113,7 +113,9 @@ gridded_dust_aod=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Compl
 
 
 gridded_LE=DataManager_GRIDDED('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_polder-aod-563_2008.nc')
-# gridded_LE.graph_map(variable='ys',biascorr=1,vmin=0,vmax=0.3,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',ini_period=86,end_period=266,date=False,save=True,title='LE AOD565 Apr-Sept')
+
+gridded_LE.graph_map(variable='ys',biascorr=1,vmin=0,vmax=0.3,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',ini_period=86,end_period=266,date=False,save=True,title='LE AOD565 Apr-Sept',orientation='horizontal')
+
 # gridded_LE.graph_map(variable='yr',biascorr=1,vmin=0,vmax=0.3,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',ini_period=86,end_period=266,date=False,save=True,title='POLDER AOD565 Apr-Sept')
     
 # gridded_LE.graph_map(variable='ys',biascorr=1,vmin=0,vmax=0.3,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='LE AOD565 Yearly')
@@ -208,38 +210,38 @@ lon=aod_dry_file.variables['lon'][:]
 lat=aod_dry_file.variables['lat'][:]
 
 #==MEC Dry===
-graph_map(lon=lon,lat=lat,variable=MEC_dry.mean(axis=0),vmin=0,vmax=3,n_levels_plot=20,cmap=viridis,title='MEC dry',save=False,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=MEC_dry.mean(axis=0),vmin=0,vmax=3,n_levels_plot=20,cmap=viridis,title='MEC dry',save=True,extend='max',grid=True)
 
 #==MEC ambient===
-graph_map(lon=lon,lat=lat,variable=MEC_wet.mean(axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ambient',save=False,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=MEC_wet.mean(axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ambient',save=True,extend='max',grid=True)
 
 #==MEC Surface Dry===
-graph_map(lon=lon,lat=lat,variable=MEC_dry_surface.mean(axis=0),vmin=0,vmax=3,n_levels_plot=20,cmap=viridis,title='MEC dry surface',save=False,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=MEC_dry_surface.mean(axis=0),vmin=0,vmax=3,n_levels_plot=20,cmap=viridis,title='MEC dry surface',save=True,extend='max',grid=True)
 
 #==MEC Surface ambient===
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface.mean(axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ambient surface',save=False,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=MEC_wet_surface.mean(axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ambient surface',save=True,extend='max',grid=True)
 
 #==MEC Surface ambient/dry===
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface.mean(axis=0)/MEC_dry_surface.mean(axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=bwr,title='MEC relation ambient dry',save=False,extend='max',vcenter=1,norm2=True,grid=True)
+graph_map(lon=lon,lat=lat,variable=MEC_wet_surface.mean(axis=0)/MEC_dry_surface.mean(axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=bwr,title='MEC relation ambient dry',save=True,extend='max',vcenter=1,norm2=True,grid=True)
 
 
 #===Seasonal Surface Dry===
-graph_map(lon=lon,lat=lat,variable=MEC_dry_surface[np.r_[335*24:366*24-1,1:59*24],:,:].mean(axis=0),vmin=0,vmax=3,n_levels_plot=20,cmap=viridis,title='MEC dry surface DJF',save=False,extend='max',vcenter=1,norm2=False,grid=True)
-graph_map(lon=lon,lat=lat,variable=MEC_dry_surface[59*24:152*24,:,:].mean(axis=0),vmin=0,vmax=3,n_levels_plot=20,cmap=viridis,title='MEC dry surface MAM',save=False,extend='max',vcenter=1,norm2=False,grid=True)
-graph_map(lon=lon,lat=lat,variable=MEC_dry_surface[152*24:244*24,:,:].mean(axis=0),vmin=0,vmax=3,n_levels_plot=20,cmap=viridis,title='MEC dry surface JJA',save=False,extend='max',vcenter=1,norm2=False,grid=True)
-graph_map(lon=lon,lat=lat,variable=MEC_dry_surface[244*24:335*24,:,:].mean(axis=0),vmin=0,vmax=3,n_levels_plot=20,cmap=viridis,title='MEC dry surface SON',save=False,extend='max',vcenter=1,norm2=False,grid=True)
+graph_map(lon=lon,lat=lat,variable=MEC_dry_surface[np.r_[335*24:366*24-1,1:59*24],:,:].mean(axis=0),vmin=0,vmax=3,n_levels_plot=20,cmap=viridis,title='MEC dry surface DJF',save=True,extend='max',vcenter=1,norm2=False,grid=True)
+graph_map(lon=lon,lat=lat,variable=MEC_dry_surface[59*24:152*24,:,:].mean(axis=0),vmin=0,vmax=3,n_levels_plot=20,cmap=viridis,title='MEC dry surface MAM',save=True,extend='max',vcenter=1,norm2=False,grid=True)
+graph_map(lon=lon,lat=lat,variable=MEC_dry_surface[152*24:244*24,:,:].mean(axis=0),vmin=0,vmax=3,n_levels_plot=20,cmap=viridis,title='MEC dry surface JJA',save=True,extend='max',vcenter=1,norm2=False,grid=True)
+graph_map(lon=lon,lat=lat,variable=MEC_dry_surface[244*24:335*24,:,:].mean(axis=0),vmin=0,vmax=3,n_levels_plot=20,cmap=viridis,title='MEC dry surface SON',save=True,extend='max',vcenter=1,norm2=False,grid=True)
 
 #===Seasonal Surface wet===
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[np.r_[335*24:366*24-1,1:59*24],:,:].mean(axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ambient surface DJF',save=False,extend='max',vcenter=1,norm2=False,grid=True)
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[59*24:152*24,:,:].mean(axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ambient surface MAM',save=False,extend='max',vcenter=1,norm2=False,grid=True)
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[152*24:244*24,:,:].mean(axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ambient surface JJA',save=False,extend='max',vcenter=1,norm2=False,grid=True)
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[244*24:335*24,:,:].mean(axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ambient surface SON',save=False,extend='max',vcenter=1,norm2=False,grid=True)
+graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[np.r_[335*24:366*24-1,1:59*24],:,:].mean(axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ambient surface DJF',save=True,extend='max',vcenter=1,norm2=False,grid=True)
+graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[59*24:152*24,:,:].mean(axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ambient surface MAM',save=True,extend='max',vcenter=1,norm2=False,grid=True)
+graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[152*24:244*24,:,:].mean(axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ambient surface JJA',save=True,extend='max',vcenter=1,norm2=False,grid=True)
+graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[244*24:335*24,:,:].mean(axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC ambient surface SON',save=True,extend='max',vcenter=1,norm2=False,grid=True)
 
 #====Seasonal Surface relationship===
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[np.r_[335*24:366*24-1,1:59*24],:,:].mean(axis=0)/MEC_dry_surface[np.r_[335*24:366*24-1,1:59*24],:,:].mean(axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=bwr,title='MEC relation ambient dry DJF',save=False,extend='max',vcenter=1,norm2=True,grid=True)
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[59*24:152*24,:,:].mean(axis=0)/MEC_dry_surface[59*24:152*24,:,:].mean(axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=bwr,title='MEC relation ambient dry MAM',save=False,extend='max',vcenter=1,norm2=True,grid=True)
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[152*24:244*24,:,:].mean(axis=0)/MEC_dry_surface[152*24:244*24,:,:].mean(axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=bwr,title='MEC relation ambient dry JJA',save=False,extend='max',vcenter=1,norm2=True,grid=True)
-graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[244*24:335*24,:,:].mean(axis=0)/MEC_dry_surface[244*24:335*24,:,:].mean(axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=bwr,title='MEC relation ambient dry SON',save=False,extend='max',vcenter=1,norm2=True,grid=True)
+graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[np.r_[335*24:366*24-1,1:59*24],:,:].mean(axis=0)/MEC_dry_surface[np.r_[335*24:366*24-1,1:59*24],:,:].mean(axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=bwr,title='MEC relation ambient dry DJF',save=True,extend='max',vcenter=1,norm2=True,grid=True)
+graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[59*24:152*24,:,:].mean(axis=0)/MEC_dry_surface[59*24:152*24,:,:].mean(axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=bwr,title='MEC relation ambient dry MAM',save=True,extend='max',vcenter=1,norm2=True,grid=True)
+graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[152*24:244*24,:,:].mean(axis=0)/MEC_dry_surface[152*24:244*24,:,:].mean(axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=bwr,title='MEC relation ambient dry JJA',save=True,extend='max',vcenter=1,norm2=True,grid=True)
+graph_map(lon=lon,lat=lat,variable=MEC_wet_surface[244*24:335*24,:,:].mean(axis=0)/MEC_dry_surface[244*24:335*24,:,:].mean(axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=bwr,title='MEC relation ambient dry SON',save=True,extend='max',vcenter=1,norm2=True,grid=True)
 
 lat_cabauw=65
 lon_cabauw=38

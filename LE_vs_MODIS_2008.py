@@ -51,7 +51,7 @@ gridded_aqua=DataManager_GRIDDED('/Users/santiago/Documents/LE_outputs/2008_Comp
 gridded_terra=DataManager_GRIDDED('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_modis-terra_2008.nc')
 gridded_polder=DataManager_GRIDDED('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_polder-aod-563_2008.nc')
 
-gridded_aqua.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='LE-Aqua AOD550')
+gridded_aqua.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=custom_ramp,type_graph='instant',time=100,date=True,save=True,title='LE-Aqua AOD550')
 gridded_aqua.graph_map(variable='yr',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='MODIS-Aqua AOD550')
 
 gridded_terra.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='LE-Terra AOD550')
