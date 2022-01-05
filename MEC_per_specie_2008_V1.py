@@ -105,9 +105,21 @@ LE_no3a=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_
 LE_pom=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_pom_aod_2008.nc')
 LE_ppm=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_ppm_aod_2008.nc')
 LE_so4a=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_so4a_aod_2008.nc')
-LE_dust=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dust_aod_2008.nc')
+#LE_dust=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dust_aod_2008.nc')
+LE_dust=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_amb_dust_2008.nc')
 LE_aod=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_aod_2008.nc')
 
+
+LE_ec_dry=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dry_ec_2008.nc')
+LE_na_dry=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dry_na_2008.nc')
+LE_nh4a_dry=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dry_nh4_2008.nc')
+LE_no3a_dry=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dry_no3_2008.nc')
+LE_pom_dry=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dry_pom_2008.nc')
+LE_ppm_dry=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dry_ppm_2008.nc')
+LE_so4a_dry=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dry_so4_2008.nc')
+#LE_dust_dry=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dry_dust_2008.nc')
+LE_dust_dry=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dry_dus_v2_2008.nc')
+LE_aod_dry=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dry_aod_2008.nc')
 
 
 
@@ -120,7 +132,20 @@ aod_ppm_year=LE_ppm.nc.variables['aod_563nm'][:,:,:] #Todo el ano
 aod_so4a_year=LE_so4a.nc.variables['aod_563nm'][:,:,:] #Todo el ano
 aod_dust_year=LE_dust.nc.variables['aod_563nm'][:,:,:] #Todo el ano
 aod_total_year=LE_aod.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+
+aod_ec_dry_year=LE_ec_dry.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+aod_na_dry_year=LE_na_dry.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+aod_nh4a_dry_year=LE_nh4a_dry.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+aod_no3a_dry_year=LE_no3a_dry.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+aod_pom_dry_year=LE_pom_dry.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+aod_ppm_dry_year=LE_ppm_dry.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+aod_so4a_dry_year=LE_so4a_dry.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+aod_dust_dry_year=LE_dust_dry.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+aod_total_dry_year=LE_aod_dry.nc.variables['aod_563nm'][:,:,:] #Todo el ano
+
 aod_sum_year=aod_ec_year+aod_na_year+aod_nh4a_year+aod_no3a_year+aod_pom_year+aod_ppm_year+aod_so4a_year+aod_dust_year
+aod_sum_dry_year=aod_ec_dry_year+aod_na_dry_year+aod_nh4a_dry_year+aod_no3a_dry_year+aod_pom_dry_year+aod_ppm_dry_year+aod_so4a_dry_year+aod_dust_dry_year
+
 
 h_file=Dataset('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_h_2008.nc')
 
@@ -234,6 +259,18 @@ MEC_dust=aod_dust_year/burden_dust_year
 MEC_total=aod_total_year/burden_total_year
 
 
+MEC_ec_dry=aod_ec_dry_year/burden_ec_year
+MEC_na_dry=aod_na_dry_year/burden_na_year
+MEC_nh4a_dry=aod_nh4a_dry_year/burden_nh4a_year
+MEC_no3a_dry=aod_no3a_dry_year/burden_no3a_year
+MEC_pom_dry=aod_pom_dry_year/burden_pom_year
+MEC_ppm_dry=aod_ppm_dry_year/burden_ppm_year
+MEC_so4a_dry=aod_so4a_dry_year/burden_so4a_year
+MEC_dust_dry=aod_dust_dry_year/burden_dust_year
+MEC_total_dry=aod_total_dry_year/burden_total_year
+
+
+
 MEC_ec[MEC_ec>20]=np.nan
 MEC_na[MEC_na>20]=np.nan
 MEC_nh4a[MEC_nh4a>20]=np.nan
@@ -242,6 +279,16 @@ MEC_pom[MEC_pom>20]=np.nan
 MEC_ppm[MEC_ppm>20]=np.nan
 MEC_dust[MEC_dust>20]=np.nan
 MEC_total[MEC_total>20]=np.nan
+
+
+MEC_ec_dry[MEC_ec_dry>20]=np.nan
+MEC_na_dry[MEC_na_dry>20]=np.nan
+MEC_nh4a_dry[MEC_nh4a_dry>20]=np.nan
+MEC_no3a_dry[MEC_no3a_dry>20]=np.nan
+MEC_pom_dry[MEC_pom_dry>20]=np.nan
+MEC_ppm_dry[MEC_ppm_dry>20]=np.nan
+MEC_dust_dry[MEC_dust_dry>20]=np.nan
+MEC_total_dry[MEC_total_dry>20]=np.nan
 
 lon=LE_ec.nc.variables['lon'][:]
 lat=LE_ec.nc.variables['lat'][:]
@@ -257,7 +304,22 @@ LE_so4a.graph_map(variable='aod_563nm',vmin=0,vmax=0.1,n_levels_plot=20,cmap=cus
 LE_dust.graph_map(variable='aod_563nm',vmin=0,vmax=0.1,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm Dust 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
 LE_aod.graph_map(variable='aod_563nm',vmin=0,vmax=0.3,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
 
-graph_map(lon=lon,lat=lat,variable=aod_sum_year.mean(axis=0),vmin=0,vmax=0.3,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm sum 2008',save=True,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=aod_total_year.mean(axis=0),vmin=0,vmax=0.3,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm sum 2008',save=True,extend='max',grid=True)
+
+
+#==aod per specie dry===
+LE_ec_dry.graph_map(variable='aod_563nm',vmin=0,vmax=0.1,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm EC Dry 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
+LE_na_dry.graph_map(variable='aod_563nm',vmin=0,vmax=0.1,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm Na Dry 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
+LE_nh4a_dry.graph_map(variable='aod_563nm',vmin=0,vmax=0.1,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm NH4 Dry 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
+LE_no3a_dry.graph_map(variable='aod_563nm',vmin=0,vmax=0.1,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm NO3 Dry 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
+LE_pom_dry.graph_map(variable='aod_563nm',vmin=0,vmax=0.1,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm pom Dry 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
+LE_ppm_dry.graph_map(variable='aod_563nm',vmin=0,vmax=0.1,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm ppm Dry 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
+LE_so4a_dry.graph_map(variable='aod_563nm',vmin=0,vmax=0.1,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm SO4 Dry 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
+LE_dust_dry.graph_map(variable='aod_563nm',vmin=0,vmax=0.1,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm Dust Dry 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
+LE_aod_dry.graph_map(variable='aod_563nm',vmin=0,vmax=0.3,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm Dry 2008',save=True,extend='max',grid=True,date=False,type_graph='mean')
+
+graph_map(lon=lon,lat=lat,variable=aod_total_dry_year.mean(axis=0),vmin=0,vmax=0.3,n_levels_plot=20,cmap=custom_ramp,title='AOD 563nm sum Dry 2008',save=True,extend='max',grid=True)
+
 
 #==MEC ambient===
 graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_ec,axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC EC ambient',save=True,extend='max',grid=True)
@@ -270,6 +332,19 @@ graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_so4a,axis=0),vmin=0,vmax=10,n_
 graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_dust,axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC Dust ambient',save=True,extend='max',grid=True)
 
 graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_total,axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC All ambient',save=False,extend='max',grid=True)
+
+#==MEC dry===
+graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_ec_dry,axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=viridis,title='MEC EC dry',save=True,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_na_dry,axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=viridis,title='MEC Na dry',save=True,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_nh4a_dry,axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=viridis,title='MEC NH4 dry',save=True,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_no3a_dry,axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=viridis,title='MEC NO3 dry',save=True,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_pom_dry,axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=viridis,title='MEC pom dry',save=True,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_ppm_dry,axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=viridis,title='MEC ppm dry',save=True,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_so4a_dry,axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=viridis,title='MEC SO4 dry',save=True,extend='max',grid=True)
+graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_dust_dry,axis=0),vmin=0,vmax=5,n_levels_plot=20,cmap=viridis,title='MEC Dust dry',save=True,extend='max',grid=True)
+
+graph_map(lon=lon,lat=lat,variable=np.nanmean(MEC_total_dry,axis=0),vmin=0,vmax=10,n_levels_plot=20,cmap=viridis,title='MEC All dry',save=False,extend='max',grid=True)
+
 
 
 lat_cabauw=65
@@ -285,6 +360,17 @@ MEC_series['MEC_so4a_cabauw']=MEC_so4a[:,lat_cabauw,lon_cabauw]
 MEC_series['MEC_dust_cabauw']=MEC_dust[:,lat_cabauw,lon_cabauw]
 MEC_series['MEC_total_cabauw']=MEC_total[:,lat_cabauw,lon_cabauw]
 
+MEC_series['MEC_ec_dry_cabauw']=MEC_ec_dry[:,lat_cabauw,lon_cabauw]
+MEC_series['MEC_na_dry_cabauw']=MEC_na_dry[:,lat_cabauw,lon_cabauw]
+MEC_series['MEC_nh4a_dry_cabauw']=MEC_nh4a_dry[:,lat_cabauw,lon_cabauw]
+MEC_series['MEC_no3a_dry_cabauw']=MEC_no3a_dry[:,lat_cabauw,lon_cabauw]
+MEC_series['MEC_pom_dry_cabauw']=MEC_pom_dry[:,lat_cabauw,lon_cabauw]
+MEC_series['MEC_ppm_dry_cabauw']=MEC_ppm_dry[:,lat_cabauw,lon_cabauw]
+MEC_series['MEC_so4a_dry_cabauw']=MEC_so4a_dry[:,lat_cabauw,lon_cabauw]
+MEC_series['MEC_dust_dry_cabauw']=MEC_dust_dry[:,lat_cabauw,lon_cabauw]
+MEC_series['MEC_total_dry_cabauw']=MEC_total_dry[:,lat_cabauw,lon_cabauw]
+
+
 MEC_series['MEC_ec_domain']=MEC_ec.mean(axis=1).mean(axis=1)
 MEC_series['MEC_na_domain']=MEC_na.mean(axis=1).mean(axis=1)
 MEC_series['MEC_nh4a_domain']=MEC_nh4a.mean(axis=1).mean(axis=1)
@@ -294,6 +380,16 @@ MEC_series['MEC_ppm_domain']=MEC_ppm.mean(axis=1).mean(axis=1)
 MEC_series['MEC_so4a_domain']=MEC_so4a.mean(axis=1).mean(axis=1)
 MEC_series['MEC_dust_domain']=MEC_dust.mean(axis=1).mean(axis=1)
 MEC_series['MEC_total_domain']=MEC_total.mean(axis=1).mean(axis=1)
+
+MEC_series['MEC_ec_dry_domain']=MEC_ec_dry.mean(axis=1).mean(axis=1)
+MEC_series['MEC_na_dry_domain']=MEC_na_dry.mean(axis=1).mean(axis=1)
+MEC_series['MEC_nh4a_dry_domain']=MEC_nh4a_dry.mean(axis=1).mean(axis=1)
+MEC_series['MEC_no3a_dry_domain']=MEC_no3a_dry.mean(axis=1).mean(axis=1)
+MEC_series['MEC_pom_dry_domain']=MEC_pom_dry.mean(axis=1).mean(axis=1)
+MEC_series['MEC_ppm_dry_domain']=MEC_ppm_dry.mean(axis=1).mean(axis=1)
+MEC_series['MEC_so4a_dry_domain']=MEC_so4a_dry.mean(axis=1).mean(axis=1)
+MEC_series['MEC_dust_dry_domain']=MEC_dust_dry.mean(axis=1).mean(axis=1)
+MEC_series['MEC_total_dry_domain']=MEC_total_dry.mean(axis=1).mean(axis=1)
 
 
 MEC_series['aod_ec_domain']=aod_ec_year.mean(axis=1).mean(axis=1)
@@ -307,8 +403,19 @@ MEC_series['aod_dust_domain']=aod_dust_year.mean(axis=1).mean(axis=1)
 MEC_series['aod_total_domain']=aod_total_year.mean(axis=1).mean(axis=1)
 MEC_series['aod_sum_domain']=aod_sum_year.mean(axis=1).mean(axis=1)
 
+MEC_series['aod_ec_dry_domain']=aod_ec_dry_year.mean(axis=1).mean(axis=1)
+MEC_series['aod_na_dry_domain']=aod_na_dry_year.mean(axis=1).mean(axis=1)
+MEC_series['aod_nh4a_dry_domain']=aod_nh4a_dry_year.mean(axis=1).mean(axis=1)
+MEC_series['aod_no3a_dry_domain']=aod_no3a_dry_year.mean(axis=1).mean(axis=1)
+MEC_series['aod_pom_dry_domain']=aod_pom_dry_year.mean(axis=1).mean(axis=1)
+MEC_series['aod_ppm_dry_domain']=aod_ppm_dry_year.mean(axis=1).mean(axis=1)
+MEC_series['aod_so4a_dry_domain']=aod_so4a_dry_year.mean(axis=1).mean(axis=1)
+MEC_series['aod_dust_dry_domain']=aod_dust_dry_year.mean(axis=1).mean(axis=1)
+MEC_series['aod_total_dry_domain']=aod_total_dry_year.mean(axis=1).mean(axis=1)
+MEC_series['aod_sum_dry_domain']=aod_sum_dry_year.mean(axis=1).mean(axis=1)
 
-MEC_series['burden_ec_domain']=aod_ec_year.mean(axis=1).mean(axis=1)
+
+MEC_series['burden_ec_domain']=burden_ec_year.mean(axis=1).mean(axis=1)
 MEC_series['burden_na_domain']=burden_na_year.mean(axis=1).mean(axis=1)
 MEC_series['burden_nh4a_domain']=burden_nh4a_year.mean(axis=1).mean(axis=1)
 MEC_series['burden_no3a_domain']=burden_no3a_year.mean(axis=1).mean(axis=1)
@@ -330,6 +437,13 @@ plt.rcParams['axes.titley'] = 1.13    # y is in axes-relative coordinates.
 plt.title(r'Average ambient MEC value m$^{2}$ g$^{-1}$')
 plt.savefig('./Figures/MEC_species_temporal_series.png',format='png', dpi=1000,bbox_inches = "tight")
 
+# #==Time series MEC Dry monthly average===
+fig, ax = plt.subplots()
+MEC_series[['MEC_ec_dry_domain','MEC_pom_dry_domain','MEC_nh4a_dry_domain','MEC_no3a_dry_domain','MEC_na_dry_domain','MEC_ppm_dry_domain','MEC_so4a_dry_domain','MEC_dust_dry_domain','MEC_total_dry_domain',]].resample('M').mean().plot(ax=ax,linewidth=2,marker='s')
+ax.legend(labels,loc='upper center', bbox_to_anchor=(0.5, 1.15),ncol=5, fancybox=True, shadow=True)
+plt.rcParams['axes.titley'] = 1.13    # y is in axes-relative coordinates.
+plt.title(r'Average dry MEC value m$^{2}$ g$^{-1}$')
+plt.savefig('./Figures/MEC_dry_species_temporal_series.png',format='png', dpi=1000,bbox_inches = "tight")
 
 
 # #==Time series MEC monthly average===
@@ -340,6 +454,14 @@ plt.rcParams['axes.titley'] = 1.13    # y is in axes-relative coordinates.
 plt.title(r'Cabauw ambient MEC value m$^{2}$ g$^{-1}$')
 plt.savefig('./Figures/MEC_species_temporal_series_cabauw.png',format='png', dpi=1000,bbox_inches = "tight")
 
+# #==Time series MEC monthly average===
+fig, ax = plt.subplots()
+MEC_series[['MEC_ec_dry_cabauw','MEC_pom_dry_cabauw','MEC_nh4a_dry_cabauw','MEC_no3a_dry_cabauw','MEC_na_dry_cabauw','MEC_ppm_dry_cabauw','MEC_so4a_dry_cabauw','MEC_dust_dry_cabauw','MEC_total_dry_cabauw',]].resample('M').mean().plot(ax=ax,linewidth=2,marker='s')
+ax.legend(labels,loc='upper center', bbox_to_anchor=(0.5, 1.15),ncol=5, fancybox=True, shadow=True)
+plt.rcParams['axes.titley'] = 1.13    # y is in axes-relative coordinates.
+plt.title(r'Cabauw dry MEC value m$^{2}$ g$^{-1}$')
+plt.savefig('./Figures/MEC_dry_species_temporal_series_cabauw.png',format='png', dpi=1000,bbox_inches = "tight")
+
 
 # #==Time series aod monthly average===
 fig, ax = plt.subplots()
@@ -348,6 +470,15 @@ ax.legend(labels,loc='upper center', bbox_to_anchor=(0.5, 1.15),ncol=5, fancybox
 plt.rcParams['axes.titley'] = 1.13    # y is in axes-relative coordinates.
 plt.title(r'Average ambient AOD 563nm')
 plt.savefig('./Figures/aod_species_temporal_series.png',format='png', dpi=1000,bbox_inches = "tight")
+
+# #==Time series dry aod monthly average===
+fig, ax = plt.subplots()
+MEC_series[['aod_ec_dry_domain','aod_pom_dry_domain','aod_nh4a_dry_domain','aod_no3a_dry_domain','aod_na_dry_domain','aod_ppm_dry_domain','aod_so4a_dry_domain','aod_dust_dry_domain','aod_total_dry_domain','aod_sum_dry_domain']].resample('M').mean().plot(ax=ax,linewidth=2,marker='s')
+ax.legend(labels,loc='upper center', bbox_to_anchor=(0.5, 1.15),ncol=5, fancybox=True, shadow=True)
+plt.rcParams['axes.titley'] = 1.13    # y is in axes-relative coordinates.
+plt.title(r'Average dry AOD 563nm')
+plt.savefig('./Figures/aod_dry_species_temporal_series.png',format='png', dpi=1000,bbox_inches = "tight")
+
 
 
 # #==Time series burden monthly average===
@@ -373,6 +504,21 @@ plt.title('Ambient AOD 563nm composition',fontsize=12)
 plt.ylabel('')
 plt.savefig('./Figures/aod_species_composition.png',format='png', dpi=1000,bbox_inches = "tight")
 
+# #==Pie aod dry chart average===
+fig, ax = plt.subplots()
+
+explode=(0,0.5,0,0,0,0.5,0,0)
+MEC_series[['aod_ec_dry_domain','aod_pom_dry_domain','aod_nh4a_dry_domain','aod_no3a_dry_domain','aod_na_dry_domain',
+            'aod_ppm_dry_domain','aod_so4a_dry_domain','aod_dust_dry_domain']].mean().plot.pie(ax=ax,normalize=True,
+       labels=labels, wedgeprops={'linewidth': 2.0, 'edgecolor': 'white'}, textprops={'size': 13},
+       autopct='%.1f%%',pctdistance=0.6,labeldistance=1.1,explode=explode,counterclock=False,startangle=0)
+
+plt.rcParams['axes.titley'] = 1                                                                                                                                                                    
+plt.title('Dry AOD 563nm composition',fontsize=12)
+plt.ylabel('')
+plt.savefig('./Figures/aod_dry_species_composition.png',format='png', dpi=1000,bbox_inches = "tight")
+
+
 # #==Pie burden chart average===
 fig, ax = plt.subplots()
 labels=['EC','pom',r'NH$_{4}$',r'NO$_{3}$','Na','ppm',r'SO$_{4}$','Dust','All']
@@ -386,4 +532,11 @@ plt.rcParams['axes.titley'] = 1
 plt.title('Burden composition',fontsize=12)
 plt.ylabel('')
 plt.savefig('./Figures/burden_species_composition.png',format='png', dpi=1000,bbox_inches = "tight")
+
+
+
+# fig, ax = plt.subplots(2)
+# MEC_series[['aod_dust_dry_domain']].resample('D').mean().plot(ax=ax[0],linewidth=2,marker='s')
+# MEC_series[['aod_dust_domain']].resample('D').mean().plot(ax=ax[1],linewidth=2,marker='s')
+# plt.savefig('./Figures/AOD_Dust_dry_vs_ambient.png',format='png', dpi=1000,bbox_inches = "tight")
 

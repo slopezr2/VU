@@ -75,7 +75,7 @@ qc=qc[:,:344,0]
 column2=np.flip(calipso.variables['Extinction_Coefficient_532'][:],1) 
 column2=column2[:,:344]#To take just the troposphere
 #column2=np.ma.masked_array(column2, mask=((column2<=0)|(column2>1)| (CAD>-80) | (qs>column2*0.50)| ((qc!=1) & (qc!=0))))
-column2=np.ma.masked_array(column2, mask=((column2<=0)|(column2>1)| (CAD>-80) | (qs>column2*0.99)))
+column2=np.ma.masked_array(column2, mask=((column2<=0)|(column2>1)| (CAD>-80)| (CAD<-100) | (qs>column2*0.99)))
 #column2=np.ma.masked_array(column2, mask=((column2<=0)|(column2>1.25)))
 
 column=column2.data.copy()

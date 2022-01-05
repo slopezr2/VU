@@ -96,6 +96,7 @@ oranges=cm.get_cmap('Oranges', 256)
 bwr=cm.get_cmap('bwr', 256)
 
 aod_dry_file=Dataset('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dry_aod_2008.nc')
+
 tau_dry_file=Dataset('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dry_tau_2008.nc')
 aod_dry_datamanager=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dry_aod_2008.nc')
 
@@ -103,6 +104,8 @@ aod_wet_file=Dataset('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_aod_
 tau_wet_file=Dataset('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_wet_tau_2008.nc')
 aod_wet_datamanager=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_aod_2008.nc')
 
+rh_datamanager=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_rh_2008.nc')
+orography_datamager=DataManager_LE('/Users/santiago/Documents/LE_outputs/LE_Orography_meteo_20080101.nc')
 
 
 h_file=Dataset('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_h_2008.nc')
@@ -133,11 +136,11 @@ depo_year=np.squeeze(np.nanmean(gridded_drydepo.nc.variables['tpm10_dflux'][:],a
 aod_dry_year=aod_dry_file.variables['aod_563nm'][:,:,:] #Todo el ano
 aod_wet_year=aod_wet_file.variables['aod_563nm'][:,:,:] #Todo el ano
 
-
 tau_dry_year=tau_dry_file.variables['tau_563nm'][:,0,:,:] #Todo el ano
 tau_wet_year=tau_wet_file.variables['tau_563nm'][:,0,:,:] #Todo el ano
 
-
+rh_year=rh_datamanager.nc.variables['rhumid'][:,0,:,:]
+orography=orography_datamager.nc.variables['oro'][:,:]
 i=0
 burden_year=[]
 burden_surface_year=[]
@@ -201,6 +204,7 @@ burden_surface_year=burden_surface_year*1e3
 
 
 MEC_dry=aod_dry_year/burden_year
+
 MEC_wet=aod_wet_year/burden_year
 
 MEC_dry_surface=tau_dry_year/burden_surface_year
@@ -266,3 +270,62 @@ ax.legend(['MEC surface dry','MEC surface ambient'])
 plt.xticks(rotation=90)
 ax.grid(False,axis='x')
 plt.savefig('./Figures/MEC_histogram.png',format='png', dpi=1000,bbox_inches = "tight")
+
+
+
+#===Scatterplot MEC diff vs RH per altitude
+MEC_rel_DJF=MEC_wet_surface[np.r_[335*24:366*24-1,1:59*24],:,:].mean(axis=0)/MEC_dry_surface[np.r_[335*24:366*24-1,1:59*24],:,:].mean(axis=0)
+MEC_rel_MAM=MEC_wet_surface[59*24:152*24,:,:].mean(axis=0)/MEC_dry_surface[59*24:152*24,:,:].mean(axis=0)
+MEC_rel_JJA=MEC_wet_surface[152*24:244*24,:,:].mean(axis=0)/MEC_dry_surface[152*24:244*24,:,:].mean(axis=0)
+MEC_rel_SON=MEC_wet_surface[244*24:335*24,:,:].mean(axis=0)/MEC_dry_surface[244*24:335*24,:,:].mean(axis=0)
+
+fig, ax = plt.subplots()
+ax.scatter(MEC_rel_DJF[orography<1000],rh_year.mean(axis=0)[orography<1000],label='Altitude < 1000 m')
+ax.scatter(MEC_rel_DJF[orography>=1000],rh_year.mean(axis=0)[orography>=1000],label='Altitude >= 1000 m')
+ax.legend()
+ax.set_ylabel('Relative Humidity')
+ax.set_xlabel('MEC surface')
+plt.savefig('./Figures/MEC_vs_RH_DJF.png',format='png', dpi=300,bbox_inches = "tight")
+
+fig, ax = plt.subplots()
+ax.scatter(MEC_rel_MAM[orography<1000],rh_year.mean(axis=0)[orography<1000],label='Altitude < 1000 m')
+ax.scatter(MEC_rel_MAM[orography>=1000],rh_year.mean(axis=0)[orography>=1000],label='Altitude >= 1000 m')
+ax.legend()
+ax.set_ylabel('Relative Humidity')
+ax.set_xlabel('MEC surface')
+plt.savefig('./Figures/MEC_vs_RH_MAM.png',format='png', dpi=300,bbox_inches = "tight")
+
+
+fig, ax = plt.subplots()
+ax.scatter(MEC_rel_JJA[orography<1000],rh_year.mean(axis=0)[orography<1000],label='Altitude < 1000 m')
+ax.scatter(MEC_rel_JJA[orography>=1000],rh_year.mean(axis=0)[orography>=1000],label='Altitude >= 1000 m')
+ax.legend()
+ax.set_ylabel('Relative Humidity')
+ax.set_xlabel('MEC surface')
+plt.savefig('./Figures/MEC_vs_RH_JJA.png',format='png', dpi=300,bbox_inches = "tight")
+
+
+fig, ax = plt.subplots()
+ax.scatter(MEC_rel_SON[orography<1000],rh_year.mean(axis=0)[orography<1000],label='Altitude < 1000 m')
+ax.scatter(MEC_rel_SON[orography>=1000],rh_year.mean(axis=0)[orography>=1000],label='Altitude >= 1000 m')
+ax.legend()
+ax.set_ylabel('Relative Humidity')
+ax.set_xlabel('MEC surface')
+plt.savefig('./Figures/MEC_vs_RH_SON.png',format='png', dpi=300,bbox_inches = "tight")
+
+
+df=pd.DataFrame()
+df['rh']=rh_year[:,lat_cabauw,lon_cabauw]
+df.index=pd.date_range(start='1/1/2008',end='31/12/2008 23:00:00',freq='h')
+
+fig, ax = plt.subplots()
+df['rh'].resample('M').mean().plot(ax=ax,linewidth=3,marker='s')
+ax.set_ylabel('Relative Humidity [%]')
+plt.savefig('./Figures/RH_cabauw_series.png',format='png', dpi=300,bbox_inches = "tight")
+
+
+
+fig, ax = plt.subplots()
+ax.scatter(rh_year.mean(axis=0),orography)
+
+

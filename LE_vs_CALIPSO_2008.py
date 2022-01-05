@@ -46,7 +46,7 @@ def make_Ramp( ramp_colors ):
 
 custom_ramp = make_Ramp( ["#ffffff","#aec8e0","#9dafb2","#e2b85f","#f0ae46","#ea9842","#d36f2b","#a04617","#6c423d"] ) 
 
-gridded_calipso=DataManager_GRIDDED('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_calipso_V6_2008_gridded.nc')
+gridded_calipso=DataManager_GRIDDED('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_calipso_V8_2008_gridded.nc')
 
 calipso=np.ma.masked_invalid(gridded_calipso.nc.variables['yr'][:,:,:,:-1])
 le=np.ma.masked_invalid(gridded_calipso.nc.variables['ys'][:])
@@ -57,12 +57,12 @@ le_mean=le.mean()
 
 
 
-# gridded_calipso.transversal(variable='ys',biascorr=1, extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=3e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction LE 1',direction='row',position=10,extend='max',cut=True,normalize=True)
-# gridded_calipso.transversal(variable='ys',biascorr=1, extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=3e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction LE 2',direction='row',position=40,extend='max',cut=True,normalize=True)
-# gridded_calipso.transversal(variable='ys',biascorr=1, extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=3e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction LE 3',direction='row',position=90,extend='max',cut=True,normalize=True)
-# gridded_calipso.transversal(variable='yr',biascorr=1, extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=3e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction CALIPSO 1',direction='row',position=10,extend='max',cut=False)
-# gridded_calipso.transversal(variable='yr',biascorr=1, extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=3e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction CALIPSO 2',direction='row',position=40,extend='max',cut=False)
-# gridded_calipso.transversal(variable='yr',biascorr=1, extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=3e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction CALIPSO 3',direction='row',position=90,extend='max',cut=False)
+# gridded_calipso.transversal(variable='ys',biascorr=1, extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=1e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction LE 1',direction='row',position=10,extend='max',cut=True,normalize=True)
+# gridded_calipso.transversal(variable='ys',biascorr=1, extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=1e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction LE 2',direction='row',position=40,extend='max',cut=True,normalize=True)
+# gridded_calipso.transversal(variable='ys',biascorr=1, extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=1e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction LE 3',direction='row',position=90,extend='max',cut=True,normalize=True)
+# gridded_calipso.transversal(variable='yr',biascorr=1, extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=1e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction CALIPSO 1',direction='row',position=10,extend='max',cut=False)
+# gridded_calipso.transversal(variable='yr',biascorr=1, extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=1e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction CALIPSO 2',direction='row',position=40,extend='max',cut=False)
+# gridded_calipso.transversal(variable='yr',biascorr=1, extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=1e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction CALIPSO 3',direction='row',position=90,extend='max',cut=False)
 
 # gridded_calipso.transversal(variable='ys',biascorr=1,extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=3e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction LE 4',direction='col',position=30,extend='max',cut=True,normalize=True)
 # gridded_calipso.transversal(variable='ys',biascorr=1,extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=3e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction LE 5',direction='col',position=80,extend='max',cut=True,normalize=True)
@@ -88,7 +88,7 @@ path_calipso='/Users/santiago/Documents/CALIPSO/2008/'
 onlyfiles = [f for f in listdir(path_calipso) if isfile(join(path_calipso, f))]
 onlyfiles.sort()
 
-n=len(onlyfiles[1:200])
+n=len(onlyfiles[1:-1])
 
 calipso_raw=np.zeros([344,n])
 for orbit in range(1,n):
@@ -108,15 +108,19 @@ for orbit in range(1,n):
 
     column2=np.flip(calipso.variables['Extinction_Coefficient_532'][:],1) 
     column2=column2[:,:344]#To take just the troposphere
-    column2=np.ma.masked_array(column2, mask=((column2<=0)|(column2>1)| (CAD>-80) | (qs>column2*0.50)| ((qc!=1) & (qc!=0))))
+    column2=np.ma.masked_array(column2, mask=((column2<=0)|(column2>1.26)| (CAD>-80) | (CAD<-100) | (qs>column2*0.50)| ((qc!=1) & (qc!=0))))
     #column2=np.ma.masked_array(column2, mask=((column2<=0)|(column2>1)| (CAD>-80) | (qs>column2*0.99)))
     #column2=np.ma.masked_array(column2, mask=((column2<=0)|(column2>1.25)))
     calipso_raw[:,orbit]=np.nanmean(column2,axis=0)
 
 
 calipso_profile_raw=np.zeros([calipso_raw.shape[0]])
+calipso_profile_raw_zero=np.zeros([calipso_raw.shape[0]])
+calipso_raw2=calipso_raw.copy()
+calipso_raw2[np.isnan(calipso_raw2)]=0
 for i in range(calipso_raw.shape[0]):
-    if (np.count_nonzero(~np.isnan(calipso_raw[i,:]))>100):
+    #if (np.count_nonzero(~np.isnan(calipso_raw[i,:]))>100):
+        calipso_profile_raw_zero[i]=np.nanmean(calipso_raw2[i,:])
         calipso_profile_raw[i]=np.nanmean(calipso_raw[i,:])
 
 
@@ -125,42 +129,72 @@ orography=orography.variables['oro'][:]
 
 #calipso_2=calipso.data
 #calipso_2[calipso_2>100]=0
-calipso_yearly=np.nanmean(calipso_raw,axis=0)
+#calipso_yearly=np.nanmean(calipso_raw,axis=0)
 
-calipso_surface=np.zeros(calipso_yearly.shape)
-calipso_surface[calipso_surface==0]=np.nan
-nx=calipso_yearly.shape[0]
-ny=calipso_yearly.shape[1]
-nz=calipso_yearly.shape[2]
-layer_meters=1000
+#calipso_surface=np.zeros(calipso_yearly.shape)
+#calipso_surface[calipso_surface==0]=np.nan
+#nx=calipso_yearly.shape[0]
+#ny=calipso_yearly.shape[1]
+#nz=calipso_yearly.shape[2]
+#layer_meters=1000
 
-for i in range(nx):
-    for j in range(ny):
-        for l in range(nz):
-            altitude=l*layer_meters+layer_meters/2 - orography[i,j]; #Mean altitude layer
-            if altitude>-300:
-                indice=int(altitude//layer_meters)
-                indice=max(0,indice)
-                calipso_surface[i,j,indice]=calipso_yearly[i,j,l]
+#for i in range(nx):
+#    for j in range(ny):
+#        for l in range(nz):
+#            altitude=l*layer_meters+layer_meters/2 - orography[i,j]; #Mean altitude layer
+#            if altitude>-300:
+#                indice=int(altitude//layer_meters)
+#                indice=max(0,indice)
+#                calipso_surface[i,j,indice]=calipso_yearly[i,j,l]
 
 
 #calipso_surface[np.isnan(calipso_surface)]=0
-le=le*calipso_mean/le_mean
+#le=le*calipso_mean/le_mean
 le=le*le_mean/calipso_mean
-calipso_profile_surface=np.nanmean(np.nanmean(calipso_surface,axis=0),axis=0)
+#calipso_profile_surface=np.nanmean(np.nanmean(calipso_surface,axis=0),axis=0)
 calipso_profile=np.nanmean(np.nanmean(np.nanmean(calipso,axis=0),axis=0),axis=0)
 le_profile=np.nanmean(np.nanmean(np.nanmean(le,axis=0),axis=0),axis=0)
 
+valid_obs=np.zeros(calipso_raw.shape[0])
+for i in range(calipso_raw.shape[0]):
+    valid_obs[i]=np.count_nonzero(~np.isnan(calipso_raw[i,:]))
+
+
 y=np.arange(0,20)
-y1=np.arange(0,calipso_profile_raw.shape[0])*60/1000-0.5
+y1=np.arange(0,calipso_raw.shape[0])*60/1000-0.5
 fig, ax = plt.subplots()
-#ax.plot(le_profile*1000,y,'*-',label='LOTOS-EUROS',linewidth=3)
-ax.plot(calipso_profile_raw,y1,'s-',label='CALIOP',linewidth=3)
+ax.plot(le_profile*1000,y,'*-',label='LOTOS-EUROS',linewidth=3)
+ax.plot(calipso_profile*10000000,y,'-',label='CALIOP',linewidth=1)
+# ax.plot(calipso_profile_raw,y1,'-',label='CALIOP',linewidth=1)
+# ax.plot(calipso_profile_raw_zero,y1,'-',label='CALIOP nan zero',linewidth=1)
 ax.ticklabel_format(axis='x', style='sci', scilimits=(1,4))
 ax.legend()
 ax.set_xlabel(r'Extinction Coefficient [km$^{-1}$]',fontsize=12)
-ax.set_ylabel(r'Altitud [km]',fontsize=12)
-ax.set_ylim([0,20])
-#ax.set_xlim([0,1.5e-1])
-#plt.savefig('./Figures/Average_AEC_profile.png',format='png', dpi=1000,bbox_inches = "tight")
+ax.set_ylabel(r'Altitude [km]',fontsize=12)
+# #ax.set_ylim([0,5])
+# #ax.set_xlim([0,1.75e-1])
+# plt.savefig('./Figures/Average_AEC_profile.png',format='png', dpi=1000,bbox_inches = "tight")
+plt.show()
+
+fig, ax = plt.subplots()
+ax.plot(valid_obs,y1,'*-',label='N',linewidth=3)
+ax.ticklabel_format(axis='x', style='sci', scilimits=(1,4))
+#ax.legend()
+ax.set_xlabel(r'Number of observations',fontsize=12)
+ax.set_ylabel(r'Altitude [km]',fontsize=12)
+ax.set_ylim([-0.5,20])
+# #ax.set_xlim([0,1.75e-1])
+plt.savefig('./Figures/Calipso_number_observations_profile.png',format='png', dpi=1000,bbox_inches = "tight")
+plt.show()
+
+fig, ax = plt.subplots()
+ax.plot(calipso_profile_raw,y1,'-',label='Calipso raw',linewidth=3)
+ax.plot(calipso_profile_raw_zero,y1,'-',label='Calipso zero raw',linewidth=3)
+ax.ticklabel_format(axis='x', style='sci', scilimits=(1,4))
+ax.legend()
+ax.set_xlabel(r'Extinction Coefficient [km$^{-1}$]',fontsize=12)
+ax.set_ylabel(r'Altitude [km]',fontsize=12)
+ax.set_ylim([-0.5,20])
+# #ax.set_xlim([0,1.75e-1])
+plt.savefig('./Figures/Average_AEC_profile.png',format='png', dpi=1000,bbox_inches = "tight")
 plt.show()

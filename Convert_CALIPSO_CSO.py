@@ -46,7 +46,7 @@ for file_name in onlyfiles[:]:
         AEC_2=np.flip(calipso.variables['Extinction_Coefficient_532'][:],1)
         AEC_2=AEC_2[:,:344]
         #AEC_calipso_aux=np.ma.masked_array(AEC_calipso_aux, mask=((AEC_calipso_aux<=0)|(AEC_calipso_aux>1.25)))
-        AEC_calipso_aux=np.ma.masked_array(AEC_calipso_aux, mask=((AEC_calipso_aux<=0)|(AEC_calipso_aux>1)| (CAD>-80)| (qs>AEC_calipso_aux*0.50) | ((qc!=1) & (qc!=0)) ))
+        AEC_calipso_aux=np.ma.masked_array(AEC_calipso_aux, mask=((AEC_calipso_aux<=0)|(AEC_calipso_aux>1)| (CAD>-80)|(CAD<-100)| (qs>AEC_calipso_aux*0.50) | ((qc!=1) & (qc!=0)) ))
         AEC_sa=AEC_calipso_aux
         AEC_calipso_aux=AEC_calipso_aux/1000
         
@@ -63,6 +63,9 @@ for file_name in onlyfiles[:]:
         inter_levels=17
         AEC_calipso=np.zeros([AEC_calipso_aux.shape[0],AEC_calipso_aux.shape[1]//inter_levels+1])
         pressure_calipso=np.zeros([pressure_calipso_aux.shape[0],pressure_calipso_aux.shape[1]//inter_levels+1])
+        
+        AEC_calipso_aux[AEC_calipso_aux.mask==True]=0
+        AEC_calipso_aux=AEC_calipso_aux.data
         
         for i in range(AEC_calipso.shape[0]):
             AEC_calipso[i,:]= pd.Series(AEC_calipso_aux[i,:]).groupby(pd.Series(AEC_calipso_aux[i,:]).index//inter_levels).mean().to_numpy()

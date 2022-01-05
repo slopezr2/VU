@@ -29,7 +29,7 @@ from cartopy.feature import ShapelyFeature
 def moving_average(x, w):
     return np.convolve(x, np.ones(w), 'valid') / w
 
-def graph_map(lon=0,lat=0,vmin=0,vmax=0.3,date=True,vcenter=0,date_plot='',level=0,n_levels_plot=20,cmap=1,variable=1,variable_title='',title='default',title_on=True,save=False,extend='max',norm2=False,grid=False,ocean=False, orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],shape_file=False,shape_name=''):
+def graph_map(lon=0,lat=0,vmin=0,vmax=0.3,date=True,vcenter=0,date_plot='',level=0,n_levels_plot=20,cmap=1,variable=1,variable_title='',title='default',title_on=True,save=False,extend='max',norm2=False,grid=False,ocean=False, orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],shape_file=False,shape_name='',units='',dpi=1000):
     
     fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
     levels = MaxNLocator(nbins=n_levels_plot).tick_values(vmin, vmax)
@@ -95,20 +95,28 @@ def graph_map(lon=0,lat=0,vmin=0,vmax=0.3,date=True,vcenter=0,date_plot='',level
                  0.08,
                  ax.get_position().height-0.2])
     elif orientation=='horizontal':
+        if units=='':
+            deltay=0.12
+        else:
+            deltay=0.18
         cax = fig.add_axes([ax.get_position().x0,
-                 ax.get_position().y0-0.12,
+                 ax.get_position().y0-deltay,
                  ax.get_position().width+0.02,
                  0.05])
     
     cbar=plt.colorbar(cax=cax,extend=extend,orientation=orientation)
     cbar.formatter.set_powerlimits((-3, 4))
     cbar.update_ticks()
+
+    cbar.ax.set_title(units, y=1.05, x=0.5, rotation=0)
+    
+    
     
     if save==True:
         if date==True:
-            plt.savefig('./Figures/'+title_plot+'.png',format='png', dpi=1000,bbox_inches = "tight")
+            plt.savefig('./Figures/'+title_plot+'.png',format='png', dpi=dpi,bbox_inches = "tight")
         else:
-            plt.savefig('./Figures/'+title+'.png',format='png', dpi=1000,bbox_inches = "tight")
+            plt.savefig('./Figures/'+title+'.png',format='png', dpi=dpi,bbox_inches = "tight")
                    
     plt.show()
 
@@ -119,7 +127,7 @@ class DataManager_LE:
    def __init__(self,file):
         self.nc = Dataset(file, "r", format="NETCDF4")
         
-   def graph_map(self,biascorr=1,variable='aod_550nm',time=0,sum_level=False,level=1,vmin=0, vmax=1,vcenter=0.5,norm2=False, n_levels_plot=10,cmap='Oranges', date=True,title='default',title_on=True,type_graph='instant',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',grid=False,orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],shape_file=False,shape_name=''):     
+   def graph_map(self,biascorr=1,variable='aod_550nm',time=0,sum_level=False,level=1,vmin=0, vmax=1,vcenter=0.5,norm2=False, n_levels_plot=10,cmap='Oranges', date=True,title='default',title_on=True,type_graph='instant',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',grid=False,orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],shape_file=False,shape_name='',units='',dpi=1000):     
        
        if 'lon' in self.nc.variables.keys():
            lon=self.nc.variables['lon'][:]
@@ -177,7 +185,7 @@ class DataManager_LE:
            date_plot=date_plot_ini+' - '+date_plot_end
            
            
-       graph_map(lon=lon,lat=lat,vmin=vmin,vmax=vmax,vcenter=vcenter,n_levels_plot=n_levels_plot,date=date,date_plot=date_plot,title_on=title_on,cmap=cmap,variable_title=variable,variable=var_graph,title=title,save=save,extend=extend,norm2=norm2,grid=grid,ocean=ocean, orientation=orientation,lat_lim=lat_lim,lon_lim=lon_lim,subdomain=subdomain,ocean_color=ocean_color,shape_file=shape_file,shape_name=shape_name)
+       graph_map(lon=lon,lat=lat,vmin=vmin,vmax=vmax,vcenter=vcenter,n_levels_plot=n_levels_plot,date=date,date_plot=date_plot,title_on=title_on,cmap=cmap,variable_title=variable,variable=var_graph,title=title,save=save,extend=extend,norm2=norm2,grid=grid,ocean=ocean, orientation=orientation,lat_lim=lat_lim,lon_lim=lon_lim,subdomain=subdomain,ocean_color=ocean_color,shape_file=shape_file,shape_name=shape_name,units=units,dpi=dpi)
            
        
        
@@ -262,7 +270,7 @@ class DataManager_GRIDDED:
        plt.show()
 
        return aod_sat,aod_le
-   def graph_map(self,biascorr=1,variable='aod_550nm',level=0,facecolor=(0.6,0.6,0.6),time=100,vmin=0, vcenter=0.5,vmax=1,norm2=False, n_levels_plot=10,cmap='Oranges', date=True,title='default',title_on=True,type_graph='instant',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',grid=False,orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],shape_file=False,shape_name=''):     
+   def graph_map(self,biascorr=1,variable='aod_550nm',level=0,facecolor=(0.6,0.6,0.6),time=100,vmin=0, vcenter=0.5,vmax=1,norm2=False, n_levels_plot=10,cmap='Oranges', date=True,title='default',title_on=True,type_graph='instant',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',grid=False,orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],shape_file=False,shape_name='',units='',dpi=1000):     
        
        if 'lon' in self.nc.variables.keys():
            lon=self.nc.variables['lon'][:]
@@ -313,7 +321,7 @@ class DataManager_GRIDDED:
            date_plot_end=date_plot_end.strftime("%d-%b-%Y")
            
            date_plot=date_plot_ini+' - '+date_plot_end
-       graph_map(lon=lon,lat=lat,vmin=vmin,vmax=vmax,vcenter=vcenter,n_levels_plot=n_levels_plot,date=date,date_plot=date_plot,title_on=title_on,cmap=cmap,variable_title=variable,variable=var_graph,title=title,save=save,extend=extend,norm2=norm2,grid=grid,ocean=ocean, orientation=orientation,lat_lim=lat_lim,lon_lim=lon_lim,subdomain=subdomain,ocean_color=ocean_color,shape_file=shape_file,shape_name=shape_name)
+       graph_map(lon=lon,lat=lat,vmin=vmin,vmax=vmax,vcenter=vcenter,n_levels_plot=n_levels_plot,date=date,date_plot=date_plot,title_on=title_on,cmap=cmap,variable_title=variable,variable=var_graph,title=title,save=save,extend=extend,norm2=norm2,grid=grid,ocean=ocean, orientation=orientation,lat_lim=lat_lim,lon_lim=lon_lim,subdomain=subdomain,ocean_color=ocean_color,shape_file=shape_file,shape_name=shape_name,units=units,dpi=dpi)
            
        
    
