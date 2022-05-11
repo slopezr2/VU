@@ -2,8 +2,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-refractive=pd.read_csv('/Users/santiago/Documents/LE_outputs/2008_Complete/aerosol-extinction.txt',delim_whitespace=True)
-refractive.rename(columns={'0.0':'Parameter'},inplace=True)
+refractive=pd.read_csv('/Users/santiago/Documents/LE_outputs/2008_Complete/aerosol-extinction_RH_V2.txt',delim_whitespace=True,index_col=None)
+#refractive.rename(columns={'8.0':'Parameter'},inplace=True)
+refractive.rename(columns={'0.0':'RH'},inplace=True)
 rh_aux=np.zeros(len(refractive))
 aux=refractive['Parameter'][:]
 for i in range(len(rh_aux)):
@@ -14,14 +15,19 @@ for i in range(len(rh_aux)):
         rh_aux[i]=aux[i+aux[i]]
         if aux[i]==-1:
             refractive['Parameter'][i]='sizeparam'
-        elif aux[i]==-2:
+        elif aux[i]==-5:
             refractive['Parameter'][i]='real_refractive'
-        elif aux[i]==-3:
+        elif aux[i]==-6:
             refractive['Parameter'][i]='imaginary_refractive'
         elif aux[i]==-4:
-            refractive['Parameter'][i]='extf_spec'  
+            refractive['Parameter'][i]='extf_spec'
+        elif aux[i]==-8:
+            refractive['Parameter'][i]='ext_lut'
+        # elif aux[i]==-5:
+        #     refractive['Parameter'][i]='real_refr_spec'  
+        # elif aux[i]==-6:
+        #     refractive['Parameter'][i]='imagin_refr_spec'      
 
-refractive.insert(1,'RH',rh_aux)
 refractive.set_index(['aerosol', 'RH', 'Parameter'],inplace=True)
 refractive.columns=[float(f) for f in refractive.columns]
 

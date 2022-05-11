@@ -121,6 +121,9 @@ LE_so4a_dry=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/L
 LE_dust_dry=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dry_dus_v2_2008.nc')
 LE_aod_dry=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_dry_aod_2008.nc')
 
+gridded_emis=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_emis_2008.nc')
+gridded_drydepo=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_drydepo_2008.nc')
+gridded_wetdepo=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_wetdepo_2008.nc')
 
 
 aod_ec_year=LE_ec.nc.variables['aod_563nm'][:,:,:] #Todo el ano
@@ -540,3 +543,58 @@ plt.savefig('./Figures/burden_species_composition.png',format='png', dpi=1000,bb
 # MEC_series[['aod_dust_domain']].resample('D').mean().plot(ax=ax[1],linewidth=2,marker='s')
 # plt.savefig('./Figures/AOD_Dust_dry_vs_ambient.png',format='png', dpi=1000,bbox_inches = "tight")
 
+emis_ec=(gridded_emis.nc.variables['ec_f'][:]+gridded_emis.nc.variables['ec_c'][:])*1e3
+emis_na=(gridded_emis.nc.variables['na_ff'][:]+gridded_emis.nc.variables['na_f'][:]+gridded_emis.nc.variables['na_c'][:]+gridded_emis.nc.variables['na_cc'][:]+gridded_emis.nc.variables['na_ccc'][:])*1e3*3.26
+emis_nh4a=(gridded_emis.nc.variables['nh4a_f'][:])*1e3
+emis_no3a=(gridded_emis.nc.variables['no3a_f'][:]+gridded_emis.nc.variables['no3a_c'][:])*1e3
+emis_pom=(gridded_emis.nc.variables['pom_f'][:]+gridded_emis.nc.variables['pom_c'][:])*1e3
+emis_ppm=(gridded_emis.nc.variables['ppm_f'][:]+gridded_emis.nc.variables['ppm_c'][:])*1e3
+emis_so4a=(gridded_emis.nc.variables['so4a_f'][:]+gridded_emis.nc.variables['so4a_c'][:])*1e3
+emis_dust=(gridded_emis.nc.variables['dust_ff'][:]+gridded_emis.nc.variables['dust_f'][:]+gridded_emis.nc.variables['dust_c'][:]+gridded_emis.nc.variables['dust_cc'][:]+gridded_emis.nc.variables['dust_ccc'][:])*1e3
+
+lifetime_ec=MEC_series['burden_ec_domain'].mean()/(emis_ec.mean()*3600*24)
+lifetime_na=MEC_series['burden_na_domain'].mean()/(emis_na.mean()*3600*24)
+#lifetime_nh4a=MEC_series['burden_nh4a_domain'].mean()/(emis_nh4a.mean()*3600*24)
+#lifetime_no3a=MEC_series['burden_no3a_domain'].mean()/(emis_no3a.mean()*3600*24)
+lifetime_pom=MEC_series['burden_pom_domain'].mean()/(emis_pom.mean()*3600*24)
+lifetime_ppm=MEC_series['burden_ppm_domain'].mean()/(emis_ppm.mean()*3600*24)
+lifetime_so4a=MEC_series['burden_so4a_domain'].mean()/(emis_so4a.mean()*3600*24)
+lifetime_dust=MEC_series['burden_dust_domain'].mean()/(emis_dust.mean()*3600*24)
+
+
+depo_so4a=(gridded_drydepo.nc.variables['so4a_f_dflux'][:]+gridded_drydepo.nc.variables['so4a_c_dflux'][:]+gridded_wetdepo.nc.variables['so4a_f_wflux'][:]+gridded_wetdepo.nc.variables['so4a_c_wflux'][:])*1e3
+depo_dust=(gridded_drydepo.nc.variables['dust_ff_dflux'][:]+gridded_drydepo.nc.variables['dust_f_dflux'][:]+gridded_drydepo.nc.variables['dust_c_dflux'][:]+gridded_drydepo.nc.variables['dust_cc_dflux'][:]+gridded_drydepo.nc.variables['dust_ccc_dflux'][:]+gridded_wetdepo.nc.variables['dust_ff_wflux'][:]+gridded_wetdepo.nc.variables['dust_f_wflux'][:]+gridded_wetdepo.nc.variables['dust_c_wflux'][:]+gridded_wetdepo.nc.variables['dust_cc_wflux'][:]+gridded_wetdepo.nc.variables['dust_ccc_wflux'][:])*1e3
+depo_ec=(gridded_drydepo.nc.variables['ec_f_dflux'][:]+gridded_drydepo.nc.variables['ec_c_dflux'][:]+gridded_wetdepo.nc.variables['ec_f_wflux'][:]+gridded_wetdepo.nc.variables['ec_c_wflux'][:])*1e3
+depo_pom=(gridded_drydepo.nc.variables['pom_f_dflux'][:]+gridded_drydepo.nc.variables['pom_c_dflux'][:]+gridded_wetdepo.nc.variables['pom_f_wflux'][:]+gridded_wetdepo.nc.variables['pom_c_wflux'][:])*1e3
+depo_ppm=(gridded_drydepo.nc.variables['ppm_f_dflux'][:]+gridded_drydepo.nc.variables['ppm_c_dflux'][:]+gridded_wetdepo.nc.variables['ppm_f_wflux'][:]+gridded_wetdepo.nc.variables['ppm_c_wflux'][:])*1e3
+depo_na=(gridded_drydepo.nc.variables['na_ff_dflux'][:]+gridded_drydepo.nc.variables['na_f_dflux'][:]+gridded_drydepo.nc.variables['na_c_dflux'][:]+gridded_drydepo.nc.variables['na_cc_dflux'][:]+gridded_drydepo.nc.variables['na_ccc_dflux'][:]+gridded_wetdepo.nc.variables['na_ff_wflux'][:]+gridded_wetdepo.nc.variables['na_f_wflux'][:]+gridded_wetdepo.nc.variables['na_c_wflux'][:]+gridded_wetdepo.nc.variables['na_cc_wflux'][:]+gridded_wetdepo.nc.variables['na_ccc_wflux'][:])*1e3*3.26
+
+
+lifetime_so4a_depo=MEC_series['burden_so4a_domain'].mean()/(depo_so4a.mean()*3600*24)
+lifetime_dust_depo=MEC_series['burden_dust_domain'].mean()/(depo_dust.mean()*3600*24)
+lifetime_ec_depo=MEC_series['burden_ec_domain'].mean()/(depo_ec.mean()*3600*24)
+lifetime_pom_depo=MEC_series['burden_pom_domain'].mean()/(depo_pom.mean()*3600*24)
+lifetime_ppm_depo=MEC_series['burden_ppm_domain'].mean()/(depo_ppm.mean()*3600*24)
+lifetime_na_depo=MEC_series['burden_na_domain'].mean()/(depo_na.mean()*3600*24)
+
+
+#y=[2.0101757500926776,
+# 0.5757435879389511,
+# 1.9239574310669891,
+# 1.451520577242467,
+# 57.470779544752034,
+# 58.56459107610106]
+
+fig, ax = plt.subplots()
+
+y=[lifetime_ec,lifetime_ec_depo,lifetime_na,lifetime_na_depo,lifetime_pom,lifetime_pom_depo,lifetime_ppm,lifetime_ppm_depo,lifetime_so4a,lifetime_so4a_depo,lifetime_dust,lifetime_dust_depo]
+x=[1,4,7,10,14,18,22,26]
+xx=['EC Emis','EC Depo','Na Emis','Na Depo','pom Emis','pom Depo','ppm Emis','ppm Depo','SO$_4$ Emis','SO$_4$ Depo','dust Emis','dust Depo']
+
+bars=ax.bar(xx,y,edgecolor='k',linewidth=1.5,width=0.8)
+ax.bar_label(bars,fmt='%.2f',fontsize=12)
+ax.set_ylim([0,65])
+ax.set_title('Lifetime [days]')
+
+plt.xticks(fontsize=12,rotation=60)
+fig.savefig('./Figures/lifetime_species.png',format='png', dpi=300,bbox_inches = "tight")

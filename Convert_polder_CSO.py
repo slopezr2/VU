@@ -17,18 +17,36 @@ import pandas as pd
 template=pd.read_csv('/Users/santiago/scratch/CAMS-61/WP6130/CSO-data/S5p/listing-NO2-CAMS.csv',delimiter=';')
 list_CSO={name: [] for name in list(template.columns)}
 valid_files=[]
-for i in ['01','02','03','04','05','06','07','08','09','10','11','12']:
-    mypath='/Users/santiago/Documents/POLDER/2008/'+i+'/'
+
+#AOD565_SD=[1.04,0.5,0.34,0.32,0.29,0.34]
+AOD565_SD=888*np.ones(6)
+
+AOD865_SD=[1.07,0.42,0.44,0.36,0.38,0.39]
+AOD443_SD=[1.04,0.5,0.34,0.32,0.29,0.34]
+AAOD565_SD=[2.14,1.36,0.96,0.74,0.64,0.63]
+AAOD865_SD=[1.04,0.5,0.34,0.32,0.29,0.34]
+AAOD443_SD=[1.04,0.5,0.34,0.32,0.29,0.34]
+SSA565_SD=[1.04,0.5,0.34,0.32,0.29,0.34]
+SSA865_SD=[1.04,0.5,0.34,0.32,0.29,0.34]
+SSA443_SD=[1.04,0.5,0.34,0.32,0.29,0.34]
+AExp_SD=[1.04,0.5,0.34,0.32,0.29,0.34]
+
+#months=['01','02','03','04','05','06','07','08','09','10','11','12']
+months=['01']
+for i in months:
+    mypath='/Users/santiago/Documents/POLDER/Model/'+i+'/'
     onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
     onlyfiles.sort()
     cso_path=mypath+'/CSO/'
     
     
-    for file_name in onlyfiles[1:]:
+    for file_name in onlyfiles[1:2]:
         if file_name[0:12]=='GRASP_POLDER':
             # Reading POLDER data
+            print(file_name)
             polder=Dataset(mypath+file_name)
             aod_polder=polder.variables['AOD565'][0:350,1652:2148]
+            aod_polder_aux=aod_polder.copy()
             aod_polder_443=polder.variables['AOD443'][0:350,1652:2148]
             aod_polder_865=polder.variables['AOD865'][0:350,1652:2148]
             
@@ -65,12 +83,14 @@ for i in ['01','02','03','04','05','06','07','08','09','10','11','12']:
             
             # dimensions
             npixel = latitude_polder[np.logical_not(aod_polder.mask)].size
+            print(npixel)
             if npixel<10:
                 continue
             #Creating netcdf4
             
             cso_file='CSO_POLDER_'+file_name[16:24]+'.nc'
             valid_files.append(cso_file)
+            print(cso_file)
             root_grp = Dataset(cso_path+cso_file, 'w', format='NETCDF4')
             root_grp.description = 'POLDER observation following CSO estructure'
             
@@ -96,6 +116,17 @@ for i in ['01','02','03','04','05','06','07','08','09','10','11','12']:
             SSA865 = root_grp.createVariable('SSA865', 'f4', ('pixel', 'retr',),fill_value=3.4028235e+38)
             SSA443 = root_grp.createVariable('SSA443', 'f4', ('pixel', 'retr',),fill_value=3.4028235e+38)
             AExp = root_grp.createVariable('AExp', 'f4', ('pixel', 'retr',),fill_value=3.4028235e+38)
+            
+            obs_error_AOD565 = root_grp.createVariable('obs_error_AOD565', 'f4', ('pixel', 'retr',),fill_value=3.4028235e+38)
+            obs_error_AOD865 = root_grp.createVariable('obs_error_AOD865', 'f4', ('pixel', 'retr',),fill_value=3.4028235e+38)
+            obs_error_AOD443 = root_grp.createVariable('obs_error_AOD443', 'f4', ('pixel', 'retr',),fill_value=3.4028235e+38)
+            obs_error_AAOD565 = root_grp.createVariable('obs_error_AAOD565', 'f4', ('pixel', 'retr',),fill_value=3.4028235e+38)
+            obs_error_AAOD865 = root_grp.createVariable('obs_error_AAOD865', 'f4', ('pixel', 'retr',),fill_value=3.4028235e+38)
+            obs_error_AAOD443 = root_grp.createVariable('obs_error_AAOD443', 'f4', ('pixel', 'retr',),fill_value=3.4028235e+38)
+            obs_error_SSA565 = root_grp.createVariable('obs_error_SSA565', 'f4', ('pixel', 'retr',),fill_value=3.4028235e+38)
+            obs_error_SSA865 = root_grp.createVariable('obs_error_SSA865', 'f4', ('pixel', 'retr',),fill_value=3.4028235e+38)
+            obs_error_SSA443 = root_grp.createVariable('obs_error_SSA443', 'f4', ('pixel', 'retr',),fill_value=3.4028235e+38)
+            obs_error_AExp = root_grp.createVariable('obs_error_AExp', 'f4', ('pixel', 'retr',),fill_value=3.4028235e+38)
             
             
             #Attributes
@@ -160,7 +191,50 @@ for i in ['01','02','03','04','05','06','07','08','09','10','11','12']:
             AExp.long_name= 'Angstrom Exponent 443-865 nm'
             AExp.units= '1'
             AExp.standard_name= 'aexp'
-           
+            
+            #===Observation errors==
+            
+            obs_error_AOD565.long_name= 'Observation Error aod 565 nm'
+            obs_error_AOD565.units= '1'
+            obs_error_AOD565.standard_name= 'obs_error_aod_565'
+            
+            obs_error_AOD443.long_name= 'Observation Error aod 443 nm'
+            obs_error_AOD443.units= '1'
+            obs_error_AOD443.standard_name= 'obs_error_aod_443'
+            
+            obs_error_AOD865.long_name= 'Observation Error aod 865 nm'
+            obs_error_AOD865.units= '1'
+            obs_error_AOD865.standard_name= 'obs_error_aod_865'
+            
+            obs_error_AAOD565.long_name= 'Observation Error aod 565 nm'
+            obs_error_AAOD565.units= '1'
+            obs_error_AAOD565.standard_name= 'obs_error_aod_565'
+            
+            obs_error_AAOD443.long_name= 'Observation Error aod 443 nm'
+            obs_error_AAOD443.units= '1'
+            obs_error_AAOD443.standard_name= 'obs_error_aod_443'
+            
+            obs_error_AAOD865.long_name= 'Observation Error aod 865 nm'
+            obs_error_AAOD865.units= '1'
+            obs_error_AAOD865.standard_name= 'obs_error_aod_865'
+            
+            obs_error_SSA565.long_name= 'Observation Error ssa 565 nm'
+            obs_error_SSA565.units= '1'
+            obs_error_SSA565.standard_name= 'obs_error_ssa_565'
+            
+            obs_error_SSA443.long_name= 'Observation Error ssa 443 nm'
+            obs_error_SSA443.units= '1'
+            obs_error_SSA443.standard_name= 'obs_error_ssa_443'
+            
+            obs_error_SSA865.long_name= 'Observation Error ssa 865 nm'
+            obs_error_SSA865.units= '1'
+            obs_error_SSA865.standard_name= 'obs_error_ssa_865'
+            
+            
+            obs_error_AExp.long_name= 'Observation Error Angstrom Exponent 443-865 nm'
+            obs_error_AExp.units= '1'
+            obs_error_AExp.standard_name= 'obs_error_aexp'
+                        
             #values
             pixel[:]=list(range(1,npixel+1))
             retr[:]=1
@@ -194,7 +268,156 @@ for i in ['01','02','03','04','05','06','07','08','09','10','11','12']:
             AExp[:]=ae_polder[np.logical_not(aod_polder.mask)]
             
             
-                    
+            for i in range(len(AOD565)):
+                if AOD565[i]<=0.05:
+                  aux_sd=AOD565_SD[0]
+                elif 0.05<AOD565[i]<=0.1:
+                  aux_sd=AOD565_SD[1]  
+                elif 0.1<AOD565[i]<=0.2:
+                  aux_sd=AOD565_SD[2]  
+                elif 0.2<AOD565[i]<=0.3:
+                  aux_sd=AOD565_SD[3]  
+                elif 0.3<AOD565[i]<=0.5:
+                  aux_sd=AOD565_SD[4]  
+                elif 0.5<AOD565[i]:
+                  aux_sd=AOD565_SD[5]  
+                obs_error_AOD565[i]= AOD565[i]*aux_sd
+            
+            for i in range(len(AOD865)):
+                if AOD865[i]<=0.05:
+                  aux_sd=AOD865_SD[0]
+                elif 0.05<AOD865[i]<=0.1:
+                  aux_sd=AOD865_SD[1]  
+                elif 0.1<AOD865[i]<=0.2:
+                  aux_sd=AOD865_SD[2]  
+                elif 0.2<AOD865[i]<=0.3:
+                  aux_sd=AOD865_SD[3]  
+                elif 0.3<AOD865[i]<=0.5:
+                  aux_sd=AOD865_SD[4]  
+                elif 0.5<AOD865[i]:
+                  aux_sd=AOD865_SD[5]  
+                obs_error_AOD865[i]= AOD865[i]*aux_sd
+            
+            for i in range(len(AOD443)):
+                if AOD443[i]<=0.05:
+                  aux_sd=AOD443_SD[0]
+                elif 0.05<AOD443[i]<=0.1:
+                  aux_sd=AOD443_SD[1]  
+                elif 0.1<AOD443[i]<=0.2:
+                  aux_sd=AOD443_SD[2]  
+                elif 0.2<AOD443[i]<=0.3:
+                  aux_sd=AOD443_SD[3]  
+                elif 0.3<AOD443[i]<=0.5:
+                  aux_sd=AOD443_SD[4]  
+                elif 0.5<AOD443[i]:
+                  aux_sd=AOD443_SD[5]  
+                obs_error_AOD443[i]= AOD443[i]*aux_sd
+            
+            for i in range(len(AAOD565)):
+                if AAOD565[i]<=0.05:
+                  aux_sd=AAOD565_SD[0]
+                elif 0.05<AAOD565[i]<=0.1:
+                  aux_sd=AAOD565_SD[1]  
+                elif 0.1<AAOD565[i]<=0.2:
+                  aux_sd=AAOD565_SD[2]  
+                elif 0.2<AAOD565[i]<=0.3:
+                  aux_sd=AAOD565_SD[3]  
+                elif 0.3<AAOD565[i]<=0.5:
+                  aux_sd=AAOD565_SD[4]  
+                elif 0.5<AAOD565[i]:
+                  aux_sd=AAOD565_SD[5]  
+                obs_error_AAOD565[i]= AAOD565[i]*aux_sd
+            
+            
+            for i in range(len(AAOD865)):
+                if AAOD865[i]<=0.05:
+                  aux_sd=AAOD865_SD[0]
+                elif 0.05<AAOD865[i]<=0.1:
+                  aux_sd=AAOD865_SD[1]  
+                elif 0.1<AAOD865[i]<=0.2:
+                  aux_sd=AAOD865_SD[2]  
+                elif 0.2<AAOD865[i]<=0.3:
+                  aux_sd=AAOD865_SD[3]  
+                elif 0.3<AAOD865[i]<=0.5:
+                  aux_sd=AAOD865_SD[4]  
+                elif 0.5<AAOD865[i]:
+                  aux_sd=AAOD865_SD[5]  
+                obs_error_AAOD865[i]= AAOD865[i]*aux_sd
+            
+            for i in range(len(AAOD443)):
+                if AAOD443[i]<=0.05:
+                  aux_sd=AAOD443_SD[0]
+                elif 0.05<AAOD443[i]<=0.1:
+                  aux_sd=AAOD443_SD[1]  
+                elif 0.1<AAOD443[i]<=0.2:
+                  aux_sd=AAOD443_SD[2]  
+                elif 0.2<AAOD443[i]<=0.3:
+                  aux_sd=AAOD443_SD[3]  
+                elif 0.3<AAOD443[i]<=0.5:
+                  aux_sd=AAOD443_SD[4]  
+                elif 0.5<AAOD443[i]:
+                  aux_sd=AAOD443_SD[5]  
+                obs_error_AAOD443[i]= AAOD443[i]*aux_sd
+            
+            for i in range(len(SSA565)):
+                if SSA565[i]<=0.05:
+                  aux_sd=SSA565_SD[0]
+                elif 0.05<SSA565[i]<=0.1:
+                  aux_sd=SSA565_SD[1]  
+                elif 0.1<SSA565[i]<=0.2:
+                  aux_sd=SSA565_SD[2]  
+                elif 0.2<SSA565[i]<=0.3:
+                  aux_sd=SSA565_SD[3]  
+                elif 0.3<SSA565[i]<=0.5:
+                  aux_sd=SSA565_SD[4]  
+                elif 0.5<SSA565[i]:
+                  aux_sd=SSA565_SD[5]  
+                obs_error_SSA565[i]= SSA565[i]*aux_sd
+               
+            for i in range(len(SSA865)):
+                if SSA865[i]<=0.05:
+                  aux_sd=SSA865_SD[0]
+                elif 0.05<SSA865[i]<=0.1:
+                  aux_sd=SSA865_SD[1]  
+                elif 0.1<SSA865[i]<=0.2:
+                  aux_sd=SSA865_SD[2]  
+                elif 0.2<SSA865[i]<=0.3:
+                  aux_sd=SSA865_SD[3]  
+                elif 0.3<SSA865[i]<=0.5:
+                  aux_sd=SSA865_SD[4]  
+                elif 0.5<SSA865[i]:
+                  aux_sd=SSA865_SD[5]  
+                obs_error_SSA865[i]= SSA865[i]*aux_sd
+            
+            for i in range(len(SSA443)):
+                if SSA443[i]<=0.05:
+                  aux_sd=SSA443_SD[0]
+                elif 0.05<SSA443[i]<=0.1:
+                  aux_sd=SSA443_SD[1]  
+                elif 0.1<SSA443[i]<=0.2:
+                  aux_sd=SSA443_SD[2]  
+                elif 0.2<SSA443[i]<=0.3:
+                  aux_sd=SSA443_SD[3]  
+                elif 0.3<SSA443[i]<=0.5:
+                  aux_sd=SSA443_SD[4]  
+                elif 0.5<SSA443[i]:
+                  aux_sd=SSA443_SD[5]  
+                obs_error_SSA443[i]= SSA443[i]*aux_sd
+                
+            for i in range(len(AExp)):
+                if AExp[i]<=0.05:
+                  aux_sd=AExp_SD[0]
+                elif 0.05<AExp[i]<=0.1:
+                  aux_sd=AExp_SD[1]  
+                elif 0.1<AExp[i]<=0.2:
+                  aux_sd=AExp_SD[2]  
+                elif 0.2<AExp[i]<=0.3:
+                  aux_sd=AExp_SD[3]  
+                elif 0.3<AExp[i]<=0.5:
+                  aux_sd=AExp_SD[4]  
+                elif 0.5<AExp[i]:
+                  aux_sd=AExp_SD[5]  
+                obs_error_AExp[i]= AExp[i]*aux_sd
             
             root_grp.close()
             polder.close()

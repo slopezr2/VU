@@ -57,7 +57,7 @@ le_mean=le.mean()
 
 
 
-# gridded_calipso.transversal(variable='ys',biascorr=1, extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=1e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction LE 1',direction='row',position=10,extend='max',cut=True,normalize=True)
+gridded_calipso.transversal(variable='ys',biascorr=1, extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=1e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction LE 1',direction='row',position=10,extend='max',cut=True,normalize=True)
 # gridded_calipso.transversal(variable='ys',biascorr=1, extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=1e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction LE 2',direction='row',position=40,extend='max',cut=True,normalize=True)
 # gridded_calipso.transversal(variable='ys',biascorr=1, extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=1e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction LE 3',direction='row',position=90,extend='max',cut=True,normalize=True)
 # gridded_calipso.transversal(variable='yr',biascorr=1, extern=True,  calipso_mean=calipso_mean, le_mean=le_mean, vmin=0,vmax=1e-4,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=True,title='Profile extinction CALIPSO 1',direction='row',position=10,extend='max',cut=False)

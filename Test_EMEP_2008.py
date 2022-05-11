@@ -15,6 +15,7 @@ from os import listdir
 from os.path import isfile, join
 import matplotlib.dates as mdates
 from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.colors import ListedColormap
 import mpl_scatter_density
 
 

@@ -23,23 +23,44 @@ from matplotlib.ticker import ScalarFormatter
 from matplotlib.colors import TwoSlopeNorm
 from cartopy.io.shapereader import Reader
 from cartopy.feature import ShapelyFeature
+from matplotlib import cm
 
+
+viridis = cm.get_cmap('viridis', 256)
+orange=cm.get_cmap('Oranges', 256)
+bwr=cm.get_cmap('bwr', 256)
 
 
 def moving_average(x, w):
     return np.convolve(x, np.ones(w), 'valid') / w
 
-def graph_map(lon=0,lat=0,vmin=0,vmax=0.3,date=True,vcenter=0,date_plot='',level=0,n_levels_plot=20,cmap=1,variable=1,variable_title='',title='default',title_on=True,save=False,extend='max',norm2=False,grid=False,ocean=False, orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],shape_file=False,shape_name='',units='',dpi=1000):
+def graph_map(lon=0,lat=0,vmin=0,vmax=0.3,date=True,vcenter=0,date_plot='',level=0,n_levels_plot=20,cmap=viridis,variable=1,variable_title='',title='default',title_on=True,save=False,extend='max',norm2=False,grid=False,ocean=False, orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],shape_file=False,shape_name='',units='',dpi=1000,save_title=None,stock_image=False,stations=False,size_stations=15,facecolor=(0.6,0.6,0.6)):
     
     fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
     levels = MaxNLocator(nbins=n_levels_plot).tick_values(vmin, vmax)
-    ax.set_facecolor((0.6, 0.6, 0.6))
+    ax.set_facecolor(facecolor)
     if norm2==True:
         norm=TwoSlopeNorm(vmin=vmin, vcenter=vcenter, vmax=vmax)
     else:    
         norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
-    plt.pcolormesh(lon, lat, variable, 
+    
+    if stations==False:
+        plt.pcolormesh(lon, lat, variable, 
                         transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')
+    else:
+        
+        lat_sca=[]
+        lon_sca=[]
+        aux_sca=[]
+        mask_aux=variable.mask
+        for i in range(variable.shape[0]):
+            for j in range(variable.shape[1]):
+                if (mask_aux[i,j]==False and not(np.isnan(variable[i,j]))):
+                    lat_sca.append(lat[i])
+                    lon_sca.append(lon[j])
+                    aux_sca.append(variable[i,j])
+        plt.scatter(lon_sca, lat_sca,size_stations,aux_sca
+        ,cmap=cmap, norm=norm,edgecolors=(0.1,0.1,0.1),linewidths=0.5)
     european_borders=cfeature.NaturalEarthFeature(
               category='cultural',
               name='admin_0_countries',
@@ -63,7 +84,9 @@ def graph_map(lon=0,lat=0,vmin=0,vmax=0.3,date=True,vcenter=0,date_plot='',level
 
     if ocean==True:
            ax.add_feature(cart.feature.OCEAN, zorder=100, edgecolor='k',facecolor=ocean_color)
-    
+
+    if stock_image==True:
+        ax.stock_img()
     if grid==True:
         gl = ax.gridlines(draw_labels=True,color='black', alpha=0.5,linestyle='--',zorder=100000)
         gl.top_labels = False
@@ -113,11 +136,13 @@ def graph_map(lon=0,lat=0,vmin=0,vmax=0.3,date=True,vcenter=0,date_plot='',level
     
     
     if save==True:
-        if date==True:
-            plt.savefig('./Figures/'+title_plot+'.png',format='png', dpi=dpi,bbox_inches = "tight")
+        if save_title==None:
+            if date==True:
+                plt.savefig('./Figures/'+title_plot+'.png',format='png', dpi=dpi,bbox_inches = "tight")
+            else:
+                plt.savefig('./Figures/'+title+'.png',format='png', dpi=dpi,bbox_inches = "tight")
         else:
-            plt.savefig('./Figures/'+title+'.png',format='png', dpi=dpi,bbox_inches = "tight")
-                   
+                plt.savefig('./Figures/'+save_title+'.png',format='png', dpi=dpi,bbox_inches = "tight")
     plt.show()
 
 
@@ -127,7 +152,7 @@ class DataManager_LE:
    def __init__(self,file):
         self.nc = Dataset(file, "r", format="NETCDF4")
         
-   def graph_map(self,biascorr=1,variable='aod_550nm',time=0,sum_level=False,level=1,vmin=0, vmax=1,vcenter=0.5,norm2=False, n_levels_plot=10,cmap='Oranges', date=True,title='default',title_on=True,type_graph='instant',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',grid=False,orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],shape_file=False,shape_name='',units='',dpi=1000):     
+   def graph_map(self,biascorr=1,variable='aod_550nm',time=0,sum_level=False,level=1,vmin=0, vmax=1,vcenter=0.5,norm2=False, n_levels_plot=10,cmap=viridis, date=True,title='default',title_on=True,type_graph='mean',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',grid=False,orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],shape_file=False,shape_name='',units='',dpi=1000,save_title=None,stations=False,size_stations=15,facecolor=(0.6,0.6,0.6)):     
        
        if 'lon' in self.nc.variables.keys():
            lon=self.nc.variables['lon'][:]
@@ -185,7 +210,7 @@ class DataManager_LE:
            date_plot=date_plot_ini+' - '+date_plot_end
            
            
-       graph_map(lon=lon,lat=lat,vmin=vmin,vmax=vmax,vcenter=vcenter,n_levels_plot=n_levels_plot,date=date,date_plot=date_plot,title_on=title_on,cmap=cmap,variable_title=variable,variable=var_graph,title=title,save=save,extend=extend,norm2=norm2,grid=grid,ocean=ocean, orientation=orientation,lat_lim=lat_lim,lon_lim=lon_lim,subdomain=subdomain,ocean_color=ocean_color,shape_file=shape_file,shape_name=shape_name,units=units,dpi=dpi)
+       graph_map(lon=lon,lat=lat,vmin=vmin,vmax=vmax,vcenter=vcenter,n_levels_plot=n_levels_plot,date=date,date_plot=date_plot,title_on=title_on,cmap=cmap,variable_title=variable,variable=var_graph,title=title,save=save,extend=extend,norm2=norm2,grid=grid,ocean=ocean, orientation=orientation,lat_lim=lat_lim,lon_lim=lon_lim,subdomain=subdomain,ocean_color=ocean_color,shape_file=shape_file,shape_name=shape_name,units=units,dpi=dpi,save_title=save_title,stations=stations,size_stations=size_stations,facecolor=facecolor)
            
        
        
@@ -270,7 +295,7 @@ class DataManager_GRIDDED:
        plt.show()
 
        return aod_sat,aod_le
-   def graph_map(self,biascorr=1,variable='aod_550nm',level=0,facecolor=(0.6,0.6,0.6),time=100,vmin=0, vcenter=0.5,vmax=1,norm2=False, n_levels_plot=10,cmap='Oranges', date=True,title='default',title_on=True,type_graph='instant',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',grid=False,orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],shape_file=False,shape_name='',units='',dpi=1000):     
+   def graph_map(self,biascorr=1,variable='aod_550nm',level=0,facecolor=(0.6,0.6,0.6),time=100,vmin=0, vcenter=0.5,vmax=1,norm2=False, n_levels_plot=10,cmap=viridis, date=True,title='default',title_on=True,type_graph='mean',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',grid=False,orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],shape_file=False,shape_name='',units='',dpi=1000,save_title=None,stations=False,size_stations=15):     
        
        if 'lon' in self.nc.variables.keys():
            lon=self.nc.variables['lon'][:]
@@ -286,12 +311,16 @@ class DataManager_GRIDDED:
        aux=np.ma.masked_invalid(self.nc.variables[variable][:])
        if aux.ndim==4:
            aux=np.ma.masked_invalid(self.nc.variables[variable][:,:,:,level])
+           aux_yr=np.ma.masked_invalid(self.nc.variables['yr'][:])
            aux[aux<0]=np.nan
+           aux[aux_yr<0]=np.nan
            aux_mask=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:,level])
        
        else:
            aux=np.ma.masked_invalid(self.nc.variables[variable][:,:,:])
+           aux_yr=np.ma.masked_invalid(self.nc.variables['yr'][:])
            aux[aux<0]=np.nan
+           aux[aux_yr<0]=np.nan
            aux_mask=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:])
        aux.mask=aux_mask.mask
        
@@ -321,12 +350,12 @@ class DataManager_GRIDDED:
            date_plot_end=date_plot_end.strftime("%d-%b-%Y")
            
            date_plot=date_plot_ini+' - '+date_plot_end
-       graph_map(lon=lon,lat=lat,vmin=vmin,vmax=vmax,vcenter=vcenter,n_levels_plot=n_levels_plot,date=date,date_plot=date_plot,title_on=title_on,cmap=cmap,variable_title=variable,variable=var_graph,title=title,save=save,extend=extend,norm2=norm2,grid=grid,ocean=ocean, orientation=orientation,lat_lim=lat_lim,lon_lim=lon_lim,subdomain=subdomain,ocean_color=ocean_color,shape_file=shape_file,shape_name=shape_name,units=units,dpi=dpi)
+       graph_map(lon=lon,lat=lat,vmin=vmin,vmax=vmax,vcenter=vcenter,n_levels_plot=n_levels_plot,date=date,date_plot=date_plot,title_on=title_on,cmap=cmap,variable_title=variable,variable=var_graph,title=title,save=save,extend=extend,norm2=norm2,grid=grid,ocean=ocean, orientation=orientation,lat_lim=lat_lim,lon_lim=lon_lim,subdomain=subdomain,ocean_color=ocean_color,shape_file=shape_file,shape_name=shape_name,units=units,dpi=dpi,save_title=save_title,stations=stations,size_stations=size_stations,facecolor=facecolor)
            
        
    
     
-   def transversal(self,biascorr=1,extern=False,calipso_mean=1,le_mean=1,layer_meters=600,variable='aod_550nm',facecolor=(0.6,0.6,0.6),time=100,vmin=0, vmax=1, n_levels_plot=10,cmap='Oranges', date=True,title='default',title_on=True,type_graph='instant',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',direction='row',position=10,cut=True,normalize=False):
+   def transversal(self,biascorr=1,extern=False,calipso_mean=1,le_mean=1,layer_meters=600,variable='aod_550nm',facecolor=(0.6,0.6,0.6),time=100,vmin=0, vmax=1, n_levels_plot=10,cmap=viridis, date=True,title='default',title_on=True,type_graph='mean',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',direction='row',position=10,cut=True,normalize=False):
        
        if 'lon' in self.nc.variables.keys():
            lon=self.nc.variables['lon'][:]
@@ -545,7 +574,7 @@ class DataManager_GRIDDED:
        
        return fig,ax
     
-   def graph_diff_map (self,biascorr=1,scatter=True,size_scatter=15,dif_porcentage=True,facecolor=(0.6,0.6,0.6),vmin=0, vmax=1, n_levels_plot=10,cmap='Oranges', date=True,title='default',title_on=True,ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',grid=False,orientation='vertical'):     
+   def graph_diff_map(self,biascorr=1,level=0,facecolor=(0.6,0.6,0.6),time=100,vmin=0, vcenter=0.5,vmax=1,norm2=False, n_levels_plot=10,cmap=bwr, date=False,title='default',title_on=True,type_graph='mean',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',grid=False,orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],shape_file=False,shape_name='',units='',dpi=1000,save_title=None,stations=False,size_stations=15,porcentage_diff=False):     
        
        if 'lon' in self.nc.variables.keys():
            lon=self.nc.variables['lon'][:]
@@ -555,108 +584,55 @@ class DataManager_GRIDDED:
            lat=self.nc.variables['lat'][:]
        else:
            lat=self.nc.variables['latitude'][:]
-       aux=self.nc.variables['ys'][:]
-       aux_2=self.nc.variables['yr'][:]
-       aux[aux<0]=np.nan
-       aux_mask=self.nc.variables['yr'][:]
+
+       aux=np.ma.masked_invalid(self.nc.variables['ys'][:])
+       if aux.ndim==4:
+           aux=np.ma.masked_invalid(self.nc.variables['ys'][:,:,:,level])
+           aux_yr=np.ma.masked_invalid(self.nc.variables['yr'][:])
+           aux[aux<0]=np.nan
+           aux[aux_yr<0]=np.nan
+           aux = aux_yr-aux
+           aux_mask=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:,level])
+       
+       else:
+           aux=np.ma.masked_invalid(self.nc.variables['ys'][:,:,:])
+           aux_yr=np.ma.masked_invalid(self.nc.variables['yr'][:])
+           aux[aux<0]=np.nan
+           aux[aux_yr<0]=np.nan
+           aux = aux_yr-aux
+           aux_mask=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:])
        aux.mask=aux_mask.mask
-       aux=aux_2-aux
-       if dif_porcentage==True:
-           aux=aux/aux_2*100
-       fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
-       levels = MaxNLocator(nbins=n_levels_plot).tick_values(vmin, vmax)
-       ax.set_facecolor(facecolor)
-    
-        # pick the desired colormap, sensible levels, and define a normalization
-        # instance which takes data values and translates those into levels.
-        
-       norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
-       if vmax==None or vmin==None:
-           levels = n_levels_plot
-       else:
-           levels = np.linspace(vmin, vmax, n_levels_plot)
+       
+       if porcentage_diff==True:
+           aux = (aux/aux_yr)*100
        timestamp_2012 = datetime.timestamp(datetime.strptime('2008-1-1 00:00:00', '%Y-%m-%d %H:%M:%S'))
-       if scatter==True:
-            self.aux_4=np.nanmean(aux[ini_period:end_period:step_period,:,:],axis=0)
-            lat_sca=[]
-            lon_sca=[]
-            self.aux_sca=[]
-            mask_aux=self.aux_4.mask
-            for i in range(self.aux_4.shape[0]):
-                for j in range(self.aux_4.shape[1]):
-                    if (mask_aux[i,j]==False):
-                        lat_sca.append(lat[i])
-                        lon_sca.append(lon[j])
-                        self.aux_sca.append(self.aux_4[i,j])
-            plt.scatter(lon_sca, lat_sca,size_scatter,self.aux_sca
-            ,cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,edgecolors=(0.1,0.1,0.1),linewidths=0.5)
-       else:
-            plt.pcolormesh(lon, lat, np.nanmean( biascorr*aux[ini_period:end_period:step_period,:,:],axis=0), 
-                       transform=ccrs.PlateCarree(),cmap=cmap, norm=norm,vmin=vmin, vmax=vmax,shading='auto')
-       date_plot_ini=datetime.fromtimestamp(timestamp_2012+self.nc.variables['time'][ini_period])
-       date_plot_ini=date_plot_ini.strftime("%d-%b-%Y")
-       date_plot_end=datetime.fromtimestamp(timestamp_2012+self.nc.variables['time'][end_period])
-       date_plot_end=date_plot_end.strftime("%d-%b-%Y")
+       if type_graph=='instant':
            
-       date_plot=date_plot_ini+' - '+date_plot_end
-
-       european_borders=cfeature.NaturalEarthFeature(
-                    category='cultural',
-                    name='admin_0_countries',
-                    scale='50m',
-                    facecolor='none')
-
-
-       coastlines=cfeature.NaturalEarthFeature(
-                            category='physical',
-                            name='coastline',
-                            scale='50m',
-                            facecolor='none')
-       ax.add_feature(european_borders,edgecolor='black',linewidth=0.2)
-       ax.add_feature(coastlines,edgecolor='black',linewidth=1)
-       if grid==True:
-            gl = ax.gridlines(draw_labels=True,color='black', alpha=0.5,linestyle='--')
-            gl.top_labels = False
-            gl.right_labels = False
-       if ocean==True:
-           ax.add_feature(cart.feature.OCEAN, zorder=100, edgecolor='k',facecolor='w')
-       plt.xlim(lon[0],lon[-1])
-       plt.ylim(lat[0],lat[-1])
-       if title=='default':
-           title='diff obs-mod'
+           timestamp=timestamp_2012+self.nc.variables['time'][time]
+           date_plot=datetime.fromtimestamp(timestamp)
+           date_plot=date_plot.strftime("%d-%b-%Y (%H:%M:%S)")
+           if aux.ndim==3:
+               var_graph=biascorr*aux[time,:,:]
+             
+           elif aux.ndim==4:
+               var_graph=biascorr*aux[time,:,:,level]
+               
+       elif type_graph=='mean':
+           if aux.ndim==3:
+               var_graph=np.nanmean( biascorr*aux[ini_period:end_period:step_period,:,:],axis=0)
+               
+           elif aux.ndim==4:
+               var_graph= np.nanmean( biascorr*aux[ini_period:end_period:step_period,:,:,level],axis=0)
+               
+           date_plot_ini=datetime.fromtimestamp(timestamp_2012+self.nc.variables['time'][ini_period])
+           date_plot_ini=date_plot_ini.strftime("%d-%b-%Y")
+           date_plot_end=datetime.fromtimestamp(timestamp_2012+self.nc.variables['time'][end_period])
+           date_plot_end=date_plot_end.strftime("%d-%b-%Y")
            
- 
-       title_plot=title
+           date_plot=date_plot_ini+' - '+date_plot_end
+       graph_map(lon=lon,lat=lat,vmin=vmin,vmax=vmax,vcenter=vcenter,n_levels_plot=n_levels_plot,date=date,date_plot=date_plot,title_on=title_on,cmap=cmap,variable_title='diff obs-LE',variable=var_graph,title='diff obs-LE',save=save,extend=extend,norm2=norm2,grid=grid,ocean=ocean, orientation=orientation,lat_lim=lat_lim,lon_lim=lon_lim,subdomain=subdomain,ocean_color=ocean_color,shape_file=shape_file,shape_name=shape_name,units=units,dpi=dpi,save_title=save_title,stations=stations,size_stations=size_stations,facecolor=facecolor)
            
-       if date==True:
-           title_plot=title_plot+'  '+date_plot
-           
-       if title_on==True:    
-           plt.title(title_plot)
        
-       if orientation=='vertical': 
-           cax = fig.add_axes([ax.get_position().x1+0.02,
-                    ax.get_position().y0+0.09,
-                    0.08,
-                    ax.get_position().height-0.2])
-       elif orientation=='horizontal':
-           cax = fig.add_axes([ax.get_position().x0,
-                    ax.get_position().y0-0.12,
-                    ax.get_position().width+0.02,
-                    0.05])
-       
-       cbar=plt.colorbar(cax=cax,extend=extend)
-       cbar.formatter.set_powerlimits((-3, 4))
-       cbar.update_ticks()
-       
-       if save==True:
-           if date==True:
-               plt.savefig('./Figures/'+title_plot+'.png',format='png', dpi=1000,bbox_inches = "tight")
-           else:
-               plt.savefig('./Figures/'+title+'.png',format='png', dpi=1000,bbox_inches = "tight")
-                   
-       plt.show()
-       return fig,ax
    
     
    
@@ -665,7 +641,7 @@ class DataManager_GRIDDED:
        if type_graph=='sum':
            
            for variable_aux in range(len(variable)):
-               aux=self.nc.variables[variable[variable_aux]][ini_period:end_period:step_period,:,:,0]
+               aux=self.nc.variables[variable[variable_aux]][ini_period:end_period:step_period,:,:]
                time=self.nc.variables['time'][ini_period:end_period:step_period].data
                timestamp_2012 = datetime.timestamp(datetime.strptime('2008-1-1 00:00:00', '%Y-%m-%d %H:%M:%S'))
                timestamp=np.round(time).astype(int)
@@ -688,6 +664,7 @@ class DataManager_GRIDDED:
            for variable_aux in range(len(variable)):
                aux=self.nc.variables[variable[variable_aux]][ini_period:end_period:step_period,:,:]
                time=self.nc.variables['time'][ini_period:end_period:step_period].data
+               aux[aux<0] = np.NaN
                timestamp_2012 = datetime.timestamp(datetime.strptime('2008-1-1 00:00:00', '%Y-%m-%d %H:%M:%S'))
                timestamp=np.round(time).astype(int)
                date_plot=[datetime.fromtimestamp(fs+timestamp_2012) for fs in timestamp]

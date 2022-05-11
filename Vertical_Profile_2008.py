@@ -62,7 +62,7 @@ std_total=np.zeros(12)
 i=0
 conc_year=np.zeros([12,12])
 conc_std_year=np.zeros([12,12])
-for month in ['01','02','03','04','05','06','07','08','09','10','11','12']:
+for month in ['01']:#['01','02','03','04','05','06','07','08','09','10','11','12']:
 
     print(month)
     file_conc='/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_conc_2008'+month+'.nc'
