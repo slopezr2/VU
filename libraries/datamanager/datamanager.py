@@ -100,7 +100,7 @@ def graph_map(lon=0,lat=0,vmin=0,vmax=0.3,date=True,vcenter=0,date_plot='',level
         plt.xlim(lon[0],lon[-1])
         plt.ylim(lat[0],lat[-1])       
     if title=='default':
-        title=variable
+        title=variable_title
         if variable.ndim==4:
             title=title+'_level_'+str(level+1)
  
@@ -311,14 +311,14 @@ class DataManager_GRIDDED:
        aux=np.ma.masked_invalid(self.nc.variables[variable][:])
        if aux.ndim==4:
            aux=np.ma.masked_invalid(self.nc.variables[variable][:,:,:,level])
-           aux_yr=np.ma.masked_invalid(self.nc.variables['yr'][:])
+           aux_yr=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:,level])
            aux[aux<0]=np.nan
            aux[aux_yr<0]=np.nan
            aux_mask=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:,level])
        
        else:
            aux=np.ma.masked_invalid(self.nc.variables[variable][:,:,:])
-           aux_yr=np.ma.masked_invalid(self.nc.variables['yr'][:])
+           aux_yr=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:])
            aux[aux<0]=np.nan
            aux[aux_yr<0]=np.nan
            aux_mask=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:])
@@ -588,7 +588,7 @@ class DataManager_GRIDDED:
        aux=np.ma.masked_invalid(self.nc.variables['ys'][:])
        if aux.ndim==4:
            aux=np.ma.masked_invalid(self.nc.variables['ys'][:,:,:,level])
-           aux_yr=np.ma.masked_invalid(self.nc.variables['yr'][:])
+           aux_yr=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:,level])
            aux[aux<0]=np.nan
            aux[aux_yr<0]=np.nan
            aux = aux_yr-aux
@@ -596,7 +596,7 @@ class DataManager_GRIDDED:
        
        else:
            aux=np.ma.masked_invalid(self.nc.variables['ys'][:,:,:])
-           aux_yr=np.ma.masked_invalid(self.nc.variables['yr'][:])
+           aux_yr=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:])
            aux[aux<0]=np.nan
            aux[aux_yr<0]=np.nan
            aux = aux_yr-aux
