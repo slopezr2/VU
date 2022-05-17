@@ -131,3 +131,8 @@ dmypy.json
 
 #NC files Santiago
 *.nc
+
+#Archivos gif y videos Santiago
+*.gif
+*.mp4
+*.avi
