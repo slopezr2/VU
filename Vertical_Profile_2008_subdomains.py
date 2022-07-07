@@ -42,7 +42,7 @@ RdYlBu_r=cm.get_cmap('RdYlBu_r', 256)
 
 #===Subdominio===
 subdominios=['All','Netherlands','Benelux+Germany','Scandinavia','Iberia','East Europe']
-#subdominios=['Netherlands']
+subdominios=['North Sea']
 
 
 for subdominio in subdominios:
@@ -77,7 +77,11 @@ for subdominio in subdominios:
         lat_end=80
         lon_ini=55
         lon_end=100
-    
+    elif subdominio=='North Sea':
+        lat_ini = 60
+        lat_end = 130
+        lon_ini = 0
+        lon_end = 40
     print(subdominio)
     h_file=Dataset('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_h_2008.nc')
     h_year=h_file.variables['h'][0:30,:,:,:]

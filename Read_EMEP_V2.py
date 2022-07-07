@@ -119,8 +119,11 @@ for fecha in datelist:
             aux_lon.append(aux)
             aux=EMEP[site]['latitude']
             aux_lat.append(aux)
-            aux=EMEP[site]['values']['PM10'][EMEP[site]['values'].index==fecha].values
+            aux=EMEP[site]['values']['PM10'][EMEP[site]['values'].index==fecha].values.copy()
             aux_pm10.append(aux[0])
+            #EMEP[site]['values']['PM10'][EMEP[site]['values']['PM10']>900]=np.NaN
+    aux_pm10 = np.array(aux_pm10)
+    aux_pm10[aux_pm10>900] = 999.0
     if np.mean(aux_pm10)==999.0:
         continue
     if npixel>0:
@@ -228,8 +231,12 @@ for fecha in datelist:
             aux_lon.append(aux)
             aux=EMEP[site]['latitude']
             aux_lat.append(aux)
-            aux=EMEP[site]['values']['PM2.5'][EMEP[site]['values'].index==fecha].values
+            aux=EMEP[site]['values']['PM2.5'][EMEP[site]['values'].index==fecha].values.copy()
             aux_pm25.append(aux[0])
+            #EMEP[site]['values']['PM2.5'][EMEP[site]['values']['PM2.5']>900]=np.NaN
+            
+    aux_pm25 = np.array(aux_pm25)
+    aux_pm25[aux_pm25>900] = 999.0
     if np.mean(aux_pm25)==999.0:
         continue
     if npixel>0:

@@ -22,7 +22,11 @@ from os.path import isfile, join
 import matplotlib.dates as mdates
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib import cm
-
+from matplotlib.colors import ListedColormap
+import met_brewer
+g=met_brewer.met_brew('Demuth',n=256,brew_type='continuous')
+cmap = ListedColormap(g, name='myColorMap', N=len(g))
+cmap = cmap.reversed()
 
 viridis = cm.get_cmap('viridis', 256)
 orange=cm.get_cmap('Oranges', 256)
@@ -80,21 +84,21 @@ gridded_Xa_S_T_aer_0001=DataManager_GRIDDED('/Users/santiago/Documents/LE_output
 #dc_Xa=DataManager_LE('/Users/santiago/Documents/LE_outputs/LETKF/LE_CSO_V5_dc_20080509_xa.nc')
 
 #====AOD Polder maps===
-gridded_Xb.graph_map(variable='yr',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=save,title='POLDER AOD565 2008-05_07',dpi=300,grid=True,ini_period=ini_period,end_period=end_period)
-gridded_Xb.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=save,title='LE-Xb AOD565 2008-05_07',dpi=300,grid=True,ini_period=ini_period,end_period=end_period)
-#gridded_Xa_S_F_all.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=save,title='LE-Xa S_F_all AOD565 2008-05_07',dpi=300,grid=True)
-#gridded_Xa_S_F_aer.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=save,title='LE-Xa S_F_aer AOD565 2008-05_07',dpi=300,grid=True)
-#gridded_Xa_S_T_all.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=save,title='LE-Xa S_T_all AOD565 2008-05_07',dpi=300,grid=True)
-#gridded_Xa_S_T_aer.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=save,title='LE-Xa S_T_aer AOD565 2008-05_07',dpi=300,grid=True)
+gridded_Xb.graph_map(variable='yr',biascorr=1,vmin=0,vmax=0.7,n_levels_plot=10,cmap=cmap,type_graph='mean',date=False,save=save,title='POLDER AOD565 2008-05_07',dpi=300,grid=True,ini_period=ini_period,end_period=end_period,facecolor=(1,1,1))
+gridded_Xb.graph_map(variable='ys',biascorr=1,vmin=0,vmax=0.7,n_levels_plot=10,cmap=cmap,type_graph='mean',date=False,save=save,title='LE-Xb AOD565 2008-05_07',dpi=300,grid=True,ini_period=ini_period,end_period=end_period,facecolor=(1,1,1))
+#gridded_Xa_S_F_all.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=cmap,type_graph='mean',date=False,save=save,title='LE-Xa S_F_all AOD565 2008-05_07',dpi=300,grid=True)
+#gridded_Xa_S_F_aer.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=cmap,type_graph='mean',date=False,save=save,title='LE-Xa S_F_aer AOD565 2008-05_07',dpi=300,grid=True)
+#gridded_Xa_S_T_all.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=cmap,type_graph='mean',date=False,save=save,title='LE-Xa S_T_all AOD565 2008-05_07',dpi=300,grid=True)
+#gridded_Xa_S_T_aer.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=cmap,type_graph='mean',date=False,save=save,title='LE-Xa S_T_aer AOD565 2008-05_07',dpi=300,grid=True)
 
-#gridded_Xb_R.graph_map(variable='yr',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=save,title='POLDER AOD565 2008-05-01_14',dpi=300,grid=True)
-#gridded_Xb_R.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=save,title='LE-Xb AOD565 2008-05-01_14',dpi=300,grid=True)
-#gridded_Xa_S_T_all_001.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=save,title='LE-Xa S_T_all_001 AOD565 2008-05-01_14',dpi=300,grid=True)
-gridded_Xa_S_T_all_0001.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=save,title='LE-Xa Conc+Emiss AOD565 2008-05-01_14',dpi=300,grid=True)
-#gridded_Xa_S_T_aer_001.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=save,title='LE-Xa S_T_aer_001 AOD565 2008-05-01_14',dpi=300,grid=True)
-#gridded_Xa_S_T_aer_0001.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=save,title='LE-Xa S_T_aer_0001 AOD565 2008-05-01_14',dpi=300,grid=True)
+#gridded_Xb_R.graph_map(variable='yr',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=cmap,type_graph='mean',date=False,save=save,title='POLDER AOD565 2008-05-01_14',dpi=300,grid=True)
+#gridded_Xb_R.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=cmap,type_graph='mean',date=False,save=save,title='LE-Xb AOD565 2008-05-01_14',dpi=300,grid=True)
+#gridded_Xa_S_T_all_001.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=cmap,type_graph='mean',date=False,save=save,title='LE-Xa S_T_all_001 AOD565 2008-05-01_14',dpi=300,grid=True)
+gridded_Xa_S_T_all_0001.graph_map(variable='ys',biascorr=1,vmin=0,vmax=0.7,n_levels_plot=10,cmap=cmap,type_graph='mean',date=False,save=save,title='LE-Xa AOD565 2008-05-01_14',dpi=300,grid=True,facecolor=(1,1,1))
+#gridded_Xa_S_T_aer_001.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=cmap,type_graph='mean',date=False,save=save,title='LE-Xa S_T_aer_001 AOD565 2008-05-01_14',dpi=300,grid=True)
+#gridded_Xa_S_T_aer_0001.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=cmap,type_graph='mean',date=False,save=save,title='LE-Xa S_T_aer_0001 AOD565 2008-05-01_14',dpi=300,grid=True)
 
-gridded_Xa_Just_emiss.graph_map(variable='ys',biascorr=1,vmin=0,vmax=1,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=save,title='LE-Xa Emiss AOD565 2008-05_07',dpi=300,grid=True,ini_period=ini_period,end_period=end_period)
+gridded_Xa_Just_emiss.graph_map(variable='ys',biascorr=1,vmin=0,vmax=0.7,n_levels_plot=10,cmap=cmap,type_graph='mean',date=False,save=save,title='LE-Xa Emiss AOD565 2008-05_07',dpi=300,grid=True,ini_period=ini_period,end_period=end_period)
 
 
 #===Calculate MAPE and MAE====
@@ -172,7 +176,7 @@ graph_map(variable=mae_Xa_S_T_all_0001[:,:,0],lat=lat,lon=lon,vmin=-1,vmax=1,nor
 # LETKF_PM25_Xa_S_T_aer.graph_map(variable='tpm25',level=1,biascorr=1e9,vmin=0,vmax=20,n_levels_plot=20,cmap=orange,type_graph='mean',date=False,save=save,title='LE-Xa S_T_aer PM25 2008-05_07',dpi=300,grid=True)
                       
 
-#LETKF_aod_Xa.graph_map(variable='aod_563nm',level=1,biascorr=1,vmin=0,vmax=0.5,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=save,title='LE-Xa AOD565 All 2008-05',dpi=300,grid=True)
-#LETKF_aod_Xb.graph_map(variable='aod_563nm',level=1,biascorr=1,vmin=0,vmax=0.5,n_levels_plot=20,cmap=custom_ramp,type_graph='mean',date=False,save=save,title='LE-Xb AOD565 All 2008-05',dpi=300,grid=True)
+#LETKF_aod_Xa.graph_map(variable='aod_563nm',level=1,biascorr=1,vmin=0,vmax=0.5,n_levels_plot=20,cmap=cmap,type_graph='mean',date=False,save=save,title='LE-Xa AOD565 All 2008-05',dpi=300,grid=True)
+#LETKF_aod_Xb.graph_map(variable='aod_563nm',level=1,biascorr=1,vmin=0,vmax=0.5,n_levels_plot=20,cmap=cmap,type_graph='mean',date=False,save=save,title='LE-Xb AOD565 All 2008-05',dpi=300,grid=True)
 
  

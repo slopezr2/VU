@@ -1,3 +1,4 @@
+import sys
 from netCDF4 import Dataset
 import numpy as np
 import pandas as pd
@@ -29,6 +30,13 @@ from matplotlib import cm
 viridis = cm.get_cmap('viridis', 256)
 orange=cm.get_cmap('Oranges', 256)
 bwr=cm.get_cmap('bwr', 256)
+
+
+
+def IF_NOT_OK(status,message):
+	if status!=0:
+		sys.exit('[ERROR SMOOTHER]             '+message)
+
 
 
 def moving_average(x, w):
@@ -152,7 +160,7 @@ class DataManager_LE:
    def __init__(self,file):
         self.nc = Dataset(file, "r", format="NETCDF4")
         
-   def graph_map(self,biascorr=1,variable='aod_550nm',time=0,sum_level=False,level=1,vmin=0, vmax=1,vcenter=0.5,norm2=False, n_levels_plot=10,cmap=viridis, date=True,title='default',title_on=True,type_graph='mean',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',grid=False,orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],stock_image=False,shape_file=False,shape_name='',units='',dpi=1000,save_title=None,stations=False,size_stations=15,facecolor=(0.6,0.6,0.6)):     
+   def graph_map(self,biascorr=1,variable='aod_550nm',time=0,sum_level=False,level=1,vmin=0, vmax=1,vcenter=0.5,norm2=False, n_levels_plot=10,cmap=viridis, date=True,title='default',title_on=True,type_graph='mean',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='max',grid=False,orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],stock_image=False,shape_file=False,shape_name='',units='',dpi=1000,save_title=None,stations=False,size_stations=15,facecolor=(0.6,0.6,0.6)):     
        
        if 'lon' in self.nc.variables.keys():
            lon=self.nc.variables['lon'][:]
@@ -295,7 +303,7 @@ class DataManager_GRIDDED:
        plt.show()
 
        return aod_sat,aod_le
-   def graph_map(self,biascorr=1,variable='aod_550nm',level=0,facecolor=(0.6,0.6,0.6),time=0,vmin=0, vcenter=0.5,vmax=1,norm2=False, n_levels_plot=10,cmap=viridis, date=True,title='default',title_on=True,type_graph='mean',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',grid=False,orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],stock_image=False,shape_file=False,shape_name='',units='',dpi=1000,save_title=None,stations=False,size_stations=15):     
+   def graph_map(self,biascorr=1,variable='aod_550nm',level=0,facecolor=(0.6,0.6,0.6),time=0,vmin=0, vcenter=0.5,vmax=1,norm2=False, n_levels_plot=10,cmap=viridis, date=True,title='default',title_on=True,type_graph='mean',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='max',grid=False,orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],stock_image=False,shape_file=False,shape_name='',units='',dpi=1000,save_title=None,stations=False,size_stations=15):     
        
        if 'lon' in self.nc.variables.keys():
            lon=self.nc.variables['lon'][:]
@@ -314,6 +322,8 @@ class DataManager_GRIDDED:
            aux_yr=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:,level])
            aux[aux<0]=np.nan
            aux[aux_yr<0]=np.nan
+           aux[aux>990] = np.nan
+           aux[aux_yr>990]  =np.nan
            aux_mask=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:,level])
        
        else:
@@ -321,6 +331,8 @@ class DataManager_GRIDDED:
            aux_yr=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:])
            aux[aux<0]=np.nan
            aux[aux_yr<0]=np.nan
+           aux[aux>990] = np.nan
+           aux[aux_yr>990]  =np.nan
            aux_mask=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:])
        aux.mask=aux_mask.mask
        
@@ -351,11 +363,11 @@ class DataManager_GRIDDED:
            
            date_plot=date_plot_ini+' - '+date_plot_end
        graph_map(lon=lon,lat=lat,vmin=vmin,vmax=vmax,vcenter=vcenter,n_levels_plot=n_levels_plot,date=date,date_plot=date_plot,title_on=title_on,cmap=cmap,variable_title=variable,variable=var_graph,title=title,save=save,extend=extend,norm2=norm2,grid=grid,ocean=ocean,stock_image=stock_image, orientation=orientation,lat_lim=lat_lim,lon_lim=lon_lim,subdomain=subdomain,ocean_color=ocean_color,shape_file=shape_file,shape_name=shape_name,units=units,dpi=dpi,save_title=save_title,stations=stations,size_stations=size_stations,facecolor=facecolor)
-           
+
        
    
     
-   def transversal(self,biascorr=1,extern=False,calipso_mean=1,le_mean=1,layer_meters=600,variable='aod_550nm',facecolor=(0.6,0.6,0.6),time=100,vmin=0, vmax=1, n_levels_plot=10,cmap=viridis, date=True,title='default',title_on=True,type_graph='mean',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='both',direction='row',position=10,cut=True,normalize=False):
+   def transversal(self,biascorr=1,extern=False,calipso_mean=1,le_mean=1,layer_meters=600,variable='aod_550nm',facecolor=(0.6,0.6,0.6),time=100,vmin=0, vmax=1, n_levels_plot=10,cmap=viridis, date=True,title='default',title_on=True,type_graph='mean',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False, extend='max',direction='row',position=10,cut=True,normalize=False):
        
        if 'lon' in self.nc.variables.keys():
            lon=self.nc.variables['lon'][:]
@@ -382,9 +394,9 @@ class DataManager_GRIDDED:
        if normalize==True:
            aux=aux*calipso_mean/le_mean
        if type_graph=='mean':
-           aux=np.nanmean(aux[ini_period:end_period:step_period,:,:,:],axis=0)
+           aux=np.nanmean(aux[ini_period:end_period+1:step_period,:,:,:],axis=0)
            if normalize==True:
-               calipso_profile=np.nanmean(calipso_profile[ini_period:end_period:step_period,:,:,:-1],axis=0)
+               calipso_profile=np.nanmean(calipso_profile[ini_period:end_period+1:step_period,:,:,:-1],axis=0)
        elif type_graph=='instant': 
            aux=aux[time,:,:,:]
            if normalize==True:
@@ -563,7 +575,7 @@ class DataManager_GRIDDED:
             #          0.08,
             #          ax.get_position().height-0.2])
             
-            #plt.colorbar(cax=cax,extend='both')
+            #plt.colorbar(cax=cax,extend='max')
            if save==True:
                if date==True:
                    plt.savefig('./Figures/Cut_'+title_plot+'.png',format='png', dpi=1000,bbox_inches = "tight")
@@ -574,7 +586,7 @@ class DataManager_GRIDDED:
        
        return fig,ax
     
-   def graph_diff_map(self,biascorr=1,level=0,facecolor=(0.6,0.6,0.6),time=100,vmin=0, vcenter=0.5,vmax=1,norm2=False, n_levels_plot=10,cmap=bwr, date=False,title='default',title_on=True,type_graph='mean',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False,stock_image=False, extend='both',grid=False,orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],shape_file=False,shape_name='',units='',dpi=1000,save_title=None,stations=False,size_stations=15,porcentage_diff=False):     
+   def graph_diff_map(self,biascorr=1,level=0,facecolor=(0.6,0.6,0.6),time=100,vmin=0, vcenter=0.5,vmax=1,norm2=False, n_levels_plot=10,cmap=bwr, date=False,title='default',title_on=True,type_graph='mean',ini_period=0,end_period=-1,step_period=1,save=False,ocean=False,stock_image=False, extend='max',grid=False,orientation='vertical',lat_lim=[0,-1],lon_lim=[0,-1],subdomain=False,ocean_color=[1,1,1],shape_file=False,shape_name='',units='',dpi=1000,save_title=None,stations=False,size_stations=15,porcentage_diff=False,relation=False):     
        
        if 'lon' in self.nc.variables.keys():
            lon=self.nc.variables['lon'][:]
@@ -589,22 +601,51 @@ class DataManager_GRIDDED:
        if aux.ndim==4:
            aux=np.ma.masked_invalid(self.nc.variables['ys'][:,:,:,level])
            aux_yr=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:,level])
-           aux[aux<0]=np.nan
-           aux[aux_yr<0]=np.nan
-           aux = aux_yr-aux
+           aux[aux<=0]=np.nan
+           aux[aux_yr<=0]=np.nan
+           aux[aux>990] = np.nan
+           aux[aux_yr>990]  =np.nan
+           aux_yr[aux<=0]=np.nan
+           aux_yr[aux_yr<=0]=np.nan
+           aux_yr[aux>990] = np.nan
+           aux_yr[aux_yr>990]  =np.nan
+           if relation==True:
+               aux = aux_yr/aux
+           else:
+               aux = aux_yr-aux
            aux_mask=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:,level])
        
        else:
            aux=np.ma.masked_invalid(self.nc.variables['ys'][:,:,:])
            aux_yr=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:])
-           aux[aux<0]=np.nan
-           aux[aux_yr<0]=np.nan
-           aux = aux_yr-aux
+           aux[aux<=0]=np.nan
+           aux[aux_yr<=0]=np.nan
+           aux[aux>990] = np.nan
+           aux[aux_yr>990]  =np.nan
+           aux_yr[aux<=0]=np.nan
+           aux_yr[aux_yr<=0]=np.nan
+           aux_yr[aux>990] = np.nan
+           aux_yr[aux_yr>990]  =np.nan
+           if relation==True:
+               aux = aux_yr/aux
+           else:
+               aux = aux_yr-aux
            aux_mask=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:])
        aux.mask=aux_mask.mask
        
-       if porcentage_diff==True:
-           aux = (aux/aux_yr)*100
+       if relation==False:
+           if title=='default':
+               variable_title = 'diff obs-LE'
+           else:
+               variable_title = title
+           if porcentage_diff==True:
+               aux = (aux/aux_yr)*100
+       else:
+           if title=='default':
+               variable_title = 'diff obs/LE'
+           else:
+               variable_title = title
+        
        timestamp_2012 = datetime.timestamp(datetime.strptime('2008-1-1 00:00:00', '%Y-%m-%d %H:%M:%S'))
        if type_graph=='instant':
            
@@ -630,7 +671,7 @@ class DataManager_GRIDDED:
            date_plot_end=date_plot_end.strftime("%d-%b-%Y")
            
            date_plot=date_plot_ini+' - '+date_plot_end
-       graph_map(lon=lon,lat=lat,vmin=vmin,vmax=vmax,vcenter=vcenter,n_levels_plot=n_levels_plot,date=date,date_plot=date_plot,title_on=title_on,cmap=cmap,stock_image=stock_image, variable_title='diff obs-LE',variable=var_graph,title=title,save=save,extend=extend,norm2=norm2,grid=grid,ocean=ocean, orientation=orientation,lat_lim=lat_lim,lon_lim=lon_lim,subdomain=subdomain,ocean_color=ocean_color,shape_file=shape_file,shape_name=shape_name,units=units,dpi=dpi,save_title=save_title,stations=stations,size_stations=size_stations,facecolor=facecolor)
+       graph_map(lon=lon,lat=lat,vmin=vmin,vmax=vmax,vcenter=vcenter,n_levels_plot=n_levels_plot,date=date,date_plot=date_plot,title_on=title_on,cmap=cmap,stock_image=stock_image, variable_title=variable_title,variable=var_graph,title=title,save=save,extend=extend,norm2=norm2,grid=grid,ocean=ocean, orientation=orientation,lat_lim=lat_lim,lon_lim=lon_lim,subdomain=subdomain,ocean_color=ocean_color,shape_file=shape_file,shape_name=shape_name,units=units,dpi=dpi,save_title=save_title,stations=stations,size_stations=size_stations,facecolor=facecolor)
            
        
    
@@ -641,8 +682,8 @@ class DataManager_GRIDDED:
        if type_graph=='sum':
            
            for variable_aux in range(len(variable)):
-               aux=self.nc.variables[variable[variable_aux]][ini_period:end_period:step_period,:,:]
-               time=self.nc.variables['time'][ini_period:end_period:step_period].data
+               aux=self.nc.variables[variable[variable_aux]][ini_period:end_period+1:step_period,:,:]
+               time=self.nc.variables['time'][ini_period:end_period+1:step_period].data
                timestamp_2012 = datetime.timestamp(datetime.strptime('2008-1-1 00:00:00', '%Y-%m-%d %H:%M:%S'))
                timestamp=np.round(time).astype(int)
                date_plot=[datetime.fromtimestamp(fs+timestamp_2012) for fs in timestamp]
@@ -662,8 +703,8 @@ class DataManager_GRIDDED:
        elif type_graph=='mean':
            
            for variable_aux in range(len(variable)):
-               aux=self.nc.variables[variable[variable_aux]][ini_period:end_period:step_period,:,:]
-               time=self.nc.variables['time'][ini_period:end_period:step_period].data
+               aux=self.nc.variables[variable[variable_aux]][ini_period:end_period+1:step_period,:,:]
+               time=self.nc.variables['time'][ini_period:end_period+1:step_period].data
                aux[aux<0] = np.NaN
                
                timestamp_2012 = datetime.timestamp(datetime.strptime('2008-1-1 00:00:00', '%Y-%m-%d %H:%M:%S'))
