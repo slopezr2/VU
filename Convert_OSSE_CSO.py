@@ -35,7 +35,7 @@ experiment_name = 'Natural_Run_200805_POLDER'
 
 #===LE AOD values===
 #=A file for all the year=
-LE_file = Dataset('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_aod_2008.nc')
+LE_file = Dataset(po)
 
 #=== Sampling satellite ===
 #=CSO file of the satellite used as sampling==
@@ -43,13 +43,13 @@ satellite_path =  '/Users/santiago/Documents/POLDER/Model/complete'
 
 
 #===Variables satellite==
-cso_variables = ['AOD565','AOD865','AExp']
+cso_variables = ['AOD565','AExp','SSA565']
 
 #===Variables LE==
-LE_variables = ['aod_563nm','aod_865nm', 'angstrom_polder']
-
+LE_variables = ['aod_563nm','angstrom_polder','ssa_550nm']
+Dim_variables = [3,3,4] #To improve the performance of the script
 #==Observation error==
-observation_error = 0.2
+observation_error = [0.002,0.002,0.002]
 #==========================================================================================================================================================================================================================
 status = 0
 error_message = ''
@@ -80,10 +80,14 @@ for file in onlyfiles:
     src_file = join(satellite_path, file)
     new_name = 'CSO/CSO_OSSE_'+experiment_name+'_'+file[-11:] 
     trg_file = join(osse_path,new_name)
-    idx_time = (datetime.datetime.strptime(file[-11:-3]+'13', "%Y%m%d%H").timestamp() - timestamp_2008)/3600
+    idx_time = (datetime.datetime.strptime(file[-11:-3]+'13', "%Y%m%d%H").timestamp() - timestamp_2008)
+    if idx_time<LE_file.variables['time'][0] or idx_time>LE_file.variables['time'][-1]:
+        continue
+    idx_time = idx_time/3600 - LE_file.variables['time'][0]/3600
     valid_files.append(new_name)
     src = Dataset(src_file)
     trg = Dataset(trg_file, mode='w')
+    print('Creating the file: '+trg_file)
     # Create the dimensions of the file   
     for name, dim in src.dimensions.items():
         trg.createDimension(name, len(dim) if not dim.isunlimited() else None) 
@@ -100,8 +104,15 @@ for file in onlyfiles:
     
     aux_variables = {key: [] for key in cso_variables}
     for i in range(src.variables['latitude'][:].shape[0]):
-        idx_lat = find_nearest(LE_file.variables['lat'][:], src.variables['latitude'][i])
-        idx_lon = find_nearest(LE_file.variables['lon'][:], src.variables['longitude'][i])
+        if 'lat' in LE_file.variables.keys():
+            idx_lat = find_nearest(LE_file.variables['lat'][:], src.variables['latitude'][i])
+        else:
+            idx_lat = find_nearest(LE_file.variables['latitude'][:], src.variables['latitude'][i])
+        if 'lon' in LE_file.variables.keys():
+            idx_lon = find_nearest(LE_file.variables['lon'][:], src.variables['longitude'][i])
+        else:
+            idx_lon = find_nearest(LE_file.variables['longitude'][:], src.variables['longitude'][i])
+        i_variable = 0
         for cso_variable,LE_variable in zip(cso_variables,LE_variables):
             status = 0
             error_message = ''
@@ -113,9 +124,14 @@ for file in onlyfiles:
                 status = 1
                 error_message = 'The LE variable is not in the LE file.'
             IF_NOT_OK(status,error_message)
-            LE_value = LE_file.variables[LE_variable][idx_time,idx_lat,idx_lon]
-            rand_error = observation_error*LE_value*np.random.randn(1)
-            aux_variables[cso_variable].append(LE_value+rand_error)
+            if Dim_variables[i_variable]==3:
+                LE_value = LE_file.variables[LE_variable][idx_time,idx_lat,idx_lon]
+            else:
+                LE_value = np.mean(LE_file.variables[LE_variable][idx_time,:,idx_lat,idx_lon])
+            
+            rand_error = observation_error[i_variable]*np.random.randn(1)
+            aux_variables[cso_variable].append(max(0,LE_value+rand_error))
+            i_variable = i_variable + 1
     for cso_variable in cso_variables:       
         trg.variables[cso_variable][:] = aux_variables[cso_variable][:]
             
