@@ -33,9 +33,10 @@ cmap = ListedColormap(g, name='myColorMap', N=len(g))
 
 gridded_LE_year=DataManager_GRIDDED('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_polder-aod-563_2008.nc')
 onlyfiles = []
-for i in range(1,26):
+for i in range(115,145):
     i_str = f'{i:03d}'
-    gridded_LE_year.graph_map(variable='yr',cmap=cmap.reversed(),vmin=0,vmax=0.7,type_graph='instant',time=i,ini_period=83,end_period=91,save=True,stock_image=True,save_title='/gif/87_116_stock_figure_'+i_str,extend='max')
+    gridded_LE_year.graph_map(variable='yr',cmap=cmap.reversed(),vmin=0,vmax=0.5,type_graph='instant',time=i,ini_period=83,end_period=91,save=True,
+                              stock_image=True,save_title='/gif/87_116_stock_figure_'+i_str,extend='max',dpi=200,subdomain=True,lat_lim=[40,86],lon_lim=[23,60])
     onlyfiles.append('/gif/87_116_stock_figure_'+i_str+'.png')
 
 mypath='./Figures'
@@ -45,4 +46,4 @@ for file in onlyfiles:
     if file[5:11]=='87_116':
         images.append(imageio.imread(mypath+file))
 
-imageio.mimsave('./Figures/87_116_stock_POLDER_2008.gif', images,duration=0.6)
+imageio.mimsave('./Figures/87_116_stock_POLDER_2008_summer.gif', images,duration=0.6)

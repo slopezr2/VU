@@ -34,9 +34,10 @@ cmap = ListedColormap(g, name='myColorMap', N=len(g))
 
 LE_year=DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_aod_2008.nc')
 onlyfiles = []
-for i in range(0,600,3):
+for i in range(2900,3010,5):
     i_str = f'{i:03d}'
-    LE_year.graph_map(variable='aod_563nm',cmap=cmap.reversed(),vmin=0,vmax=0.3,type_graph='instant',time=i,save=True,stock_image=False,save_title='/gif/LE_AOD_figure_'+i_str,extend='max')
+    LE_year.graph_map(variable='aod_563nm',cmap=cmap.reversed(),vmin=0,vmax=0.5,type_graph='instant',time=i,save=True,
+                      stock_image=False,save_title='/gif/LE_AOD_figure_'+i_str,extend='max',dpi=200,subdomain=True,lat_lim=[40,86],lon_lim=[23,60])
     onlyfiles.append('/gif/LE_AOD_figure_'+i_str+'.png')
 
 mypath='./Figures'
@@ -46,4 +47,4 @@ for file in onlyfiles:
     if file[5:11]=='LE_AOD':
         images.append(imageio.imread(mypath+file))
 
-imageio.mimsave('./Figures/LE_AOD_2008.gif', images,duration=0.3)
+imageio.mimsave('./Figures/LE_AOD_2008_Summer.gif', images,duration=0.3)

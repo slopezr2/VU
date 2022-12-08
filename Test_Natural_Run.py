@@ -78,12 +78,12 @@ prueba[30:65,20:47] = v2
 prueba[0:8,15:55] = v2
 prueba[40:50,45:60] = v2
 prueba[55:80,65:] = v3
-
+prueba[1,:] = 3000
 for i in range(prueba.shape[0]):
     for j in range(prueba.shape[1]):
         prueba[i,j] = getmeanofneighbors(prueba, i, j,3)
 
-graph_map(variable=prueba,lat=lat,lon=lon,vmax=10,cmap=redblue,vmin=1,title='DC Correction Factors',title_on=True,stock_image=True,grid=True,n_levels_plot=10,save=save,save_title='OSSE_DC_Natural')
+graph_map(variable=prueba,lat=lat,lon=lon,vmax=1000,cmap=redblue,vmin=1,title='DC Correction Factors',title_on=True,stock_image=True,grid=True,n_levels_plot=10,save=save,save_title='OSSE_DC_Natural')
 
 
 #===Experiments Natural run===

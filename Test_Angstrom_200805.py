@@ -85,7 +85,7 @@ le_aexp=-np.log(le_443_aod/le_865_aod)/np.log(443/865)
 
 
 vmin=0
-vmax=3
+vmax=2
 n_levels_plot=10
 
 graph_map(lat=lat,lon=lon,variable=polder_aexp,vmin=vmin,vmax=vmax,cmap=RdYlGn.reversed(),n_levels_plot=n_levels_plot,save=True,save_title='POLDER_Aexp_2008',title='Polder Agnstrom Exponent 443-865',grid=True)
