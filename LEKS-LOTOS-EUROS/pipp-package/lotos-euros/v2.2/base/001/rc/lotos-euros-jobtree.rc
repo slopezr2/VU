@@ -1,0 +1,114 @@
+! ######################################################################
+! ###
+! ### main jobtree
+! ###
+! ######################################################################
+
+! class to create and submit job chain:
+jobtree.le.class                      :  utopya.UtopyaJobTree
+! top level job is virtual:
+jobtree.le.virtual                    :  True
+
+! lists and sublists:
+jobtree.le.elements                   :  copy build run post
+
+
+! ######################################################################
+! ###
+! ### copy
+! ###
+! ######################################################################
+
+! no sub list:
+jobtree.le.copy.class                  :  utopya.UtopyaJobStep
+
+! default class is defined in machine specific settings;
+! copy is always done in foreground to avoid that files are
+! changed before the job is started:
+jobtree.le.copy.script.class           :  utopya.UtopyaJobScriptForeground
+
+! search path to utopya modules;
+! the 'build.utopya' job will create a copy on the workdir
+! for which the path is included in the '*.pypath' setting:
+jobtree.le.copy.pypath                   :  ${PWD}/base/${my.le.patch}/py
+
+! configure and build:
+jobtree.le.copy.task.class               :  utopya.UtopyaCopy
+jobtree.le.copy.task.args                :  '%{rcfile}', rcbase='le'
+
+
+! ######################################################################
+! ###
+! ### build
+! ###
+! ######################################################################
+
+! no sub list:
+jobtree.le.build.class                    :  utopya.UtopyaJobStep
+
+! work directory:
+jobtree.le.build.workdir                  :  ${my.project.dir}/run
+
+! settings for job creation:
+jobtree.le.build.rcfile                   :  ${le.copy.rcwrite}
+
+! search path to utopya modules, use the work copy:
+jobtree.le.build.pypath                   :  ${my.project.dir}/build/py
+
+! tasks to be performed:
+jobtree.le.build.tasks                    :  configure make
+!
+jobtree.le.build.task.configure.class     :  utopya.UtopyaConfigure
+jobtree.le.build.task.configure.args      :  '%{rcfile}', rcbase='le'
+!
+jobtree.le.build.task.make.class          :  utopya.UtopyaMake
+jobtree.le.build.task.make.args           :  '%{rcfile}', rcbase='le'
+
+
+! ######################################################################
+! ###
+! ### run
+! ###
+! ######################################################################
+
+! no sub list:
+jobtree.le.run.class                :  utopya.UtopyaJobStep
+
+! work directory:
+jobtree.le.run.workdir              :  ${my.project.dir}/run
+
+! settings for job creation:
+jobtree.le.run.rcfile               :  ${my.le.run.rcfile}
+
+! search path to utopya modules, use the work copy:
+jobtree.le.run.pypath               :  ${my.project.dir}/build/py
+
+! run model, command defined in machine settings:
+!   le.run.command      :  mpirun lotos-euros.x
+jobtree.le.run.task.class           :  utopya.UtopyaRcCommand
+jobtree.le.run.task.args            :  '%{rcfile}', rcbase='le.run'
+
+
+! ######################################################################
+! ###
+! ### post
+! ###
+! ######################################################################
+
+! no sub list:
+jobtree.le.post.class                :  utopya.UtopyaJobStep
+
+! work directory:
+jobtree.le.post.workdir              :  ${my.project.dir}/run
+
+! settings for job creation:
+jobtree.le.post.rcfile               :  ${my.le.run.rcfile}
+
+! search path to utopya modules, use the work copy:
+jobtree.le.post.pypath               :  ${my.project.dir}/build/py
+
+! run postprocessing class:
+jobtree.le.post.task.class           :  le_tools.PostProc
+jobtree.le.post.task.args            :  '%{rcfile}'
+
+

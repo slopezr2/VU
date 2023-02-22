@@ -1,0 +1,417 @@
+! ######################################################################
+! ###
+! ### copy
+! ###
+! ######################################################################
+
+! * settings for 'UtopyaCopy' class
+
+! list of source directories to be copied;
+! files in latest directory overwrite previously copied versions:
+le.copy.dirs                  :  ${my.le.source.dirs}
+
+! sub directories to be included ;
+! leave empty if no subdirs are defined:
+le.copy.subdirs               :  bin py src rc data
+
+! directories to be inlcuded in copy,
+! otherwise only files are copied:
+le.copy.incdirs               :  include
+
+! skip files matching these filename patterns
+! (tempoary editor files, compiled modules, etc) ;
+! here also remove include files that will be written based on defined macro's,
+! otherwise they might be replaced if the target content is different from the template content
+! and 'make' will think that the source is changed ...
+le.copy.skip                      : .#* *~ *.pyc .DS* \
+                                      go.inc mdf.inc udunits_version.inc num.inc le.inc c3po.inc cso.inc \
+                                      le_indices.inc \
+                                      le_chem_work.F90 \
+                                      udunits_inc.F
+
+! prefix for destination of source and script files
+! (base path for subdirectories src, py, etc) ;
+! this should be an absolute path,
+! use ${PWD} for the present dir if necessary:
+le.copy.prefix                    :  ${my.project.dir}/build
+
+! build directory extension for mpi:
+#if "${par.mpi}" in ["True"] :
+my.mpi.extension                  :  mpi
+#else
+my.mpi.extension                  :  
+#endif
+! build directory extension for openmp
+#if "${par.openmp}" in ["True"] :
+my.openmp.extension               :  openmp
+#else
+my.openmp.extension               :  
+#endif
+! space separated extensions:
+le.copy.prefix.extensions         :  ${my.mpi.extension} ${my.openmp.extension} ${le.configure.flags.groups}
+
+! remove existing build directory if present ?
+! use the environment variable defined in 'setup-le' script:
+le.copy.new                       :  ${NEW_BUILD}
+
+! name of evaluated rcfile in run directory:
+my.le.run.rcfile                  :  lotos-euros.rc
+! destination of evaluated rcfile:
+le.copy.rcwrite                   :  ${my.project.dir}/run/${my.le.run.rcfile}
+
+
+! ######################################################################
+! ###
+! ### build
+! ###
+! ######################################################################
+
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! configure
+! (required by UtopyaConfigure object)
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! where to configure ?
+le.configure.dir                  :  ${le.copy.prefix}/src
+
+! enable parallel computing?
+le.configure.enable.mpi           :  ${par.mpi}
+le.configure.enable.openmp        :  ${par.openmp}
+
+
+!
+! * user defined tasks
+!
+
+! list of tasks:
+le.configure.tasks                :  genes
+
+! create grid definition source file:
+le.configure.task.genes.class     :  genes.GeneS
+le.configure.task.genes.args      :  '%{rcfile}', 'genes'
+
+
+
+!
+! *** compiler settings
+!
+
+! class for compiler settings, and arguments for initialization:
+le.configure.compiler.class       :  utopya.UtopyaCompilerSettingsFortran
+le.configure.compiler.args        :  rcfile='${le.copy.rcwrite}', rcbase=''
+
+! Specify space seperated list of compiler flag groups.
+! For each group, corresponding flags should be defined in the compiler rc.
+! Added automatically:
+!  default    : default flags
+!  mpi        : if mpi enabled
+!  openmp     : if openmp enabled
+! Defined in compiler.rc:
+!  optim-none
+!  check-all
+!  optim-fast
+!
+!le.configure.flags.groups         :  optim-fast
+le.configure.flags.groups         :  ${my.configure.flags}
+
+! include file to be written for Makefile:
+le.configure.flags.includefile    :  Makefile_flags
+
+!
+! *** macro's
+!
+
+! collect defined macro's :
+le.configure.macro.define         :  with_netcdf ${my.udunits.define} ${my.labeling.define} ${my.m7.define} ${my.vbs.define} ${my.landuse.glc.define} ${my.pollen.define}${my.radiation.define}
+
+! Specify list of macro groups:
+le.configure.macro.groups         :  go cso c3po udunits mdf libs num le
+
+! For each of the groups, specify:
+!  o all supported macro's 
+!    (to check if requested macro do not include typo errors)
+!  o optionally the name of header file; if provided,
+!    this file is filed with appropriate '#define' commands
+!
+! ~ GO modules
+le.configure.macro.go.all         : __INTEL_COMPILER \
+                                      __GFORTRAN__ \
+                                      __GNUC____GNUC_MINOR____GNUC_PATCHLEVEL__ \
+                                      __IBMC__ \
+                                      __ecmwf__ \
+                                      with_netcdf
+le.configure.macro.go.hfile       : go.inc
+
+! ~ CSO modules
+le.configure.macro.cso.all        : _MPI
+le.configure.macro.cso.hfile      : cso.inc
+
+! ~ C3PO modules
+le.configure.macro.c3po.all       :  
+le.configure.macro.c3po.hfile     : c3po.inc
+
+! ~ hdf/netcdf libraries:
+le.configure.macro.mdf.all        : with_netcdf \
+                                      with_netcdf4 \
+                                      with_netcdf4_par \
+                                      with_hdf4 \
+                                      with_hdf5_beta \
+                                      with_go
+le.configure.macro.mdf.hfile      : mdf.inc
+
+! ~ libraries:
+le.configure.macro.libs.all       : _OPENMP \
+                                      with_udunits1 with_udunits2 \
+                                      with_lapack95 \
+                                      with_lapack \
+                                      with_mkl \
+                                      with_mkl_17 \
+                                      with_spblas \
+                                      _MPI
+le.configure.macro.libs.hfile     :
+
+! ~ num specific:
+le.configure.macro.num.all        : with_lapack \
+                                      with_lapack95 \
+                                      with_mkl \
+                                      with_mkl_17
+le.configure.macro.num.hfile      : num.inc
+!
+! ~ UDUnits specific:
+le.configure.macro.udunits.all    : with_udunits1 with_udunits2
+le.configure.macro.udunits.hfile  : udunits_version.inc
+!
+! ~ lotos-euros specific:
+le.configure.macro.le.all         : with_hdiff \
+                                      with_netcdf \
+                                      _OPENMP \
+                                      with_labeling \
+                                      with_mkl \
+                                      with_mkl_17 \
+                                      with_spblas \
+                                      with_vbs \
+                                      with_glc \
+                                      with_extra_lu \
+                                      without_physics \
+                                      with_m7 \
+                                      with_pollen \
+                                      with_radiation
+le.configure.macro.le.hfile       : le.inc
+
+! Inclue macro definitions in compiler flags (True|False)? Example:
+!   -Dwith_this_flag
+! Not necessary if header files with macro definitions are written:
+le.configure.macro.define_flags     :  False
+
+
+!
+! *** remove files
+!
+
+! remove some files ?
+le.configure.remove                              :  
+
+! remove if macro's are *not* defined ?
+le.configure.remove.ifndef.with_hdf4             :  hdf4.F90
+le.configure.remove.ifndef.with_hdiff            :  le_hdiff.F90
+le.configure.remove.ifndef.with_radiation        :  le_radiation.F90 \
+                                                    le_radiation_lut.F90 \
+                                                    le_radiation_mie.F90 \
+                                                    le_radiation_swbands.F90 \
+                                                    le_output_rad.F90
+
+
+!
+! *** libraries
+!
+
+! class for library settings, and arguments for initialization:
+le.configure.libs.class     :  utopya.UtopyaLibSettings
+le.configure.libs.args      :  rcfile='${le.copy.rcwrite}', rcbase=''
+
+! Supported libraries are specified with keywords, e.g.:
+!    netcdf hdf5 hdf4 z jpeg gribex
+! List of all supported libraries; this defines the linking order !
+le.configure.libs.all                          :  netcdf4 netcdf hdf5 hdf4 sz jpeg z lapack spblas blas mkl udunits2 udunits1
+
+! ~ default libraries:
+le.configure.libs                              :  
+
+! ~ libraries to be included if a specific marcro is defined:
+le.configure.libs.ifdef.with_netcdf4           :  netcdf4
+le.configure.libs.ifdef.with_netcdf            :  netcdf
+le.configure.libs.ifdef.with_hdf5              :  hdf5     sz jpeg z
+le.configure.libs.ifdef.with_hdf4              :  hdf4     sz jpeg z
+le.configure.libs.ifdef.with_lapack            :  lapack   blas
+le.configure.libs.ifdef.with_lapack95          :  lapack95 blas
+le.configure.libs.ifdef.with_spblas            :  spblas   blas
+le.configure.libs.ifdef.with_mkl               :  mkl
+le.configure.libs.ifdef.with_udunits1          :  udunits1
+le.configure.libs.ifdef.with_udunits2          :  udunits2
+le.configure.libs.ifdef.with_udunits          :  udunits2
+! ifort does not require the '-lmkl' linker flag, just a '-mkl' on the command line suffices
+!configure.libs.ifdef.with_mkl               :  mkl
+
+
+
+
+!
+! *** source code checks
+
+! Apply some source code checks ?
+! Provide a space seperated list with keywords; for each keyword, provide below:
+!  o a short message to describe the test;
+!  o the filename pattern to select the files on which the test should be applied;
+!  o a filename pattern to exclude some files;
+!  o a python boolean expression applied to each line of the file;
+!    the line itself is stored in a string variable named 'line';
+!  o a help text to be displayed in case a warning is issued;
+!    include \n for newlines.
+! If for one of the lines in a source file the test evaluates to 'True', 
+! a warning is issued.
+! If the test expression starts with 'not', a warning is issued if none
+! of the lines evaluates to 'True' for the test after the 'not'.
+! If the 'error' flag is set to 'True' and any warnings are issued, then
+! the scripting will exit with an error status.
+
+! list with keywords for checks to be applied:
+le.configure.checks                 :  go_inc le_inc unknown_macro strange_file
+
+! all GO files should include "go.inc"; search files that do not do that:
+le.configure.check.go_inc.msg       :  Test on GO files that do no not include "go.inc" ...
+le.configure.check.go_inc.files     :  go*.F90
+le.configure.check.go_inc.skip      :  
+le.configure.check.go_inc.test      :  not line.startswith('#include "go.inc"')
+le.configure.check.go_inc.help      :  \n\
+          All GO files should include "go.inc" in the header.\n\
+          This include file is filled by the scripting with '#define' pre-processing macros.\n\
+          To compile a source code with LE files that do not include "go.inc",\n\
+          ensure that marco definitions are passed to the compiler directly by setting:\n\
+          .   configure.define.D  :  True\n\
+          in the expert.rc file.\n\
+
+! all LE files should include "le.inc"; search files that do not do that:
+le.configure.check.le_inc.msg       :  Test on LE files that do no not include "le.inc" ...
+le.configure.check.le_inc.files     :  le_*.F90 SA_*.F90 lotos-euros.F90
+le.configure.check.le_inc.skip      :  le_indices.inc le_sia_isorropia2_*.* le_meteo_racmo_*.F90
+le.configure.check.le_inc.test      :  not line.startswith('#include "le.inc"')
+le.configure.check.le_inc.help      :  \n\
+          All LE files should include "le.inc" in the header.\n\
+          This include file is filled by the scripting with '#define' pre-processing macros.\n\
+          To compile a source code with LE files that do not include "le.inc",\n\
+          ensure that marco definitions are passed to the compiler directly by setting:\n\
+          .   configure.define.D  :  True\n\
+          in the expert.rc file.\n\
+
+! special: check on unknown macros used in '#if[n]def' lines,
+! but not listed in .all lists above ?
+le.configure.check.unknown_macro.msg       :  
+le.configure.check.unknown_macro.files     :  
+le.configure.check.unknown_macro.skip      :  
+le.configure.check.unknown_macro.test      :  
+le.configure.check.unknown_macro.help      :  
+
+! source directories should not be polluted with strange files:
+le.configure.check.strange_file.msg       :  Test on strange file names ...
+le.configure.check.strange_file.files     :  *
+le.configure.check.strange_file.skip      :  *.inc *.f *.F *.f90 *.F90 Makefile* *.o *.mod *.x
+le.configure.check.strange_file.test      :  True
+le.configure.check.strange_file.help      :  \n\
+          Source directories should not be polutted with strange files\
+          such as backup files created by editors;\n\
+          if this file is actually useful, add a filename pattern to the list specified by:\n\
+          .   le.configure.check.strange_file.skip\n\
+          in the expert.rc file.\n\
+          Don't forget to remove this file from the build/src directory,\n\
+          otherwise this check will remain complaining for ever.
+
+! in case some strange things are found, leave with error message (True|False)?
+le.configure.checks.error            :  True
+
+
+
+!
+! *** rules
+!
+
+! include file to be written for Makefile:
+le.configure.rules.includefile       :  Makefile_rules
+
+! explicit rules ; specify additional compiler flag groups for object files:
+!      objectfile1  :  flaggroup1 ; objectfile2 : flaggroup2 ; ...
+le.configure.rules.explicit          :  le_sia_isorropia2_isocom.o : implicit ; \
+                                        le_sia_isorropia2_isofwd.o : implicit ; \
+                                        le_sia_isorropia2_isorev.o : implicit ; \
+                                        MKL.o                      : implicit ; \
+                                        standard_name_table.o      : optim-none
+
+
+
+!
+! *** make dependencies
+!
+
+! create depencencies (True|False) ?
+le.configure.makedep                 :  ${my.with.makedep}
+
+! include file to be written for Makefile:
+le.configure.makedep.includefile     :  Makefile_deps
+
+! class to form dependencies, and arguments for initialization:
+le.configure.makedep.class           :  utopya.UtopyaDependencies
+le.configure.makedep.args            :  rcfile='${le.copy.rcwrite}', rcbase='le'
+
+! dependencies are created for files matching the pattern:
+le.configure.makedep.files           :  *.F90 *.F *.f90
+
+! define explicit dependencies for some objects, 
+! in case these are not recoqnized by 'makedep',
+! for example dependencies on object files that are no modules;
+! specifiy ';' seperated lines of target and object list seperated by ':' :
+!    target-object1 : object1 object2 ... ;
+!    target-object2 : object3 object4 ...
+le.configure.makedep.explicit        :  \
+    le_meteo_racmo.o            : le_meteo_racmo_caldat.o le_meteo_racmo_julday.o ; \
+    le_sia_isorropia2.o         : le_sia_isorropia2_isocom.o ; \
+    le_sia_isorropia2_isocom.o  : le_sia_isorropia2_isofwd.o le_sia_isorropia2_isorev.o ; \
+    le_m7.o                     : m7.o m7_averageproperties.o m7_equiz.o m7_equimix.o m7_equil.o ; \
+    m7.o                        : m7_dgas.o m7_dnum.o m7_dconc.o ; \
+    m7_dconc.o                  : m7_cumnor.o ; \
+    m7_dnum.o                   : m7_coaset.o m7_nuck.o m7_delcoa.o ; \
+    m7_delcoa.o                 : m7_concoag.o ; \
+    le_emis_megan.o             : megan_2_04_index1.o ; \
+    megan_2_04_gamma_etc.o      : megan_2_04_solarangle.o
+
+! Which executables to be build ?
+! Provide ';' seperated list of executable names,
+! eventually followed by the basename of the source file
+! with the main program if this is different from the 
+! basename of the executable. For example, the following
+! tells to make executables 'test.x' and 'boe.x',
+! where the first is to be compiled from a 'main.F90' or so, 
+! and the seccond is assumed to be compiled from 'boe.F90':
+!     test.x main ; boe.x
+le.configure.makedep.exec            : lotos-euros.x
+
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! make
+! (required by UtopyaMake object)
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! where to make?
+le.make.dir                     :  ${le.copy.prefix}/src
+    
+! targets:
+le.make.targets                 :  lotos-euros.x install
+
+! Make command to be used for each of the targets;
+! template '%{target}' is filled with the target name,
+! and '%{njob}' is filled from the initialization argument:
+le.make.target.lotos-euros.x    :  make --file=Makefile --jobs=%{njob} %{target}
+le.make.target.install          :  make --file=Makefile %{target} \
+                                            bindir=../../run exe=lotos-euros.x
+
+
+

@@ -1,0 +1,592 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!
+!!! DIADEM v2.0 settings for LEKF output
+!!!
+!!! Usage:
+!!!   ../../diadem/master/bin/diadem  <thisfile>
+!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!-------------------------------------------------
+! logging
+!-------------------------------------------------
+
+! debug messages ?
+*.logging.verbose         :  True
+! logging format:
+*.logging.format          :  [%(levelname)-8s] %(message)s
+
+
+!-------------------------------------------------
+! jump ..
+!-------------------------------------------------
+
+!diadem.main.jump-to            :  diadem.ts-stat
+!diadem.main.jump-to            :  diadem.ts-stat.index
+!diadem.main.jump-to            :  diadem.index
+
+
+!-------------------------------------------------
+! settings
+!-------------------------------------------------
+
+! diadem location:
+my.diadem.dir             :  ${PWD}/../../diadem/master
+
+! domain, used for satelite maps:
+!~ MACC domain
+my.domain                 :  MACC
+my.bmp.domain             : [-15,35,35,70]
+
+! run:
+my.run.id                 :   v3.0.005
+
+! basedir for run output:
+my.run.dir                :   ${SCRATCH}/projects/LEKF/${my.run.id}
+
+! work directory:
+my.work                   :   ${my.run.dir}/diadem
+
+! time range:
+my.time1                   :   2018-07-01 00:00
+my.time2                   :   2018-07-02 00:00
+ 
+ 
+!-------------------------------------------------
+! top level class
+!-------------------------------------------------
+
+! main log file, contains latest jobs submitted:
+diadem.logfile               :  ${my.work}/jobchain.log
+
+! ADHOC: the logfile might contain very unreadible path names from scratch file systems ...
+! use the following translation dictionairy to replace them by something better readible:
+diadem.logfile.translate     :  {}
+
+! class to create and submit job chain:
+diadem.class                     :  utopya.UtopyaJobTree
+diadem.virtual                   :  True
+
+! sub jobs:
+diadem.elements                  :  main sat inst dc index
+
+
+!-------------------------------------------------
+! main
+!-------------------------------------------------
+
+! 
+! Copy top level settings and script to run dir;
+! other steps will use these instead of the original files.
+!
+
+! single step:
+diadem.main.class                    :  utopya.UtopyaJobStep
+
+! run this one in foreground ...
+diadem.main.script.class             :  utopya.UtopyaJobScriptForeground
+
+! workdir:
+diadem.main.workdir                  :  ${my.work}
+
+! utopya jobstep settings: this file, 
+! this task will copy it to the workdir:
+! here use file passed as argument to 'diadem' script:
+diadem.main.rcfile                   :  ${__RCFILE__}
+
+! search path to utopya modules;
+! the 'build.utopya' job will create a copy on the workdir
+! for which the path is included in the '*.pypath' setting:
+!diadem.main.pypath                   :  ${PWD}/py
+diadem.main.pypath                   :  ${my.diadem.dir}/py
+
+! build copy of code:
+diadem.main.task.class               :  utopya.UtopyaCopy
+diadem.main.task.args                :  '${diadem.main.rcfile}', 'main', \
+                                              env={ 'WORKDIR' : '${my.work}' }
+
+
+!-------------------------------------------------
+! default job options
+! (after "main" created the workdir ...)
+!-------------------------------------------------
+
+! testing in foreground ...
+*.script.class             :  utopya.UtopyaJobScriptForeground
+
+!! work directory where job files are written ;
+!! each will have the job name ("diadem.plot.maps")
+!! expanded to a path ("diadem/plot/maps"):
+!*.workdir                  :  ${my.work}/../__NAME2PATH__
+
+! working copy of main rcfile with utopya jobtree settings:
+*.rcfile                   :  ${main.build.copy.rcwrite}
+
+! search path for python files in work directory:
+*.pypath                   :  ${my.work}/py
+
+! use python3 for jobs:
+*.shell                    :  /usr/bin/env python3
+
+
+
+
+!-------------------------------------------------
+! ploting styles
+!-------------------------------------------------
+
+!! line plots:
+!*.oper.style               :  color='0.4', linestyle='-', marker='None'
+!*.beta.style               :  color='magenta', linestyle='-', marker='None'
+
+! annote:
+*.long_name.yr          :  retrieval
+*.long_name.xb          :  model
+*.long_name.xf          :  forecast
+*.long_name.xa          :  analysis
+*.long_name.xa-xf       :  analysis incr.
+*.long_name.xa-xb       :  analysis-model
+
+! target units:
+*.units.conc.NO2        :  ppb
+*.units.dc.NOx_emis     :  1
+
+! value range in colorbar:
+*.vmax.conc.NO2         :  20.0
+*.dmax.conc.NO2         :  10.0
+
+! value range in colorbar:
+*.vmax.dc.NOx_emis      :  2.0
+*.dmax.dc.NOx_emis      :  0.5
+
+! color maps:
+!   wbrb  :  white-blue-red-brown
+!   pwb   :  purple-white-brown
+*.colors.conc           :  wbrb
+*.dcolors.conc          :  pwb
+*.colors.dc             :  pwb
+*.dcolors.dc            :  pwb
+
+
+!-------------------------------------------------
+! indexing
+!-------------------------------------------------
+
+! shut up ...
+!*.silent           :  True
+*.silent           :  False
+
+! generic template:
+*.template.default.mask                 :  *.png
+*.template.default.value                :  <img src="%(filename)s" width="400" border="0">
+
+
+!-------------------------------------------------
+! main build options
+!-------------------------------------------------
+
+! prefix for destination of source and script files
+! (base path for subdirectories src, py, etc) ;
+! this should be an absolute path,
+! use ${PWD} for the present dir if necessary:
+main.build.copy.prefix              :  ${my.work}
+
+! remove existing build directory if present ?
+main.build.copy.new                 :  False
+
+! list of source directories to be copied;
+! files in latest directory overwrite previously copied versions:
+main.build.copy.dirs                :  ${my.diadem.dir}
+
+! sub directories to be included ;
+! leave empty if no subdirs are defined:
+main.build.copy.subdirs             :  py rc
+
+! directories to be inlcuded in copy,
+! otherwise only files are copied:
+main.build.copy.incdirs             :  include
+
+! skip files matching these filename patterns
+! (tempoary editor files, compiled modules, etc)
+main.build.copy.skip                :  .#* *~  .DS* *.pyc
+
+! space separated extensions:
+main.build.copy.prefix.extensions   :  
+
+! write evaluated rcfile:
+main.build.copy.rcwrite             :  ${my.work}/diadem.rc
+
+
+!-------------------------------------------------
+! sat
+!  - plots of sat output based on EMIP processed data
+!-------------------------------------------------
+
+! sat plots:
+diadem.sat.class                    :  utopya.UtopyaJobTree
+diadem.sat.virtual                  :  True
+diadem.sat.elements                 :  maps
+!diadem.sat.elements                 :  map-aver
+!diadem.sat.elements                 :  pixel
+
+! map plots:
+diadem.sat.maps.class                    :  utopya.UtopyaJobTree
+diadem.sat.maps.virtual                  :  True
+diadem.sat.maps.elements                 :  plot index
+!diadem.sat.maps.elements                 :  plot
+
+!! map-aver plots:
+!diadem.sat.map-aver.class                :  utopya.UtopyaJobTree
+!diadem.sat.map-aver.virtual              :  True
+!diadem.sat.map-aver.elements             :  plot index
+!
+!! per-pixel plots:
+!diadem.sat.pixel.class                   :  utopya.UtopyaJobTree
+!diadem.sat.pixel.virtual                 :  True
+!diadem.sat.pixel.elements                :  plot
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! * map plots per hour
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! create statistics per data set:
+diadem.sat.maps.plot.class                    :  utopya.UtopyaJobStep
+
+! workdir:
+diadem.sat.maps.plot.workdir                  :  ${my.work}/sat/maps
+
+! read observations, compute statistics, and save:
+diadem.sat.maps.plot.task.class               :  diadem.SatPlots
+diadem.sat.maps.plot.task.args                :  '%{rcfile}', rcbase='%{name}'
+
+! time range:
+diadem.sat.maps.plot.t1                       :  ${my.time1}
+diadem.sat.maps.plot.t2                       :  ${my.time2}
+
+! entities to plot:
+diadem.sat.maps.plot.akeys                    :  yr xb xf xa xa-xf
+
+! template for data/state files, extensions "_xb" might be added:
+diadem.sat.maps.plot.file.template            :  ${my.run.dir}/output/LEKF_${my.run.id}_tropomi-no2_%Y%m%d_%H%M.nc
+!! compare runs?
+!diadem.sat.maps.plot.file0.template           :  ${my.run.dir0}/output/LEKF_${my.run.id0}_tropomi-no2_%Y%m%d_%H%M.nc
+
+! renew figures?
+diadem.sat.maps.plot.renew                    :  False
+
+! map properties:
+diadem.sat.maps.plot.map.bmp                  :  resolution='h', countries=True, domain=${my.bmp.domain}
+diadem.sat.maps.plot.map.vmin                 :   0.0
+diadem.sat.maps.plot.map.vmax                 :  20.0
+diadem.sat.maps.plot.map.dmax                 :   5.0
+
+!~~ index page for maps
+
+! single job:
+diadem.sat.maps.index.class                   :  utopya.UtopyaJobStep
+
+! workdir:
+diadem.sat.maps.index.workdir                 :  ${my.work}/sat/maps
+
+! create index pages:
+diadem.sat.maps.index.task.class              :  diadem_index.Catalogue
+diadem.sat.maps.index.task.args               :  '%{rcfile}', rcbase='%{name}'
+! target:
+diadem.sat.maps.index.main                    :  index
+! define figures:
+diadem.sat.maps.index.filenames               :  sat_map_<akey>_<time>.png
+diadem.sat.maps.index.figdir                  :  .
+! levels
+diadem.sat.maps.index.levels                  :  time akey
+! define level:
+diadem.sat.maps.index.level.time.values       :  TimeSeries( ${diadem.sat.maps.plot.t1}, ${diadem.sat.maps.plot.t2}, 1 hour, %Y%m%d_%H%M )
+diadem.sat.maps.index.level.time.form         :  tr
+diadem.sat.maps.index.level.time.newpage      :  False
+! define level:
+diadem.sat.maps.index.level.akey.values       :  yr xb xa xa-xb xf xa-xf
+diadem.sat.maps.index.level.akey.form         :  td
+diadem.sat.maps.index.level.akey.newpage      :  False
+! templates:
+diadem.sat.maps.index.templates               :  default
+
+! testing ..
+diadem.sat.maps.index.debug                   :  False
+
+
+!-------------------------------------------------
+! instant fields
+!-------------------------------------------------
+
+! plots per domain:
+diadem.inst.class                    :  utopya.UtopyaJobTree
+diadem.inst.virtual                  :  True
+diadem.inst.elements                 :  plot index
+
+
+!*************************************
+! * inst plots
+!*************************************
+
+! create statistics per data set:
+diadem.inst.plot.class                :  utopya.UtopyaJobStep
+
+! workdir:
+diadem.inst.plot.workdir              :  ${my.work}/inst
+
+! read observations, compute statistics, and save:
+diadem.inst.plot.task.class           :  diadem.LEKF_HourInstPlots
+diadem.inst.plot.task.args            :  '%{rcfile}', rcbase='%{name}'
+
+! renew figures?
+diadem.inst.plot.renew                :  False
+
+! time range:
+diadem.inst.plot.t1                   :  ${my.time1}
+diadem.inst.plot.t2                   :  ${my.time2}
+
+! entities to plot:
+diadem.inst.plot.akeys                :  xb xf xa xa-xf
+
+! plot types to be created from each field:
+!  map-sfc    : 2D surface field
+!  map-tcol   : 2D total column field
+!  zonal      : zonal slice at fixed longitude
+!  map-dc     : 2D map with dc factors
+!diadem.inst.plot.ptypes               :  map-sfc map-tcol zonal
+diadem.inst.plot.ptypes               :  map-sfc
+
+! variable type, used to select style settings:
+!   units.<var_type>.<tracer>
+!    vmax.<var_type>.<tracer>
+!    dmax.<var_type>.<tracer>
+! currently supported:
+!   conc tcol dc
+diadem.inst.plot.var_type.map-sfc     :  conc
+!diadem.inst.plot.var_type.map-tcol    :  tcol
+!diadem.inst.plot.var_type.zonal       :  conc
+
+! axis type:
+!  map   : 2D map
+!  zonal : latitude and heights (zonal slice)
+diadem.inst.plot.ax_type.map-sfc      :  map
+
+! array type:
+!  sfc    :  lowest layer
+!  tcol   :  sum 3D field to 2D column
+!  yz     :  slice from 3D field at fixed longitude (not supported)
+!  dc     :  extrac 2D field from dc array
+diadem.inst.plot.arr_type.map-sfc     :  sfc
+
+! template for data/state files:
+diadem.inst.plot.file                 :  ${my.work}/../output/LEKF_${my.run.id}_conc-sfc_%Y%m%d_%{kfkey}.nc
+diadem.inst.plot.map.obs              :  
+
+! tracers:
+diadem.inst.plot.tracers              :  NO2
+
+! map properties:
+!diadem.inst.plot.map.bmp              :  resolution='h', countries=True, raster=(20,10)
+diadem.inst.plot.map.bmp              :  resolution='h', countries=True
+diadem.inst.plot.map.domain           :   
+!diadem.inst.plot.map.obs.style        :  s=30
+
+!! zonal properties:
+!diadem.inst.plot.zonal.longitude      :  13.75    ! lat 45.291   HR0015A
+
+!~~ index pages
+
+! single job:
+diadem.inst.index.class                   :  utopya.UtopyaJobStep
+
+! workdir:
+diadem.inst.index.workdir                 :  ${my.work}/inst
+
+! create index pages:
+diadem.inst.index.task.class              :  diadem_index.Catalogue
+diadem.inst.index.task.args               :  '%{rcfile}', rcbase='%{name}'
+! target:
+diadem.inst.index.main                    :  index
+! define figures:
+diadem.inst.index.filenames               :  inst_<tracer>_<xkey>_<time>.png
+diadem.inst.index.figdir                  :  .
+! levels
+diadem.inst.index.levels                  :  tracer time xkey
+! define level:
+diadem.inst.index.level.tracer.values     :  O3 NO2 PM10 PM25 SO2
+diadem.inst.index.level.tracer.form       :  ul
+diadem.inst.index.level.tracer.newpage    :  True
+! define level:
+diadem.inst.index.level.time.values       :  TimeSeries( ${diadem.inst.plot.t1}, ${diadem.inst.plot.t2}, 1 hour, %Y%m%d_%H%M )
+diadem.inst.index.level.time.form         :  tr
+diadem.inst.index.level.time.newpage      :  False
+! define level:
+!diadem.inst.index.level.xkey.values       :  map-sfc_xf map-sfc_xa map-sfc_xa-xf \
+!                                                  map-tcol_xf map-tcol_xa map-tcol_xa-xf \
+!                                                  zonal_xf zonal_xa zonal_xa-xf
+diadem.inst.index.level.xkey.values       :  map-sfc_xb map-sfc_xf map-sfc_xa map-sfc_xa-xf
+diadem.inst.index.level.xkey.form         :  td
+diadem.inst.index.level.xkey.newpage      :  False
+! templates:
+diadem.inst.index.templates               :  default
+
+!! testing ..
+!diadem.inst.index.debug                   :  True
+
+
+
+!-------------------------------------------------
+! dc fields
+!-------------------------------------------------
+
+! plots per domain:
+diadem.dc.class                    :  utopya.UtopyaJobTree
+diadem.dc.virtual                  :  True
+diadem.dc.elements                 :  plot index
+
+
+!*************************************
+! * inst plots
+!*************************************
+
+! create statistics per data set:
+diadem.dc.plot.class                :  utopya.UtopyaJobStep
+
+! workdir:
+diadem.dc.plot.workdir              :  ${my.work}/dc
+
+! read observations, compute statistics, and save:
+diadem.dc.plot.task.class           :  diadem.LEKF_HourInstPlots
+diadem.dc.plot.task.args            :  '%{rcfile}', rcbase='%{name}'
+
+! renew figures?
+diadem.dc.plot.renew                :  False
+
+! time range:
+diadem.dc.plot.t1                   :  ${my.time1}
+diadem.dc.plot.t2                   :  ${my.time2}
+
+! entities to plot:
+diadem.dc.plot.akeys                :  xb xf xa xa-xf
+
+! plot types to be created from each field:
+!  map-sfc    : 2D surface field
+!  map-tcol   : 2D total column field
+!  zonal      : zonal slice at fixed longitude
+!  map-dc     : 2D map with dc factors
+!diadem.inst.plot.ptypes             :  map-sfc map-tcol zonal
+diadem.dc.plot.ptypes               :  map-dc
+
+! variable type, used to select style settings:
+!   units.<var_type>.<tracer>
+!    vmax.<var_type>.<tracer>
+!    dmax.<var_type>.<tracer>
+! currently supported:
+!   conc tcol dc
+diadem.dc.plot.var_type.map-dc      :  dc
+
+! axis type:
+!  map   : 2D map
+!  zonal : latitude and heights (zonal slice)
+diadem.dc.plot.ax_type.map-dc       :  map
+
+! array type:
+!  sfc    :  lowest layer
+!  tcol   :  sum 3D field to 2D column
+!  yz     :  slice from 3D field at fixed longitude (not supported)
+!  dc     :  extrac 2D field from dc array
+diadem.dc.plot.arr_type.map-dc      :  dc
+
+! template for data/state files:
+diadem.dc.plot.file                 :  ${my.work}/../output/LEKF_${my.run.id}_dc_%Y%m%d_%{kfkey}.nc
+diadem.dc.plot.file_dt              :  -1
+diadem.dc.plot.map.obs              :  
+
+! noise names ("tracers"):
+diadem.dc.plot.tracers              :  NOx_emis
+
+! map properties:
+!diadem.dc.plot.map.bmp              :  resolution='h', countries=True, raster=(20,10)
+diadem.dc.plot.map.bmp              :  resolution='h', countries=True
+diadem.dc.plot.map.domain           :   
+!diadem.dc.plot.map.obs.style        :  s=30
+
+!! zonal properties:
+!diadem.dc.plot.zonal.longitude      :  13.75    ! lat 45.291   HR0015A
+
+!~~ index pages
+
+! single job:
+diadem.dc.index.class                   :  utopya.UtopyaJobStep
+
+! workdir:
+diadem.dc.index.workdir                 :  ${my.work}/dc
+
+! create index pages:
+diadem.dc.index.task.class              :  diadem_index.Catalogue
+diadem.dc.index.task.args               :  '%{rcfile}', rcbase='%{name}'
+! target:
+diadem.dc.index.main                    :  index
+! define figures:
+diadem.dc.index.filenames               :  inst_<tracer>_<xkey>_<time>.png
+diadem.dc.index.figdir                  :  .
+! levels
+diadem.dc.index.levels                  :  tracer time xkey
+! define level:
+diadem.dc.index.level.tracer.values     :  NOx_emis
+diadem.dc.index.level.tracer.form       :  ul
+diadem.dc.index.level.tracer.newpage    :  True
+! define level:
+diadem.dc.index.level.time.values       :  TimeSeries( ${diadem.dc.plot.t1}, ${diadem.dc.plot.t2}, 1 hour, %Y%m%d_%H%M )
+diadem.dc.index.level.time.form         :  tr
+diadem.dc.index.level.time.newpage      :  False
+! define level:
+diadem.dc.index.level.xkey.values       :  map-dc_xb map-dc_xf map-dc_xa map-dc_xa-xf
+diadem.dc.index.level.xkey.form         :  td
+diadem.dc.index.level.xkey.newpage      :  False
+! templates:
+diadem.dc.index.templates               :  default
+
+! testing ..
+diadem.dc.index.debug                   :  True
+
+
+
+
+!-------------------------------------------------
+! main index
+!-------------------------------------------------
+
+! single job:
+diadem.index.class                                :  utopya.UtopyaJobStep
+
+! workdir:
+diadem.index.workdir                              :  ${my.work}
+
+! read observatpute statistics, and save:                             
+diadem.index.task.class                           :  diadem_index.Catalogue
+diadem.index.task.args                            :  '%{rcfile}', rcbase='%{name}'
+
+! target:
+diadem.index.main                                 :  index
+! define figures:
+diadem.index.filenames                            :  <subdir>/index.html
+diadem.index.figdir                               :  .
+! levels
+diadem.index.levels                               :  subdir
+! define level:
+diadem.index.level.subdir.values                  :  sat/maps inst dc
+diadem.index.level.subdir.form                    :  ul
+diadem.index.level.subdir.longname.sat/maps       :  Maps of satellite columns
+diadem.index.level.subdir.longname.inst           :  Maps of instantaneous concentrations
+diadem.index.level.subdir.longname.dc             :  Maps of perturbation factors
+diadem.index.level.subdir.newpage                 :  True
+! templates:
+diadem.index.templates                            :  default
+
+
+!-------------------------------------------------
+! end
+!-------------------------------------------------
+
+

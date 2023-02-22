@@ -1,0 +1,19 @@
+Changes w.r.t. lotos-euros/v2.2/base/001
+========================================
+
+Option to return local displacement in decomposition.
+  src/go_comm.F90
+
+Changes to avoid tiny rounding differences between global model grid and grid in local domain.
+  src/c3po_grid_ugg.F90
+  src/le_grid.F90
+
+Removed tab characters.
+  src/le_maori.F90
+
+Support option to skip emission output from ensemble members.
+  src/le_output.F90
+
+Added method to generate random number per pixel.
+  src/le_output_sat.F90
+

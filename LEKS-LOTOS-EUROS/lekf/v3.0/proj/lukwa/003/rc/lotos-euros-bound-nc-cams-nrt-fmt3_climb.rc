@@ -1,0 +1,388 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+! Boundary conditions from CAMS NRT CIFS runs,
+! as provided every day to the regional ensemble.
+!
+! Every day two runs, either started at 00:00 or at 12:00.
+!
+! Each run is a 5-days forecast.
+! Example of time records in a 00:00 run:
+!   cams_2016090800_D1_raq.nc    :  00,03,.., 21
+!   cams_2016090800_D2_raq.nc    :  24,....., 45
+!   cams_2016090800_D3_raq.nc    :  48,....., 69
+!   cams_2016090800_D4_raq.nc    :  72,....., 93
+!   cams_2016090800_D5_raq.nc    :  96,.....,117,120
+!
+! .... OR ....
+!
+! ..averaged to monthly climatologies. Currently available based on 2015 only.
+!
+! For each month a file is available with records valid for:
+!   macc_201501_clima.nc     :  00,03,.., 21
+!
+! Content:
+!   used variable      long name
+!   ---- ----------    ----------------------------------------------------
+!    x   aermr01       Sea Salt Aerosol (0.03 - 0.5 um) Mixing Ratio
+!    x   aermr02       Sea Salt Aerosol (0.5 - 5 um) Mixing Ratio
+!    x   aermr03       Sea Salt Aerosol (5 - 20 um) Mixing Ratio
+!    x   aermr04       Dust Aerosol (0.03 - 0.55 um) Mixing Ratio
+!    x   aermr05       Dust Aerosol (0.55 - 0.9 um) Mixing Ratio
+!    x   aermr06       Dust Aerosol (0.9 - 20 um) Mixing Ratio
+!    x   aermr07       Hydrophobic Organic Matter Aerosol Mixing Ratio
+!    x   aermr08       Hydrophilic Organic Matter Aerosol Mixing Ratio
+!    x   aermr09       Hydrophobic Black Carbon Aerosol Mixing Ratio
+!    x   aermr10       Hydrophilic Black Carbon Aerosol Mixing Ratio
+!    x   aermr11       Sulphate Aerosol Mixing Ratio
+!        aermr12       SO2 precursor mixing ratio
+!    x   go3           GEMS Ozone
+!    x   co            Carbon monoxide
+!    x   no            Nitrogen monoxide
+!    x   no2           Nitrogen dioxide
+!    x   pan           Peroxyacetyl nitrate
+!    x   hno3          Nitric acid
+!    x   hcho          Formaldehyde
+!    x   so2           Sulphur dioxide
+!    x   ch4           Methane
+!    x   c5h8          Isoprene
+!        c2h6          Ethane
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! assign data variables to boundary conditions:
+le.bound.data.no2          :  cams_nrt_no2
+le.bound.data.no           :  cams_nrt_no
+le.bound.data.o3           :  cams_nrt_o3
+le.bound.data.co           :  cams_nrt_co
+le.bound.data.form         :  cams_nrt_form
+le.bound.data.ald          :  None
+le.bound.data.pan          :  cams_nrt_pan
+le.bound.data.mgly         :  None
+le.bound.data.par          :  None
+le.bound.data.ole          :  None
+le.bound.data.eth          :  None
+le.bound.data.tol          :  None
+le.bound.data.cres         :  None
+le.bound.data.xyl          :  None
+le.bound.data.so2          :  cams_nrt_so2
+le.bound.data.hno2         :  None
+le.bound.data.ch4          :  cams_nrt_ch4
+le.bound.data.nh3          :  None
+le.bound.data.no3          :  None
+le.bound.data.oh           :  None
+le.bound.data.ho2          :  None
+le.bound.data.n2o5         :  None
+le.bound.data.so4a_f       :  cams_nrt_so4
+le.bound.data.so4a_c       :  None
+le.bound.data.nh4a_f       :  None
+le.bound.data.no3a_f       :  None
+le.bound.data.no3a_c       :  None
+le.bound.data.c2o3         :  None
+le.bound.data.xo2          :  None
+le.bound.data.xo2n         :  None
+le.bound.data.cro          :  None
+le.bound.data.hno3         :  cams_nrt_hno3
+le.bound.data.h2o2         :  None
+le.bound.data.iso          :  cams_nrt_isop
+le.bound.data.ispd         :  None
+le.bound.data.to2          :  None
+le.bound.data.open         :  None
+le.bound.data.terp         :  None
+!le.bound.data.ec_ff         :  0.5 * cams_nrt_bc + 0.5 * cams_nrt_hbc
+!le.bound.data.ec_wb         :  0.5 * cams_nrt_bc + 0.5 * cams_nrt_hbc
+le.bound.data.ec_ff         :  None
+le.bound.data.ec_wb         :  None
+!le.bound.data.ec_f         :  None
+le.bound.data.ec_f         :  cams_nrt_bc + cams_nrt_hbc
+le.bound.data.ec_c         :  None
+le.bound.data.tpmfire_f    :  None
+le.bound.data.tpmfire_c    :  None
+le.bound.data.pom_f        :  cams_nrt_om + cams_nrt_hom
+le.bound.data.pom_c        :  None
+le.bound.data.ppm_f        :  None
+le.bound.data.ppm_c        :  None
+le.bound.data.pol_b        :  None
+le.bound.data.pol_g        :  None
+le.bound.data.pol_o        :  None
+!
+! Dust and sea-salt following:
+!   ${PROJECTS}/SMO/Space/LAOS/users/mandersamm/Dust_seaspray_CIFS.docx
+!
+! ~ Distribute sum of IFS dust modes over ff/f/ccc/cc/c : 2%/8%/10%/40%/40%
+!
+le.bound.data.dust_ff      :  0.02 * cams_nrt_dust_u + \
+                              0.02 * cams_nrt_dust_f + \
+                              0.02 * cams_nrt_dust_c
+le.bound.data.dust_f       :  0.08 * cams_nrt_dust_u + \
+                              0.08 * cams_nrt_dust_f + \
+                              0.08 * cams_nrt_dust_c
+le.bound.data.dust_ccc     :  0.10 * cams_nrt_dust_u + \
+                              0.10 * cams_nrt_dust_f + \
+                              0.10 * cams_nrt_dust_c
+le.bound.data.dust_cc      :  0.40 * cams_nrt_dust_u + \
+                              0.40 * cams_nrt_dust_f + \
+                              0.40 * cams_nrt_dust_c
+le.bound.data.dust_c       :  0.40 * cams_nrt_dust_u + \
+                              0.40 * cams_nrt_dust_f + \
+                              0.40 * cams_nrt_dust_c
+!
+! ~ Assign IFS sea-salt to LE bins:
+!     mode 1 to ff         : 100%
+!     mode 2 to f/ccc/cc/c : 10%/20%/40%/30%
+!     mode 3 not used (too coarse)
+!
+le.bound.data.na_ff        :         cams_nrt_ss_u / 4.3 * xm_Na / xm_seasalt
+le.bound.data.na_f         :  0.10 * cams_nrt_ss_f / 4.3 * xm_Na / xm_seasalt
+le.bound.data.na_ccc       :  0.20 * cams_nrt_ss_f / 4.3 * xm_Na / xm_seasalt
+le.bound.data.na_cc        :  0.40 * cams_nrt_ss_f / 4.3 * xm_Na / xm_seasalt
+le.bound.data.na_c         :  0.30 * cams_nrt_ss_f / 4.3 * xm_Na / xm_seasalt
+
+! data variables used for boundary conditions:
+my.bound.vars              :  ${my.cams_nrt_vars}
+
+
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! Boundary conditions from CAMS/NRT
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! 
+! Boundary conditions for Europe to be used in CAMS-50 Validated-Reanalysis.
+! Obtained from C-IFS (interim) re-analysis.
+!
+
+! data variables to be defined for boundary conditions ;
+! names with leading "__" are fields on input levels:
+my.cams_nrt_vars   :  __cams_nrt_hp  \
+                       __cams_nrt_o3      cams_nrt_o3      \
+                       __cams_nrt_no      cams_nrt_no      \
+                       __cams_nrt_no2     cams_nrt_no2     \
+                       __cams_nrt_ch4     cams_nrt_ch4     \
+                       __cams_nrt_hno3    cams_nrt_hno3    \
+                       __cams_nrt_so2     cams_nrt_so2     \
+                       __cams_nrt_co      cams_nrt_co      \
+                       __cams_nrt_isop    cams_nrt_isop    \
+                       __cams_nrt_pan     cams_nrt_pan     \
+                       __cams_nrt_form    cams_nrt_form    \
+                       __cams_nrt_ethane  cams_nrt_ethane  \
+                       __cams_nrt_oh      cams_nrt_oh      \
+                       __cams_nrt_ss_u    cams_nrt_ss_u    \
+                       __cams_nrt_ss_f    cams_nrt_ss_f    \
+                       __cams_nrt_ss_c    cams_nrt_ss_c    \
+                       __cams_nrt_dust_u  cams_nrt_dust_u  \
+                       __cams_nrt_dust_f  cams_nrt_dust_f  \
+                       __cams_nrt_dust_c  cams_nrt_dust_c  \
+                       __cams_nrt_so4     cams_nrt_so4     \
+                       __cams_nrt_om      cams_nrt_om      \
+                       __cams_nrt_hom     cams_nrt_hom     \
+                       __cams_nrt_bc      cams_nrt_bc      \
+                       __cams_nrt_hbc     cams_nrt_hbc
+
+
+! concentration species:
+my.cams_nrt_specs.gas            :  o3 no2 no ch4 hno3 so2 co isop pan form ethane oh
+my.cams_nrt_specs.aer            :  dust_u dust_f dust_c ss_u ss_f ss_c \
+                                          so4 om hom bc hbc
+
+! loop over gas species:
+#for SPEC in ${my.cams_nrt_specs.gas}
+
+! boundary conditions at model levels ;
+! conversion to tracer units will be done on application;
+! computed from input fields as mass weighted average to conserve total mass:
+data.cams_nrt_SPEC.long_name            :  boundary conditions of SPEC
+data.cams_nrt_SPEC.units                :  kg/kg
+data.cams_nrt_SPEC.range                :  0.0 Inf
+data.cams_nrt_SPEC.gridtype             :  cell_bnds
+data.cams_nrt_SPEC.levtype              :  levels_top
+data.cams_nrt_SPEC.datatype             :  instant_field
+data.cams_nrt_SPEC.call                 :  LayerAverage( __cams_nrt_hp, __cams_nrt_SPEC, hp )
+
+! boundary conditions at input model levels:
+data.__cams_nrt_SPEC.long_name          :  boundary conditions of SPEC at input model levels
+data.__cams_nrt_SPEC.units              :  kg/kg
+data.__cams_nrt_SPEC.range              :  0.0 Inf
+data.__cams_nrt_SPEC.gridtype           :  cell_bnds
+data.__cams_nrt_SPEC.levtype            :  input_levels
+data.__cams_nrt_SPEC.datatype           :  instant_field_series
+data.__cams_nrt_SPEC.input              :  __input_cams_nrt_SPEC
+
+#endfor
+
+! loop over aerosol species:
+#for SPEC in ${my.cams_nrt_specs.aer}
+
+! boundary conditions at model levels ;
+! conversion to tracer units will be done on application;
+! computed from input fields as mass weighted average to conserve total mass:
+data.cams_nrt_SPEC.long_name            :  boundary conditions of SPEC
+data.cams_nrt_SPEC.units                :  kg/kg
+data.cams_nrt_SPEC.range                :  0.0 Inf
+data.cams_nrt_SPEC.gridtype             :  cell_bnds
+data.cams_nrt_SPEC.levtype              :  levels_top
+data.cams_nrt_SPEC.datatype             :  instant_field
+data.cams_nrt_SPEC.call                 :  LayerAverage( __cams_nrt_hp, __cams_nrt_SPEC, hp )
+
+! boundary conditions at input model levels:
+data.__cams_nrt_SPEC.long_name          :  boundary conditions of SPEC at input model levels
+data.__cams_nrt_SPEC.units              :  kg/kg
+data.__cams_nrt_SPEC.range              :  0.0 Inf
+data.__cams_nrt_SPEC.gridtype           :  cell_bnds
+data.__cams_nrt_SPEC.levtype            :  input_levels
+data.__cams_nrt_SPEC.datatype           :  instant_field_series
+data.__cams_nrt_SPEC.input              :  __input_cams_nrt_SPEC
+
+#endfor
+
+! half level pressure from boundary condition model:
+data.__cams_nrt_hp.long_name          :  half-level pressure
+data.__cams_nrt_hp.units              :  Pa
+data.__cams_nrt_hp.range              :  0.0 Inf
+data.__cams_nrt_hp.gridtype           :  cell_bnds
+data.__cams_nrt_hp.levtype            :  input_halflevels
+data.__cams_nrt_hp.datatype           :  instant_field_series
+data.__cams_nrt_hp.input              :  __input_cams_nrt_hp
+
+
+
+! ** input descriptions
+
+! interpolate between 3-hourly records, 
+! switch from IFS/MOZART to C-IFS at 2014-09-01:
+#for VAR in hp ${my.cams_nrt_specs.gas} ${my.cams_nrt_specs.aer}
+__input_cams_nrt_VAR.tinterp             :  3 hour
+__input_cams_nrt_VAR.input               :  2014-01-01 00:00, 2099-01-01 00:00, __files_cifs_nrt_VAR.file, __files_cifs_nrt_clima_VAR.file
+#endfor
+
+
+!
+! ** File description: C-IFS, from operational CAMS streams
+!
+
+! input location:
+#if "${USER}" in ["segers", "ntouros"]
+my.nrt_dir   :  ${my.data.dir}/operational_examples/eu_an_operational_${oper.id}
+#else
+my.nrt_dir   :  ${my.scratch}/bound_C-IFS
+#endif
+
+#if "${forecast.mode}" == "F"
+! default, read from D1:
+my.fcext     :  D1
+#elif "${forecast.mode}" == "T"
+! forecast mode, read from D1,..,D5
+! where D5 has record for 24:00 too:
+my.fcext     :  %{Dfcday5}
+#else
+#error could not set my.fcext for forecast.mode "${forecast.mode}"
+#endif
+
+
+! single file with all variables;
+! files include 00:00, so no need to use file
+! for previous day at that time (name_dtsec=0).
+#for VAR in ${my.cams_nrt_specs.gas} ${my.cams_nrt_specs.aer}
+__files_cifs_nrt_VAR.file.name           :  ${my.nrt_dir}/cams_%{yyyymmdd}00_${my.fcext}_raq.nc
+__files_cifs_nrt_VAR.file.name_dtsec     :  0
+__files_cifs_nrt_VAR.file.special        :  swap_levels=T
+#endfor
+
+!
+! tracer variables:
+__files_cifs_nrt_o3.file.var             :  long_name=GEMS Ozone
+__files_cifs_nrt_no2.file.var            :  long_name=Nitrogen dioxide
+__files_cifs_nrt_no.file.var             :  long_name=Nitrogen monoxide
+__files_cifs_nrt_n2o5.file.var           :  long_name=Dinitrogen pentoxide
+__files_cifs_nrt_ch4.file.var            :  long_name=Methane (chemistry);long_name=Methane
+__files_cifs_nrt_hno3.file.var           :  long_name=Nitric acid
+__files_cifs_nrt_so2.file.var            :  long_name=Sulphur dioxide
+__files_cifs_nrt_co.file.var             :  long_name=Carbon monoxide
+__files_cifs_nrt_isop.file.var           :  long_name=Isoprene
+__files_cifs_nrt_pan.file.var            :  long_name=Peroxyacetyl nitrate
+__files_cifs_nrt_form.file.var           :  long_name=Formaldehyde
+__files_cifs_nrt_ethane.file.var         :  long_name=Ethane
+__files_cifs_nrt_propane.file.var        :  long_name=Propane
+__files_cifs_nrt_oh.file.var             :  long_name=Hydroxyl radical
+__files_cifs_nrt_ss_u.file.var           :  long_name=Sea Salt Aerosol (0.03 - 0.5 um) Mixing Ratio
+__files_cifs_nrt_ss_f.file.var           :  long_name=Sea Salt Aerosol (0.5 - 5 um) Mixing Ratio
+__files_cifs_nrt_ss_c.file.var           :  long_name=Sea Salt Aerosol (5 - 20 um) Mixing Ratio
+__files_cifs_nrt_dust_u.file.var         :  long_name=Dust Aerosol (0.03 - 0.55 um) Mixing Ratio
+__files_cifs_nrt_dust_f.file.var         :  long_name=Dust Aerosol (0.55 - 0.9 um) Mixing Ratio
+__files_cifs_nrt_dust_c.file.var         :  long_name=Dust Aerosol (0.9 - 20 um) Mixing Ratio
+__files_cifs_nrt_hom.file.var            :  long_name=Hydrophilic Organic Matter Aerosol Mixing Ratio
+__files_cifs_nrt_om.file.var             :  long_name=Hydrophobic Organic Matter Aerosol Mixing Ratio
+__files_cifs_nrt_hbc.file.var            :  long_name=Hydrophilic Black Carbon Aerosol Mixing Ratio
+__files_cifs_nrt_bc.file.var             :  long_name=Hydrophobic Black Carbon Aerosol Mixing Ratio
+__files_cifs_nrt_so4.file.var            :  long_name=Sulphate Aerosol Mixing Ratio
+
+! compute half-level pressure from log-surface-pressure and hybride coeff ;
+! no "formula_terms" attribute, so specify names of coeffs explicitly;
+! the files have coefficients defined at interface levels:
+__files_cifs_nrt_hp.file.name            :  ${my.nrt_dir}/cams_%{yyyymmdd}00_${my.fcext}_raq.nc
+__files_cifs_nrt_hp.file.name_dtsec      :  0
+__files_cifs_nrt_hp.file.special         :  compute=lnsp_to_hp;hyb_api_name=a;hyb_bi_name=b;level_name=level;swap_levels=T
+__files_cifs_nrt_hp.file.var             :  long_name=Logarithm of surface pressure
+
+!
+! ** File description: C-IFS, from operational CAMS streams
+!    Climatology as alternative for missing files.
+!
+
+! input location:
+!my.nrt_clima_dir   :  ${MODAS_SCRATCH04}/projects/CAMS/C50/new-version/CIFS-climat
+my.nrt_clima_dir   :  ${my.scratch}/bound_C-IFS
+!my.nrt_clima_dir   :  noclimatologies
+
+!
+! single file with all variables;
+! files include 00:00, so no need to use file
+! for previous day at that time (name_dtsec=0).
+#for VAR in ${my.cams_nrt_specs.gas} ${my.cams_nrt_specs.aer}
+__files_cifs_nrt_clima_VAR.file.name           :  ${my.nrt_clima_dir}/macc_2017%{mm}_clima.nc
+__files_cifs_nrt_clima_VAR.file.name_dtsec     :  0
+__files_cifs_nrt_clima_VAR.file.special        :  swap_levels=T
+! optional list with climatological time elements (year,month,day,hour);
+! here climatolgies over all days in month and multiple years:
+__files_cifs_nrt_clima_VAR.file.climat         :  year day
+#endfor
+!
+! tracer variables:
+__files_cifs_nrt_clima_o3.file.var             :  long_name=GEMS Ozone
+__files_cifs_nrt_clima_no2.file.var            :  long_name=Nitrogen dioxide
+__files_cifs_nrt_clima_no.file.var             :  long_name=Nitrogen monoxide
+__files_cifs_nrt_clima_n2o5.file.var           :  long_name=Dinitrogen pentoxide
+__files_cifs_nrt_clima_ch4.file.var            :  long_name=Methane (chemistry);long_name=Methane
+__files_cifs_nrt_clima_hno3.file.var           :  long_name=Nitric acid
+__files_cifs_nrt_clima_so2.file.var            :  long_name=Sulphur dioxide
+__files_cifs_nrt_clima_co.file.var             :  long_name=Carbon monoxide
+__files_cifs_nrt_clima_isop.file.var           :  long_name=Isoprene
+__files_cifs_nrt_clima_pan.file.var            :  long_name=Peroxyacetyl nitrate
+__files_cifs_nrt_clima_form.file.var           :  long_name=Formaldehyde
+__files_cifs_nrt_clima_ethane.file.var         :  long_name=Ethane
+__files_cifs_nrt_clima_propane.file.var        :  long_name=Propane
+__files_cifs_nrt_clima_oh.file.var             :  long_name=Hydroxyl radical
+__files_cifs_nrt_clima_ss_u.file.var           :  long_name=Sea Salt Aerosol (0.03 - 0.5 um) Mixing Ratio
+__files_cifs_nrt_clima_ss_f.file.var           :  long_name=Sea Salt Aerosol (0.5 - 5 um) Mixing Ratio
+__files_cifs_nrt_clima_ss_c.file.var           :  long_name=Sea Salt Aerosol (5 - 20 um) Mixing Ratio
+__files_cifs_nrt_clima_dust_u.file.var         :  long_name=Dust Aerosol (0.03 - 0.55 um) Mixing Ratio
+__files_cifs_nrt_clima_dust_f.file.var         :  long_name=Dust Aerosol (0.55 - 0.9 um) Mixing Ratio
+__files_cifs_nrt_clima_dust_c.file.var         :  long_name=Dust Aerosol (0.9 - 20 um) Mixing Ratio
+__files_cifs_nrt_clima_hom.file.var            :  long_name=Hydrophilic Organic Matter Aerosol Mixing Ratio
+__files_cifs_nrt_clima_om.file.var             :  long_name=Hydrophobic Organic Matter Aerosol Mixing Ratio
+__files_cifs_nrt_clima_hbc.file.var            :  long_name=Hydrophilic Black Carbon Aerosol Mixing Ratio
+__files_cifs_nrt_clima_bc.file.var             :  long_name=Hydrophobic Black Carbon Aerosol Mixing Ratio
+__files_cifs_nrt_clima_so4.file.var            :  long_name=Sulphate Aerosol Mixing Ratio
+
+! compute half-level pressure from log-surface-pressure and hybride coeff ;
+! no "formula_terms" attribute, so specify names of coeffs explicitly;
+! the files have coefficients defined at interface levels:
+__files_cifs_nrt_clima_hp.file.name            :  ${my.nrt_clima_dir}/macc_2017%{mm}_clima.nc
+__files_cifs_nrt_clima_hp.file.name_dtsec      :  0
+__files_cifs_nrt_clima_hp.file.special         :  compute=lnsp_to_hp;hyb_api_name=a;hyb_bi_name=b;level_name=level;swap_levels=T
+__files_cifs_nrt_clima_hp.file.climat          :  year day
+__files_cifs_nrt_clima_hp.file.var             :  long_name=Logarithm of surface pressure
+
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! end
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+

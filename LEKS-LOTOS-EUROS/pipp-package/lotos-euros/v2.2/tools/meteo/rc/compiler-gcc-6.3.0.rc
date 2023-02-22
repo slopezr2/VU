@@ -1,0 +1,22 @@
+!
+! GCC compiler suite
+!
+
+! compiler and linker:
+compiler.fc                             :  gfortran
+compiler.ld                             :  gfortran
+
+compiler.flags.default.fflags           :  -ffree-line-length-none -fimplicit-none
+compiler.flags.default.ldflags          :  
+
+compiler.flags.wp-r8.fflags             :  -fdefault-real-8
+compiler.flags.wp-r8.ldflags            :  
+
+compiler.flags.check.fflags             :  -fbounds-check -ffpe-trap=invalid,zero -Wall
+compiler.flags.check.ldflags            :  
+
+compiler.flags.optim-none.fflags        :  -O0
+compiler.flags.optim-none.ldflags       :  
+
+compiler.flags.optim-fast.fflags        :  -O3
+compiler.flags.optim-fast.ldflags       :  

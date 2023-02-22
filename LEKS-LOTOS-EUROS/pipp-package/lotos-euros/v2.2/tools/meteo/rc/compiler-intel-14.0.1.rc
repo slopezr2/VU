@@ -1,0 +1,23 @@
+!
+! compiler specific settings : Intel compiler 14.0.1
+!
+
+! fortran compiler:
+compiler.fc                             :  ifort
+compiler.ld                             :  ifort
+
+compiler.flags.default.fflags           :  -traceback -warn errors -warn declarations
+compiler.flags.default.ldflags          : 
+
+compiler.flags.wp-r8.fflags             :  -r8
+compiler.flags.wp-r8.ldflags            : 
+
+compiler.flags.check.fflags             :  -check all -check noarg_temp_created -fpe0 -ftrapuv
+compiler.flags.check.ldflags            :  
+
+compiler.flags.optim-none.fflags        :  -O0
+compiler.flags.optim-none.ldflags       :  
+
+compiler.flags.optim-fast.fflags        :  -O3
+compiler.flags.optim-fast.ldflags       :  
+

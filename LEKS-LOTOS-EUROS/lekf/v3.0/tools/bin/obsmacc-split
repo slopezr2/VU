@@ -1,0 +1,178 @@
+#! /usr/bin/env python
+
+"""
+Split obsmacc file in components and hours.
+
+Original filenames:
+  obsmacc4ana_20190120.csv
+New filenames:
+  obsmacc4ana_o3_20190120_0100.csv
+  obsmacc4ana_no2_20190120_0100.csv
+               :
+  
+"""
+
+#-------------------------------------------------
+# modules
+#-------------------------------------------------
+
+# modules:
+import sys
+import optparse
+import os
+
+
+#-------------------------------------------------
+# settings
+#-------------------------------------------------
+
+#-------------------------------------------------
+# begin
+#-------------------------------------------------
+
+# info ...
+print( '' )
+print( '*** obsmacc splitter ***' )
+print( '' )
+
+#
+# arguments
+#
+
+# extract arguments from sys.argv array:
+#   0 = name of calling script, 1: = actual arguments
+args = sys.argv[1:]
+
+# text for help line:
+usage = '\n    %prog <obsmacc-file> [..]\n    %prog -h|--help'
+
+# init parser:
+parser = optparse.OptionParser( usage=usage )
+# parse arguments:
+opts,filenames = parser.parse_args( args=args )
+
+# loop ...
+for filename in filenames :
+
+    # info ...
+    print( 'filename: %s' % filename )
+    
+    # check ...
+    if not os.path.isfile(filename) :
+        print( 'ERROR - file not found: %s' % filename )
+        sys.exit(1)
+    #endif
+    
+    # split name:
+    dirname = os.path.dirname(filename)
+    basename = os.path.basename(filename)
+    bname,ext = os.path.splitext( basename )
+    prefix,sdate = bname.split('_')
+    
+    # read:
+    f = open( filename, 'r' )
+    lines = f.readlines()
+    f.close()
+    
+    # seperator:
+    sep = ';'
+    
+    # header:
+    headerline = lines.pop(0)
+    # split:
+    headers = headerline.split(sep)
+
+    # check ...
+    key = 'PARAMETER'
+    if key not in headers :
+        print( 'key "%s" not found in header line "%s"' % (key,headerline) )
+        sys.exit(1)
+    #endif
+    # index of tracer:
+    icomp = headers.index(key)
+
+    # check ...
+    key = 'YEAR'
+    if key not in headers :
+        print( 'key "%s" not found in header line "%s"' % (key,headerline) )
+        sys.exit(1)
+    #endif
+    # index of time element:
+    iyear = headers.index(key)
+
+    # check ...
+    key = 'MONTH'
+    if key not in headers :
+        print( 'key "%s" not found in header line "%s"' % (key,headerline) )
+        sys.exit(1)
+    #endif
+    # index of time element:
+    imonth = headers.index(key)
+
+    # check ...
+    key = 'DAY'
+    if key not in headers :
+        print( 'key "%s" not found in header line "%s"' % (key,headerline) )
+        sys.exit(1)
+    #endif
+    # index of time element:
+    iday = headers.index(key)
+
+    # check ...
+    key = 'HOUR'
+    if key not in headers :
+        print( 'key "%s" not found in header line "%s"' % (key,headerline) )
+        sys.exit(1)
+    #endif
+    # index of time element:
+    ihour = headers.index(key)
+
+    # init results:
+    res = {}
+    # loop over records:
+    for line in lines :
+        # split:
+        fields = line.strip().split(sep)
+        # component:
+        comp = fields[icomp]
+        # new?
+        if comp not in res.keys() : res[comp] = {}
+        # time elements:
+        year  = int(fields[iyear ])
+        month = int(fields[imonth])
+        day   = int(fields[iday  ])
+        hour  = int(fields[ihour ])
+        # time label:
+        tlab = '%4.4i%2.2i%2.2i_%2.2i%2.2i' % (year,month,day,hour,0)
+        # new?
+        if tlab not in res[comp].keys() : res[comp][tlab] = [headerline]
+        # add:
+        res[comp][tlab].append( line )
+    #endfor
+        
+    # loop over comps:
+    for comp in res.keys() :
+        # loop over hours:
+        for tlab in res[comp].keys() :
+            # target file:
+            fname = os.path.join( dirname, '%s_%s_%s%s' % (prefix,comp,tlab,ext) )
+            # info ..
+            print( '  create %s ...' % fname )
+            # create:
+            f = open( fname, 'w' )
+            # write:
+            f.writelines( res[comp][tlab] )
+            # close:
+            f.close()
+        #endfor
+    #endfor
+
+#endfor # files
+
+# info ..
+print( 'End.' )
+
+
+#-------------------------------------------------
+# end
+#-------------------------------------------------

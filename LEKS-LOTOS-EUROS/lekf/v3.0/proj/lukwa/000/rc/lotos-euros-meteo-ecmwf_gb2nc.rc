@@ -1,0 +1,134 @@
+!
+! Input descriptions for ECMWF meteo files.
+!
+! Specify sequence of descriptions valid for different intervals [t1,t2] :
+!
+!   t1, t2, description | t1, t2, description | ...
+!
+! Each description is a list of keyword=value pairs:
+!
+!   filename=/data/blh_%{yyyymmdd}_3h.nc;standard_name=boundary_layer_height
+!
+! Supported keyword/value pairs:
+!
+!   filename        :  template for filenames; time templates are replaced by actual values:
+!                        %{yyyy}        : year
+!                        %{yyyymmdd}    : year, month, day
+!
+!   filename_dtsec  :  offset for time used to form filename ; 
+!                      if a file contains fields for (00:00,24:00], use dtsec=-1
+!
+!   standard_name=name  :  search for variable with this standard_name attribute;
+!   long_name=name      :  search for variable with this long_name     attribute;
+!   var_name=name       :  search for variable with name
+!
+
+! archive location:
+!my.mf.dir           :  ${my.scratch}/meteo/nc-oper
+my.mf.dir           :  ${my.scratch}/analysis_depo_slowdown_20180103
+
+! file names:
+!~ constant fields:
+#for VAR in orog lsm slt
+my.ftype.VAR           :  VAR
+#endfor
+!~ surface, time series of instant fields
+#for VAR in blh tsurf dsurf u10 v10 tcc
+my.ftype.VAR           :  SL
+#endfor
+!~ surface, time series of averages:
+#for VAR in cp lsp sf ssrd ssr
+my.ftype.VAR           :  SLa
+#endfor
+!~ surface, time series of instant fields (2)
+#for VAR in ci sstk swvl1 swvl2 swvl3 swvl4 sd
+my.ftype.VAR           :  SL2
+#endfor
+!~ model levels, time series of instant fields (2)
+#for VAR in cc clwc ciwc
+my.ftype.VAR           :  ML2
+#endfor
+!~ model levels, time series of instant fields (3)
+#for VAR in t q
+my.ftype.VAR           :  ML3
+#endfor
+!~ model levels, time series of instant fields (4)
+#for VAR in u v
+my.ftype.VAR           :  ML4
+#endfor
+
+! constant surface fields:
+#for VAR in orog lsm slt
+meteo.VAR.input              :  2012-01-01 00:00, 2020-01-01 00:00, meteo.VAR.file
+meteo.VAR.file.name          :  ${my.mf.dir}/sfc/0000/LOTEUR_${my.ftype.VAR}.nc
+#endfor
+meteo.orog.file.var          :  standard_name=surface_altitude
+meteo.lsm.file.var           :  standard_name=land_binary_mask
+meteo.slt.file.var           :  long_name=Soil type
+
+! surface fields, instant:
+#for VAR in blh tsurf dsurf u10 v10 sd sstk swvl1 swvl2 swvl3 swvl4 tcc cp lsp sf ssr ssrd
+meteo.VAR.tinterp            :  3 hour
+meteo.VAR.input              :  2012-01-01 00:00, 2020-01-01 00:00, meteo.VAR.file
+!meteo.VAR.file.name          :  ${my.mf.dir}/sfc/%{yyyy}/LOTEUR_${my.ftype.VAR}_%{yyyymmdd}%{fchh}%{fcext}.gb.nc
+meteo.VAR.file.name          :  ${my.mf.dir}/sfc/%{yyyy}/LOTEUR_${my.ftype.VAR}_%{yyyymmdd}%{fchh}%{fchhext}.gb.nc
+meteo.VAR.file.name_dtsec    :  -1
+meteo.VAR.file.name_fc00     :  _fc00
+meteo.VAR.file.name_fc12     :  _fc12
+meteo.VAR.file.name_fcext    :  _fc12h108
+meteo.VAR.file.name_fc00ext  :  _fc00h096
+meteo.VAR.file.name_fc12ext  :  _fc12h108
+#endfor
+meteo.blh.file.var           :  long_name=Boundary layer height
+meteo.ci.file.var            :  long_name=Sea-ice cover
+meteo.tsurf.file.var         :  long_name=2 metre temperature
+meteo.dsurf.file.var         :  long_name=2 metre dewpoint temperature
+meteo.u10.file.var           :  long_name=10 metre U wind component
+meteo.v10.file.var           :  long_name=10 metre V wind component
+meteo.tcc.file.var           :  long_name=Total cloud cover
+meteo.sstk.file.var          :  long_name=Sea surface temperature
+meteo.swvl1.file.var         :  long_name=Volumetric soil water layer 1
+meteo.swvl2.file.var         :  long_name=Volumetric soil water layer 2
+meteo.swvl3.file.var         :  long_name=Volumetric soil water layer 3
+meteo.swvl4.file.var         :  long_name=Volumetric soil water layer 4
+meteo.sd.file.var            :  standard_name=lwe_thickness_of_surface_snow_amount
+meteo.cp.file.var            :  standard_name=lwe_thickness_of_convective_precipitation_amount
+meteo.lsp.file.var           :  standard_name=lwe_thickness_of_large_scale_precipitation_amount
+meteo.sf.file.var            :  standard_name=lwe_thickness_of_snowfall_amount
+meteo.ssr.file.var           :  standard_name=surface_net_downward_shortwave_flux
+meteo.ssrd.file.var          :  standard_name=surface_downwelling_shortwave_flux_in_air
+
+! compute half-level pressures from surface pressue (defined by long_name)
+! and hybride sigma-pressure coefficients:
+meteo.hp.tinterp             :  3 hour
+meteo.hp.input               :  2012-01-01 00:00, 2020-01-01 00:00, meteo.hp.file
+!meteo.hp.file.name           :  ${my.mf.dir}/ml-z43/%{yyyy}/LOTEUR_ML1_%{yyyymmdd}%{fchh}%{fcext}.gb.nc
+meteo.hp.file.name           :  ${my.mf.dir}/ml-z43/%{yyyy}/LOTEUR_ML1_%{yyyymmdd}%{fchh}%{fchhext}.gb.nc
+meteo.hp.file.name_dtsec     :  -1
+meteo.hp.file.name_fc00      :  _fc00
+meteo.hp.file.name_fc12      :  _fc12
+meteo.hp.file.name_fcext     :  _fc12h108
+meteo.hp.file.name_fc00ext   :  _fc00h096
+meteo.hp.file.name_fc12ext   :  _fc12h108
+meteo.hp.file.var            :  long_name=Logarithm of surface pressure
+meteo.hp.file.special        :  compute=lnsp_to_hp;level_name=level;hlevel_name=hlevel;hyb_api_name=hyai;hyb_bi_name=hybi
+
+! model level fields:
+#for VAR in t q u v cc clwc
+meteo.VAR.tinterp            :  3 hour
+meteo.VAR.input              :  2012-01-01 00:00, 2020-01-01 00:00, meteo.VAR.file
+!meteo.VAR.file.name          :  ${my.mf.dir}/ml-z43/%{yyyy}/LOTEUR_${my.ftype.VAR}_%{yyyymmdd}%{fchh}%{fcext}.gb.nc
+meteo.VAR.file.name          :  ${my.mf.dir}/ml-z43/%{yyyy}/LOTEUR_${my.ftype.VAR}_%{yyyymmdd}%{fchh}%{fchhext}.gb.nc
+meteo.VAR.file.name_dtsec    :  -1
+meteo.VAR.file.name_fc00     :  _fc00
+meteo.VAR.file.name_fc12     :  _fc12
+meteo.VAR.file.name_fcext    :  _fc12h108
+meteo.VAR.file.name_fc00ext  :  _fc00h096
+meteo.VAR.file.name_fc12ext  :  _fc12h108
+#endfor
+meteo.t.file.var             :  long_name=Temperature
+meteo.q.file.var             :  long_name=Specific humidity
+meteo.u.file.var             :  long_name=U component of wind
+meteo.v.file.var             :  long_name=V component of wind
+meteo.cc.file.var            :  long_name=Cloud cover;long_name=Fraction of cloud cover
+meteo.clwc.file.var          :  long_name=Specific cloud liquid water content

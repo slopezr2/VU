@@ -1,0 +1,331 @@
+
+! settings for lotos-euros build:
+!#include ${my.le.dir}/proj/beta/001/rc/lotos-euros-build.rc
+#include ${my.le.dir}/base/001/rc/lotos-euros-build.rc
+
+! ######################################################################
+! ###
+! ### copy
+! ###
+! ######################################################################
+
+! * settings for 'UtopyaCopy' class
+
+! list of source directories to be copied;
+! files in latest directory overwrite previously copied versions:
+lekf.copy.dirs                 :  ${my.lekf.source.dirs}
+
+! sub directories to be included ;
+! leave empty if no subdirs are defined:
+lekf.copy.subdirs              :  bin py src rc data
+
+! directories to be inlcuded in copy,
+! otherwise only files are copied:
+lekf.copy.incdirs              :  include
+
+! skip files matching these filename patterns
+! (tempoary editor files, compiled modules, etc) ;
+! here also remove include files that will be written based on defined macro's,
+! otherwise they might be replaced if the target content is different from the template content
+! and 'make' will think that the source is changed ...
+lekf.copy.skip                :  ${le.copy.skip} lotos-euros.F90
+
+! prefix for destination of source and script files
+! (base path for subdirectories src, py, etc) ;
+! this should be an absolute path,
+! use ${PWD} for the present dir if necessary:
+lekf.copy.prefix              :  ${my.project.dir}/build
+
+! build directory extension for mpi:
+#if "${par.mpi}" in ["True"] :
+my.lekf.mpi.extension                  :  mpi
+#else
+my.lekf.mpi.extension                  :  
+#endif
+! build directory extension for openmp
+#if "${par.openmp}" in ["True"] :
+my.lekf.openmp.extension               :  openmp
+#else
+my.lekf.openmp.extension               :  
+#endif
+! space separated extensions:
+lekf.copy.prefix.extensions   :  ${my.lekf.mpi.extension} ${my.lekf.openmp.extension} ${lekf.configure.flags.groups}
+
+! remove existing build directory if present ?
+! use the environment variable defined in 'setup-le' script:
+lekf.copy.new                 :  ${NEW_BUILD}
+
+! name of evaluated rcfile in run directory:
+my.lekf.run.rcfile            :  lekf.rc
+! destination of evaluated rcfile:
+lekf.copy.rcwrite             :  ${my.project.dir}/run/${my.lekf.run.rcfile}
+
+
+! ######################################################################
+! ###
+! ### build
+! ###
+! ######################################################################
+
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! configure
+! (required by UtopyaConfigure object)
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! where to configure ?
+lekf.configure.dir            :  ${lekf.copy.prefix}/src
+
+! enable parallel computing?
+lekf.configure.enable.mpi     :  ${par.mpi}
+lekf.configure.enable.openmp  :  ${par.openmp}
+
+
+!
+! * user defined tasks
+!
+
+! list of tasks:
+lekf.configure.tasks              :  ${le.configure.tasks}
+
+! copy:
+#for TASK in ${le.configure.tasks}
+lekf.configure.task.TASK.class    :  ${le.configure.task.TASK.class}
+lekf.configure.task.TASK.args     :  ${le.configure.task.TASK.args}
+#endfor
+
+
+!
+! *** compiler settings
+!
+
+! class for compiler settings, and arguments for initialization:
+lekf.configure.compiler.class     :  utopya.UtopyaCompilerSettingsFortran
+lekf.configure.compiler.args      :  rcfile='${lekf.copy.rcwrite}', rcbase=''
+
+! Specify space seperated list of compiler flag groups.
+! For each group, corresponding flags should be defined in the compiler rc.
+! Added automatically:
+!  default    : default flags
+!  mpi        : if mpi enabled
+!  openmp     : if openmp enabled
+! Defined in compiler.rc:
+!  optim-none
+!  check-all
+!  optim-fast
+!
+!lekf.configure.flags.groups       :  optim-fast
+lekf.configure.flags.groups       :  ${my.configure.flags}
+
+! include file to be written for Makefile:
+lekf.configure.flags.includefile  :  Makefile_flags
+
+!
+! *** macro's
+!
+
+! collect defined macro's Santiago :
+!lekf.configure.macro.define           :  ${le.configure.macro.define} ${my.lekf.define} ${my.linalg.define}
+lekf.configure.macro.define           :  ${le.configure.macro.define} ${my.lekf.define} ${my.linalg.define}
+! Specify list of macro groups:
+lekf.configure.macro.groups           :  ${le.configure.macro.groups} lekf
+
+! ~ copy:
+#for GROUP in ${le.configure.macro.groups}
+lekf.configure.macro.GROUP.all        :  ${le.configure.macro.GROUP.all}
+lekf.configure.macro.GROUP.hfile      :  ${le.configure.macro.GROUP.hfile}
+#endfor
+
+! ~ kalman-filter
+lekf.configure.macro.lekf.all       :  with_kf_meas_ground \
+                                       with_kf_meas_sat \
+                                       with_kf_meas_modis \
+                                       with_kf_meas_o3 \
+                                       with_kf_meas_pm \
+                                       with_kf_meas_pm_m24 \
+                                       with_kf_meas_aod \
+                                       with_kf_meas_maori \
+                                       skip_timestep \
+                                       with_netcdf \
+                                       _MPI
+lekf.configure.macro.lekf.hfile     :  lekf.inc
+
+
+! Inclue macro definitions in compiler flags (True|False)? Example:
+!   -Dwith_this_flag
+! Not necessary if header files with macro definitions are written:
+lekf.configure.macro.define_flags     :  False
+
+
+!
+! *** remove files
+!
+
+! remove some files ?
+lekf.configure.remove                              :  
+
+! remove if macro's are *not* defined ?
+!~ copy:
+#for MACRO in with_hdf4 with_hdiff with_radiation
+lekf.configure.remove.ifndef.MACRO                 :  ${le.configure.remove.ifndef.MACRO}
+#endfor
+!~ lekf files:
+lekf.configure.remove.ifndef.with_kf_meas_ground   :  lekf_meas_ground.F90 \
+                                                        lekf_meas_emep_o3.F90 lekf_meas_emep_hour.F90 \
+                                                        lml_statlist_file.F90 lml_data_file.F90
+lekf.configure.remove.ifndef.with_kf_meas_sat      :  lekf_meas_sat.F90
+lekf.configure.remove.ifndef.with_kf_meas_pm       :  lekf_meas_pm.F90
+lekf.configure.remove.ifndef.with_kf_meas_o3       :  lekf_meas_o3.F90
+lekf.configure.remove.ifndef.with_kf_meas_maori    :  lekf_meas_maori.F90 le_output_maori.F90
+lekf.configure.remove.ifndef.with_kf_meas_aod      :  lekf_meas_aod.F90
+lekf.configure.remove.ifndef.with_kf_meas_modis    :  lekf_meas_modis.F90 le_output_modis.F90 modis.F90
+
+
+!
+! *** libraries
+!
+
+! class for library settings, and arguments for initialization:
+lekf.configure.libs.class     :  utopya.UtopyaLibSettings
+lekf.configure.libs.args      :  rcfile='${lekf.copy.rcwrite}', rcbase=''
+
+! Supported libraries are specified with keywords, e.g.:
+!    netcdf hdf5 hdf4 z jpeg gribex
+! List of all supported libraries; this defines the linking order !
+lekf.configure.libs.all                          :  lapack95 ${le.configure.libs.all}
+
+! ~ default libraries:
+lekf.configure.libs                              :  
+
+! ~ libraries to be included if a specific marcro is defined:
+#for MACRO in with_netcdf4 with_netcdf with_hdf5 with_hdf4 with_lapack with_lapack95 with_mkl with_udunits2
+lekf.configure.libs.ifdef.MACRO                  :  ${le.configure.libs.ifdef.MACRO}
+#endfor
+
+! ifort does not require the '-lmkl' linker flag, just a '-mkl' on the command line suffices
+!build.configure.libs.ifdef.with_mkl               :  mkl
+
+
+
+
+!
+! *** source code checks
+
+! Apply some source code checks ?
+! Provide a space seperated list with keywords; for each keyword, provide below:
+!  o a short message to describe the test;
+!  o the filename pattern to select the files on which the test should be applied;
+!  o a filename pattern to exclude some files;
+!  o a python boolean expression applied to each line of the file;
+!    the line itself is stored in a string variable named 'line';
+!  o a help text to be displayed in case a warning is issued;
+!    include \n for newlines.
+! If for one of the lines in a source file the test evaluates to 'True', 
+! a warning is issued.
+! If the test expression starts with 'not', a warning is issued if none
+! of the lines evaluates to 'True' for the test after the 'not'.
+! If the 'error' flag is set to 'True' and any warnings are issued, then
+! the scripting will exit with an error status.
+
+! list with keywords for checks to be applied:
+lekf.configure.checks              :  ${le.configure.checks} lekf_inc
+
+! copy:
+#for CHECK in ${le.configure.checks}
+lekf.configure.check.CHECK.msg       :  ${le.configure.check.CHECK.msg}
+lekf.configure.check.CHECK.files     :  ${le.configure.check.CHECK.files}
+lekf.configure.check.CHECK.skip      :  ${le.configure.check.CHECK.skip}
+lekf.configure.check.CHECK.test      :  ${le.configure.check.CHECK.test}
+lekf.configure.check.CHECK.help      :  ${le.configure.check.CHECK.help}
+#endfor
+
+! all LEKF files should include "lekf.inc"; search files that do not do that:
+lekf.configure.check.lekf_inc.msg     :  Test on LEKF files that do no not include "lekf.inc" ...
+lekf.configure.check.lekf_inc.files   :  lekf*.F90
+lekf.configure.check.lekf_inc.skip    :  
+lekf.configure.check.lekf_inc.test    :  not line.startswith('#include "lekf.inc"')
+lekf.configure.check.lekf_inc.help    :  \n\
+          All LEKF files should include "lekf.inc" in the header.\n\
+          This include file is filled by the scripting with '#define' pre-processing macros.\n\
+          To compile a source code with LE files that do not include "lekf.inc",\n\
+          ensure that marco definitions are passed to the compiler directly by setting:\n\
+          .   build.configure.define.D  :  True\n\
+          in the expert.rc file.\n
+
+! in case some strange things are found, leave with error message (True|False)?
+lekf.configure.checks.error            :  True
+
+
+
+!
+! *** rules
+!
+
+! include file to be written for Makefile:
+lekf.configure.rules.includefile       :  Makefile_rules
+
+! explicit rules ; specify additional compiler flag groups for object files:
+!      objectfile1  :  flaggroup1 ; objectfile2 : flaggroup2 ; ...
+lekf.configure.rules.explicit          :  ${le.configure.rules.explicit}
+
+
+
+!
+! *** make dependencies
+!
+
+! create depencencies (True|False) ?
+lekf.configure.makedep                 :  ${my.with.makedep}
+
+! include file to be written for Makefile:
+lekf.configure.makedep.includefile     :  Makefile_deps
+
+! class for library settings, and arguments for initialization:
+lekf.configure.makedep.class           :  utopya.UtopyaDependencies
+lekf.configure.makedep.args            :  rcfile='${lekf.copy.rcwrite}', rcbase='le'
+!                                                   , \
+!                                                       'LE_PREFIX' : '${LE_PREFIX}'  }
+
+! dependencies are created for files matching the pattern:
+lekf.configure.makedep.files           :  *.F90 *.F *.f90
+
+! define explicit dependencies for some objects, 
+! in case these are not recoqnized by 'makedep',
+! for example dependencies on object files that are no modules;
+! specifiy ';' seperated lines of target and object list seperated by ':' :
+!    target-object1 : object1 object2 ... ;
+!    target-object2 : object3 object4 ...
+lekf.configure.makedep.explicit        :  ${le.configure.makedep.explicit}
+
+! Which executables to be build ?
+! Provide ';' seperated list of executable names,
+! eventually followed by the basename of the source file
+! with the main program if this is different from the 
+! basename of the executable. For example, the following
+! tells to make executables 'test.x' and 'boe.x',
+! where the first is to be compiled from a 'main.F90' or so, 
+! and the seccond is assumed to be compiled from 'boe.F90':
+!     test.x main ; boe.x
+lekf.configure.makedep.exec            : lekf.x
+
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! make
+! (required by UtopyaMake object)
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! where to make?
+lekf.make.dir                     :  ${lekf.copy.prefix}/src
+    
+! targets:
+lekf.make.targets                 :  lekf.x install
+
+! Make command to be used for each of the targets;
+! template '%{target}' is filled with the target name,
+! and '%{njob}' is filled from the initialization argument:
+lekf.make.target.lekf.x           :  make --file=Makefile --jobs=%{njob} %{target}
+lekf.make.target.install          :  make --file=Makefile %{target} \
+                                             bindir=../../run exe=lekf.x
+
+
+

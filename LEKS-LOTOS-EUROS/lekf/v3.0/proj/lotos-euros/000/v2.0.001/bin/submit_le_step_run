@@ -1,0 +1,55 @@
+#! /bin/sh
+
+#
+# Usage:
+#   <thisscript> <cmndline>
+#
+
+# exit on error
+set -e
+
+# name of this job in messages:
+prog=`basename $0`
+
+# arguments:
+cmndline="$1"
+
+# unlimit stacksize ;
+# not necessary on all machines, therefore trap errors:
+if ( ulimit -s unlimited ) ; then
+  echo "$prog - unlimit stacksize ..."
+  ulimit -s unlimited
+fi
+
+# create output directories if necessary:
+for dname in '../output' '../restart' ; do
+  if [ ! -d "${dname}" ]; then
+    echo "$prog - create ${dname} ..."
+    mkdir -p ${dname}
+  fi
+done
+
+# file that is written just before program stops,
+# indicating a normal end of the run:
+okfile='le.ok'
+/bin/rm -f ${okfile}
+
+echo "$prog - "
+echo "$prog - command line : ${cmndline}"
+echo "$prog - "
+echo "$prog - wall time before run : `/bin/date`"
+echo ""
+
+${cmndline}
+
+echo " "
+echo "$prog - wall time after  run : `/bin/date`"
+echo "$prog - "
+
+if [ ! -f ${okfile} ]; then
+  echo "$prog - ok file '${okfile}' not found;"
+  echo "$prog - no normal end of program "
+  exit 1
+fi
+
+

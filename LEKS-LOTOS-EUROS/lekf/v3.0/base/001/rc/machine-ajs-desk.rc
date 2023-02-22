@@ -1,0 +1,222 @@
+!#######################################################################
+!
+! AJS desktop
+!
+!#######################################################################
+
+
+!----------------------------------------------------------------------
+! user names
+!----------------------------------------------------------------------
+
+! used for output attributes ...
+
+! name of institution:
+user.institution             :  AJS
+
+! extract user long name from environment variable:
+user.longname                :  ${USER}
+
+
+!----------------------------------------------------------------------
+! compiler settings
+!----------------------------------------------------------------------
+
+! GNU Fortran Compiler
+#include base/000/rc/compiler-${COMPILER_SUITE}-${COMPILER_VERSION}.rc
+
+
+! compilers with MPI enabled:
+! o same compilers, flags defined in options:
+!mpi.compiler.fc                     :  ${compiler.fc}
+!mpi.compiler.fc.openmp              :  ${compiler.fc.openmp}
+! o use wrapper:
+mpi.compiler.fc                     :  mpif90
+mpi.compiler.fc.openmp              :  mpif90
+
+
+!----------------------------------------------------------------------
+! libraries
+!----------------------------------------------------------------------
+
+! (optional) macro to enable udunits library:
+!my.udunits.define             :  
+!my.udunits.define             :  with_udunits1
+my.udunits.define             :  with_udunits2
+
+! Z library (used for compression in HDF):
+compiler.lib.z.fflags           : 
+compiler.lib.z.libs             : -lz
+
+! JPEG library (used for compression in HDF):
+compiler.lib.jpeg.fflags        : 
+compiler.lib.jpeg.libs          : -ljpeg
+
+! JASPER library (jpeg compression used in GRIB_API):
+compiler.lib.jasper.fflags      : 
+compiler.lib.jasper.libs        : -ljasper
+
+! SZ library (used for compression in HDF):
+compiler.lib.sz.fflags          : 
+compiler.lib.sz.libs            : -L${SZIP_HOME}/lib -lsz -Wl,-rpath
+
+!! HDF4 library:
+!compiler.lib.hdf4.fflags        : -I${HDF4_HOME}/include
+!compiler.lib.hdf4.libs          : -L${HDF4_HOME}/lib -lmfhdf -ldf
+
+! HDF5 library:
+compiler.lib.hdf5.fflags        : 
+compiler.lib.hdf5.libs          : -L${HDF5_HOME}/lib -lhdf5_hl -lhdf5
+
+! NetCDF library (actually netcdf4 ...)
+compiler.lib.netcdf.fflags      : ${compiler.lib.netcdf4.fflags}
+compiler.lib.netcdf.libs        : ${compiler.lib.netcdf4.libs}
+
+! NetCDF4 library:
+compiler.lib.netcdf4.fflags     : -I${NETCDF_FORTRAN_HOME}/include
+compiler.lib.netcdf4.libs       : -L${NETCDF_FORTRAN_HOME}/lib -lnetcdff -L${NETCDF_HOME}/lib -lnetcdf
+
+! UDUnits library:
+compiler.lib.udunits1.fflags    : -I${UDUNITS_HOME}/include
+compiler.lib.udunits1.libs      : -L${UDUNITS_HOME}/lib -ludunits
+
+! UDUnits2 library:
+compiler.lib.udunits2.fflags    : -I${UDUNITS2_HOME}/include
+compiler.lib.udunits2.libs      : -L${UDUNITS2_HOME}/lib -ludunits2
+
+! GRIB_API library:
+compiler.lib.grib_api.fflags    : -I${GRIB_API_HOME}/include
+compiler.lib.grib_api.libs      : -L${GRIB_API_HOME}/lib -lgrib_api_f90 -lgrib_api \
+                                  -L${JASPER_HOME}/lib -ljasper
+                                 
+compiler.lib.mpi.fflags         : 
+compiler.lib.mpi.libs           : 
+
+!! LaPack library:
+!compiler.lib.lapack.fflags      : 
+!compiler.lib.lapack.libs        : -L${LAPACK_HOME}/lib -llapack -lblas
+
+
+!----------------------------------------------------------------------
+! makedep
+!----------------------------------------------------------------------
+
+! Is makedepf90 installed?
+! This flag is used in the 'expert.rc' settings:
+my.with.makedep            :  True
+
+
+!----------------------------------------------------------------------
+! maker
+!----------------------------------------------------------------------
+
+! default number of build jobs that can be used,
+! this is passed to 'build.jobs' in the expert rc;
+! on this machine, use the number of allocated processes:
+my.build.jobs       :  1
+
+! make command; 
+! the setup script will insert the 'build.jobs' specified in the expert.rc
+! or passed as argument to the setup script:
+!
+maker               :  make -j %{build.jobs}
+
+
+!----------------------------------------------------------------------
+! MPI runner
+!----------------------------------------------------------------------
+
+! command and arguments; no command file written, thus executable and arguments are added
+mpirun.command     :  mpiexec
+mpirun.args        :  -np ${par.ntask}
+
+! name of command file; if empty, then executable and arguments are added to the command line
+mpirun.cmdfile     :  
+
+! name of host file:
+mpirun.hostfile    : 
+
+
+!----------------------------------------------------------------------
+! debugger
+!----------------------------------------------------------------------
+
+! debugger type: totalview | idb | kdbg
+debugger                :  idb
+
+! command for debugger:
+debugger.command        :  idb
+
+
+!----------------------------------------------------------------------
+! jobs
+!----------------------------------------------------------------------
+
+! where to submit jobs to by default ?
+my.submit.to.default               : foreground
+
+! allowed destinations:
+my.submit.to.allowed               : foreground background
+
+
+! shell to use in job scripts:
+! o python scripts:
+job.shell.python                   : /usr/bin/env python
+
+
+!----------------------------------------------------------------------
+! shell options
+!----------------------------------------------------------------------
+
+! for running in foreground or background;
+! add python code that is directly inserted in header
+
+shell.options.default       :
+
+shell.options.init          :  
+
+! number of threads:
+#if "${par.openmp}" in ["yes","True","T"] :
+my.nthread                  :  ${par.nthread}
+#else
+my.nthread                  :  1
+#endif
+
+shell.options.run           :  \n\
+# machine specific settings:\n\
+import os\n\
+os.putenv( 'OMP_NUM_THREADS', '${my.nthread}' )
+
+shell.options.done          :
+
+
+!----------------------------------------------------------------------
+! model data
+!----------------------------------------------------------------------
+
+! the user scratch directory:
+my.scratch                    :  ${SCRATCH}
+
+! adhoc ...
+MODAS_SCRATCH04               :  ${SCRATCH}
+
+! model data:
+MODELS                        :  ${SCRATCH}/models
+
+! project data:
+PROJECTS                      :  ${SCRATCH}/projects
+
+! base path to input data files:
+LE_DATA                       :  ${MODELS}/LOTOS-EUROS/data
+my.data.dir                   :  ${LE_DATA}
+
+! observations:
+OBSERVATIONS                  :  ${SCRATCH}/observations
+AQORD_HOME                    :  ${OBSERVATIONS}/aqord
+
+! define grib library:
+my.grib.define                :  with_grib_api
+
+!! extra install tasks:
+!my.install.tasks              :
+

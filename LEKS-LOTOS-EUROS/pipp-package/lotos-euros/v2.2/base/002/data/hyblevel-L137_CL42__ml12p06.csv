@@ -1,0 +1,37 @@
+#
+# Hybride sigma-pressure coefficients for LOTOS-EUROS.
+# Half-level numbering is bottom-up.
+#
+# Selection of lowest 42 layers out of ECMWF L137 over full atmosphere.
+# Coefficients copied from meteo archive with ECMWF data for LOTOS-EUROS.
+#
+#
+# Default further coarsening as defined from v2.2.002
+#
+#   12-layers + 6 top-layers 
+#
+#   1 1 1 2 2 2 2 2 2 2 2 2    3 3 3 4 4 4
+#
+#
+#
+#
+# hlev, hyai [Pa]   , hybi [1]
+    18,     0.0     , 0
+    17,   131.4255  , 0
+    16,  1285.61    , 0
+    15,  4799.149   , 0
+    14,  9562.683   , 0.0001985774
+    13, 16026.12    , 0.01481563
+    12, 20219.66    , 0.09946167
+    11, 19874.03    , 0.2223329
+    10, 16262.05    , 0.4111248
+     9, 10370.18    , 0.6300358
+     8,  6168.531   , 0.7707976
+     7,  3057.266   , 0.8739293
+     6,  1387.547   , 0.9318808
+     5,   568.0625  , 0.9633517
+     4,   122.1016  , 0.9845419
+     3,    22.83594 , 0.991984
+     2,     3.757813, 0.9950025
+     1,     0.0     , 0.9976301
+     0,     0.0     , 1.0

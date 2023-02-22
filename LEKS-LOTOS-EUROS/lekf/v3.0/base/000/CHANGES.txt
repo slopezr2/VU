@@ -1,0 +1,12 @@
+LEKF - LOTOS-EUROS Kalman Filter
+================================
+
+3.0.000
+-------
+
+Initialized from v1.0.004, adding MPI parallelization over modes.
+
+From v1.0.005-beta: Fixed update of cg for meas update used for satellites.
+  src/lekf_meas.F90
+
+

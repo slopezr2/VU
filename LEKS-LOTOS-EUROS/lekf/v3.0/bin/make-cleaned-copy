@@ -1,0 +1,171 @@
+#! /usr/bin/env python
+
+"""
+Make copy of this source code.
+Edit settings below for configuration.
+
+"""
+
+#-------------------------------------------------
+# modules
+#-------------------------------------------------
+
+# modules:
+import os
+import shutil
+import subprocess
+
+
+#-------------------------------------------------
+# settings
+#-------------------------------------------------
+
+# target version direction:
+destdir = '../v3.0.003-beta'
+
+# source patch:
+patch = '002'
+
+# include beta version?
+#betas = []
+betas = ['003']
+
+# source dirs to be copied:
+basedirs = []
+#~ base:
+basedirs.append( 'base/%s' % patch )
+#~ beta versions:
+for beta in betas :
+    basedirs.append( 'proj/beta/%s' % beta )
+#endfor
+
+# extra files (if present):
+xfiles = []
+xfiles.append( 'README.txt' )
+xfiles.append( 'Makefile' )
+xfiles.append( 'base/%s/CHANGES.txt' % patch )
+for beta in betas :
+    xfiles.append( 'proj/beta/%s/CHANGES.txt' % beta )
+#endfor
+
+
+#-------------------------------------------------
+# begin
+#-------------------------------------------------
+
+# info ...
+print( '' )
+print( '** create open source copy' )
+print( '' )
+
+# info ...
+print( 'destination: %s' % destdir )
+
+# cleanup ...
+subprocess.check_call(['make','clean'])
+
+# loop:
+for basedir in basedirs :
+
+    # info ..
+    print( '  %s ...' % basedir )
+    
+    # check ..
+    if not os.path.isdir( basedir ) :
+        print( 'ERROR - basedir not found: %s' % basedir )
+        raise Exception
+    #endif
+
+    # target:
+    basedir_out = os.path.join( destdir, basedir )
+
+    # check ...
+    if not os.path.exists(basedir_out) :
+        os.makedirs(basedir_out)
+    else :
+        print( 'Target directory already exists, be careful to not overwrite other Opensource version' )
+        raise Exception
+    #endif
+    
+    # source files:
+    for sfile in ['README.txt'] :
+        # full path:
+        fname = os.path.join(basedir,sfile)
+        # present?
+        if os.path.isfile(fname) :
+            # info ..
+            print( '    %s ...' % sfile )
+            # target file:
+            fname_out = os.path.join(basedir_out,sfile)
+            # copy with all properties
+            shutil.copy2( fname, fname_out )
+        #endif
+    #endfor
+
+    # source directories
+    for sdir in ['bin', 'py', 'src', 'data', 'rc'] :
+
+        # Subdirectory
+        subdir = '%s/%s' % (basedir,sdir)
+        # skip if not present:
+        if not os.path.isdir(subdir) : continue
+        
+        # info ..
+        print( '  %s ...' % subdir )
+
+        # target:
+        subdir_out = '%s/%s' %(basedir_out,sdir)
+        # create if necessary:
+        if not os.path.exists( subdir_out ) : os.makedirs(subdir_out)
+
+        # loop over source files
+        filelist = os.listdir(subdir)
+        for ifile in filelist :
+            # skip directories:
+            if os.path.isdir( ifile ) : continue
+            # skip object files:
+            if ifile.endswith('.pyc') : continue
+            
+            # input file ...
+            fname = '%s/%s' % (subdir,ifile)
+            
+            # info ...
+            print( '  %s ...' % fname )
+            
+            # target file:
+            fname_out = '%s/%s' %(subdir_out,ifile)
+
+            # copy with all properties
+            shutil.copy2(fname,fname_out)
+                
+        #endfor # source files
+
+    #endfor # subdirs
+
+#endfor # base dirs
+
+# info ..
+print( '' )
+print( 'extra files ...' )
+for xfile in xfiles :
+    # skip if not present:
+    if not os.path.isfile( xfile ) : continue
+    # info ...
+    print( '  %s ...' % xfile )
+    # target file:
+    xfile_out = os.path.join( destdir, xfile )
+    # create dir if necessary:
+    dname = os.path.dirname( xfile_out )
+    if not os.path.isdir( dname ) : os.makedirs( dname )
+    # copy including properties:
+    shutil.copy2( xfile, xfile_out )
+#endfor
+
+# info ...
+print( '' )
+print( '** end' )
+print( '' )
+
+#-------------------------------------------------
+# end
+#-------------------------------------------------

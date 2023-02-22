@@ -1,0 +1,188 @@
+!
+! Input descriptions for COSMO-CLM meteo files.
+!
+! For each variable, specify  how to form a timeseries.
+! The following example specifies to read a sequence of
+! hourly records, and that (if requested) the intermediate times
+! should be formed by using linear interpolation.
+!
+!   myvar.tinterp  :  3 hour
+!
+! The input for this time series could consist of a sequence
+! of data sets, each of them valid for another time period.
+! The data sets might differ in path, filename, and resolution for example.
+! The sequenct consists of '|' seperated elememnts,
+! where each element has 3 comma-seperated keys that define
+! the start and end time and a file-description key:
+!
+!   myvar.input    :  t1, t2, key1 | t3, t4, key2 | ...
+!
+! A file-description key describes a collection of files from 
+! which in this example 'myvar' should be read.
+! In most simple form, file-description looks like:
+!
+!  key1.name          :  /data/cclmout_d03_%{yyyy}%{mm}%{dd}.nc
+!  key1.var           :  var_name=HGT
+!
+! This specifies a sequence of file names (with templates for date values)
+! and that the data is present in a variable named 'HGT'.
+!
+! Detailed settings:
+!
+!  key1.name          :  /data/cclmout_d03_%{yyyy}%{mm}%{dd}.nc
+!    Filename description. Time templates are replaced by actual values,
+!    for example:
+!       %{yyyy}, %{mm}, %{dd}, %{yyyymmdd}
+!
+!  key1.name_dtsec    :  0
+!    Offset for time used to form filename.
+!    If a file contains fields for (00:00,24:00], use name_dtsec=-1
+!
+!  key1.var   :  standard_name=name;long_name=name;var_name=name;units=kg
+!    List of variable descriptions, seperated by semi-colon.
+!    The elements could define to search for 'standard_name' attribute,
+!    a 'long_name' attribute, or to search for a variable with an
+!    explicitly defined name.
+!    Eventually specify units if the variable in the file does not
+!    have a 'units' attrribute or when it is empty.
+!
+!  key1.special    :  time_name=XTIME;constant=T
+!    Adhoc settings, for example to handle files that are not CF-compliant.
+!    For WRF files for example:
+!      time_name=XTIME
+!        Read time values from the specified variable;
+!        some WRF files have time dimension 'Time', 
+!        but have time values stored in variable 'XTIME'.
+!      constant=T
+!        Enable this flag if a variable is constant but still has
+!        a time dimension in the file, for example the orography.
+!      swap_levels=F
+!        Necessary special setting for 3D fields, to let the model
+!        know whether levels need to be swapped to have them in
+!        surface-to-top direction.
+!      compute=uv_stag_to_center
+!        Specifies that a wind vector field should be composed from
+!        staggered u and v fields (defined on mid of u and v edges);
+!        the result is a vector field with (lon,lat) components
+!        defined on the cell centers.
+!
+
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! cclm meteo
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! data archvie:
+my.cclm.file.dir        :  ${my.data.dir}/COSMO-CCLM
+
+! filenames:
+my.cclm.file.name2c     :  ${my.cclm.file.dir}/out02/lffd2015120100c.nc
+my.cclm.file.name1      :  ${my.cclm.file.dir}/out01/lffd%{yyyy}%{mm}%{dd}%{hh}.nc
+my.cclm.file.name2      :  ${my.cclm.file.dir}/out02/lffd%{yyyy}%{mm}%{dd}%{hh}.nc
+my.cclm.file.name4      :  ${my.cclm.file.dir}/out04/lffd%{yyyy}%{mm}%{dd}%{hh}.nc
+
+! constant fields:
+#for VAR in orog lsm slt
+meteo.VAR.input              :  2000-01-01 00:00, 2030-01-01 00:00, meteo.VAR.file
+meteo.VAR.file.name          :  ${my.cclm.file.name2c}
+meteo.VAR.file.special       :  constant=T
+#endfor
+meteo.orog.file.var          :  standard_name=surface_altitude;var_name=HSURF
+meteo.lsm.file.var           :  standard_name=land_area_fraction;var_name=FR_LAND
+meteo.slt.file.var           :  standard_name=soil_type;var_name=SOILTYP
+
+! half level altitudes are constant too:
+meteo.halt.input             :  2000-01-01 00:00, 2030-01-01 00:00, meteo.halt.file
+meteo.halt.file.name         :  ${my.cclm.file.name2c}
+meteo.halt.file.special      :  constant=T;swap_levels=T
+meteo.halt.file.var          :  standard_name=altitude;var_name=HHL
+
+! surface fields, instant:
+#for VAR in psurf tsurf sstk tcc ssrd sd
+meteo.VAR.tinterp            :  3 hour
+meteo.VAR.input              :  2000-01-01 00:00, 2030-01-01 00:00, meteo.VAR.file
+meteo.VAR.file.name          :  ${my.cclm.file.name2}
+#endfor
+meteo.psurf.file.var         :  standard_name=surface_air_pressure;var_name=PS
+meteo.tsurf.file.var         :  long_name=2m temperature;var_name=T_2M
+meteo.sstk.file.var          :  long_name=soil surface temperature;var_name=T_S
+meteo.tcc.file.var           :  standard_name=cloud_area_fraction;var_name=CLCT
+meteo.sd.file.var            :  long_name=thickness of snow;var_name=H_SNOW
+meteo.ssrd.file.var          :  long_name=surface net downward shortwave radiation;var_name=SOBS_RAD
+
+! surface fields, accumulated:
+#for VAR in acc_cp acc_lsp
+meteo.VAR.tinterp            :  3 hour
+meteo.VAR.input              :  2000-01-01 00:00, 2030-01-01 00:00, meteo.VAR.file
+meteo.VAR.file.name          :  ${my.cclm.file.name2}
+#endfor
+meteo.acc_cp.file.var        :  long_name=convective rainfall;var_name=RAIN_CON
+meteo.acc_lsp.file.var       :  long_name=large scale rainfall;var_name=RAIN_GSP
+
+! 3D soil fields, no need to swap levels:
+#for VAR in soilw
+meteo.VAR.tinterp            :  3 hour
+meteo.VAR.input              :  2000-01-01 00:00, 2030-01-01 00:00, meteo.VAR.file
+meteo.VAR.file.name          :  ${my.cclm.file.name2}
+meteo.VAR.file.special       :  swap_levels=F
+#endfor
+meteo.soilw.file.var         :  standard_name=lwe_thickness_of_moisture_content_of_soil_layer;var_name=W_SO
+
+#for VAR in smi2 smi3
+meteo.VAR.tinterp            :  3 hour
+meteo.VAR.input              :  2000-01-01 00:00, 2030-01-01 00:00, meteo.VAR.file
+meteo.VAR.file.name          :  ${my.cclm.file.name2c}
+meteo.VAR.file.name_slbnd    :  ${my.cclm.file.dir}/out02/lffd2016080100.nc
+#endfor
+meteo.smi2.file.special      :  constant=T;compute=slt_to_smi2;swap_levels=F;swvl_var=W_SO;swvl_file=${my.cclm.file.name2};soil_bound_var=soil1_bnds;soil_bound_file=${meteo.smi2.file.name_slbnd};lsm_var=FR_LAND
+meteo.smi2.file.var          :  standard_name=soil_type;var_name=SOILTYP
+meteo.smi3.file.special      :  constant=T;compute=slt_to_smi3;swap_levels=F;swvl_var=W_SO;swvl_file=${my.cclm.file.name2};soil_bound_var=soil1_bnds;soil_bound_file=${meteo.smi2.file.name_slbnd};lsm_var=FR_LAND
+meteo.smi3.file.var          :  standard_name=soil_type;var_name=SOILTYP
+
+meteo.swg.tinterp            :  3 hour
+meteo.swg.input              :  2000-01-01 00:00, 2030-01-01 00:00, meteo.swg.file
+meteo.swg.file.name          :  ${my.cclm.file.name2c}
+meteo.swg.file.name_slbnd    :  ${my.cclm.file.dir}/out02/lffd2016080100.nc
+meteo.swg.file.special       :  constant=T;compute=lsm_to_swg;swap_levels=F;swvl_var=W_SO;swvl_file=${my.cclm.file.name2};soil_bound_var=soil1_bnds;soil_bound_file=${meteo.swg.file.name_slbnd}
+meteo.swg.file.var           :  standard_name=land_area_fraction;var_name=FR_LAND
+
+! define input files and variables for vectors:
+meteo.uv10.tinterp           :  3 hour
+meteo.uv10.input             :  2000-01-01 00:00, 2030-01-01 00:00, meteo.uv10.file
+meteo.uv10.file.u.name       :  ${my.cclm.file.name2}
+meteo.uv10.file.v.name       :  ${my.cclm.file.name2}
+meteo.uv10.file.u.var        :  long_name=U-component of 10m wind;var_name=U_10M
+meteo.uv10.file.v.var        :  long_name=V-component of 10m wind;var_name=V_10M
+
+! 3d fields
+#for VAR in t q clwc cc
+meteo.VAR.tinterp             :  3 hour
+meteo.VAR.input               :  2000-01-01 00:00, 2030-01-01 00:00, meteo.VAR.file
+meteo.VAR.file.name           :  ${my.cclm.file.name1}
+meteo.VAR.file.special        :  swap_levels=T
+#endfor
+meteo.t.file.var              :  standard_name=air_temperature;var_name=T
+meteo.q.file.var              :  standard_name=specific_humidity;var_name=QV
+meteo.clwc.file.var           :  standard_name=mass_fraction_of_cloud_liquid_water_in_air;var_name=QC
+meteo.cc.file.var             :  standard_name=cloud_area_fraction_in_atmosphere_layer;var_name=CLC
+
+#for VAR in blh kz
+meteo.VAR.tinterp             :  1 hour
+meteo.VAR.input               :  2000-01-01 00:00, 2030-01-01 00:00, meteo.VAR.file
+meteo.VAR.file.name           :  ${my.cclm.file.name4}
+meteo.VAR.file.special        :  swap_levels=T
+#endfor
+meteo.kz.file.var             :  standard_name=atmosphere_heat_diffusivity;var_name=TKVH
+meteo.blh.file.var            :  long_name=Height of boundary layer;var_name=HPBL
+
+! average staggered wind velocities to (lon,lat) vector in center of cell;
+! the staggered fields in the CCLM files have the same shape as the centered fields,
+! thus missing the 'zero' index; therfore use comput 'uv_stag1_to_center' instead of 'uv_stag_to_center'
+meteo.uv.tinterp              :  3 hour
+meteo.uv.input                :  2000-01-01 00:00, 2030-01-01 00:00, meteo.uv.file
+meteo.uv.file.special         :  swap_levels=T;compute=uv_stag1_to_center
+meteo.uv.file.u.name          :  ${my.cclm.file.name1}
+meteo.uv.file.v.name          :  ${my.cclm.file.name1}
+meteo.uv.file.u.var           :  long_name=U-component of wind;var_name=U
+meteo.uv.file.v.var           :  long_name=V-component of wind;var_name=V
+

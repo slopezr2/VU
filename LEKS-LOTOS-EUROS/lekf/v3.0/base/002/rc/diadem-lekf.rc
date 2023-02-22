@@ -1,0 +1,449 @@
+! ######################################################################
+! ###
+! ### DIADEM post processor
+! ###
+! ### BETA settings
+! ###
+! ######################################################################
+
+!
+! Python scripts to generate figures and diagnostics 
+! from standard model output.
+!
+! HTML index pages are generated to browse through the figures and tables.
+!
+! Which diagnostics are generated is specified by a list of task names.
+! Currently implemented tasks:
+!
+!   o timing          :  profile
+!   o sourcetab       :  table with source files
+!   o aqord           :  compare with station observation from AQORD database
+!   o le-conc         :  2D concentration fields
+!   o le-conc-extract :  extract concentration fields (no plots)
+!   o kf-maori        :  observations/simulations from MAORI output
+!
+! Include a dummy task '<n>' to have a new row in the main index page.
+!
+! The main index page (html) is always generated, 
+! even if some tasks fail because of missing files etc.
+! 
+
+! task list:
+!diadem.tasks                  :  le-conc kf-maori omi-no2
+diadem.tasks                  :  le-conc
+!diadem.tasks                  :  kf-maori
+
+! project:
+my.project.dir                :  ${SCRATCH}/projects/LEKF
+
+! destination of figures and index pages:
+diadem.output.dir             :  ${my.project.dir}/diadem
+!diadem.output.dir             :  ${SCRATCH}/RELEASE/diadem-v179-v180
+
+! location of example figures used for main index page:
+diadem.example.dir            :  ${LE_TOOLS}/diadem/vtrunk/example
+
+
+!-------------------------------------------------
+! debugging and testing
+!-------------------------------------------------
+
+! break on error (True|False) ?
+!diadem.debug                  :  False
+diadem.debug                  :  True
+
+! do not renew tables/figures for some tasks ?
+! useful to test index generation ...
+diadem.tasks.keep             :  
+!diadem.tasks.keep             :  sourcetab timing
+
+
+!-------------------------------------------------
+! model description
+!-------------------------------------------------
+
+! not necessary if this file is included in a lotos-euros rcfile
+
+! model name as used in ouptut files:
+le.output.model               :  LE
+
+
+!-------------------------------------------------
+! (multiple) output(s)
+!-------------------------------------------------
+
+! Specify per model output:
+!   label       : used in legends
+!   runid       : as used in filenames etc
+!   output.dir  : where is the output ? contains runid probably
+!   style       : python dictionairy with linestyle elements
+!   varmap      : python dictionairy to translate new netcdf variable name ('ppm_f') to 
+!                  an other value ('ppm25') that was used in another run
+!   varzero     : list with variables names that are not in the files
+!                  but should be treated as zeros
+
+! extra model output runs:
+!diadem.moutputs                         :  002 002_n1 002_n2
+diadem.moutputs                         :  002_n1 002_n2
+
+! for some tasks (le-conc) also the differences between each pair
+! of model outputs is analysed; to limit the number of comparisons,
+! specify a maximum for the 'distance' between two outputs:
+diadem.moutputs.maxdist                 :  1
+
+diadem.moutput.000.label            :  v000
+diadem.moutput.000.model            :  LE
+diadem.moutput.000.runid            :  v3.0.000
+diadem.moutput.000.kfkey            :  xxx
+diadem.moutput.000.output.dir       :  ${my.project.dir}/${diadem.moutput.000.runid}/output
+diadem.moutput.000.style            :  { 'color' : 'k' }
+
+diadem.moutput.001.label            :  v001
+diadem.moutput.001.model            :  LE
+diadem.moutput.001.runid            :  v3.0.001
+diadem.moutput.001.kfkey            :  xxx
+diadem.moutput.001.output.dir       :  ${my.project.dir}/${diadem.moutput.001.runid}/output
+diadem.moutput.001.style            :  { 'color' : 'k' }
+
+diadem.moutput.002.label            :  v002
+diadem.moutput.002.model            :  LE
+diadem.moutput.002.runid            :  v3.0.002
+diadem.moutput.002.kfkey            :  xxx
+diadem.moutput.002.output.dir       :  ${my.project.dir}/${diadem.moutput.002.runid}/output
+diadem.moutput.002.style            :  { 'color' : 'k' }
+
+#for TASK in 1 2
+diadem.moutput.002_nTASK.label         :  v002_nTASK
+diadem.moutput.002_nTASK.model         :  LE
+!diadem.moutput.002_nTASK.runid         :  v3.0.002_nTASK
+!diadem.moutput.002_nTASK.runid         :  v3.0.002_nTASK_an
+diadem.moutput.002_nTASK.runid         :  v3.0.002_nTASK_an_omi
+diadem.moutput.002_nTASK.kfkey         :  xxx
+diadem.moutput.002_nTASK.output.dir    :  ${my.project.dir}/${diadem.moutput.002_nTASK.runid}/output
+#endfor
+diadem.moutput.002_n1.style            :  { 'color' : '0.5' }
+diadem.moutput.002_n2.style            :  { 'color' : 'black' }
+
+
+!-------------------------------------------------
+! common settings
+!-------------------------------------------------
+
+!! full timerange, inherit from including lotos-euros rcfile:
+!diadem.timerange.start        :  ${timerange.start}
+!diadem.timerange.end          :  ${timerange.end}
+
+! define timerange:
+diadem.timerange.start        :  2013-07-01 00:00:00
+!diadem.timerange.end          :  2013-07-01 01:00:00
+!diadem.timerange.end          :  2013-07-01 03:00:00
+diadem.timerange.end          :  2013-07-01 13:00:00
+
+
+!-------------------------------------------------
+! * LE Concentrations
+!-------------------------------------------------
+
+! which files ?
+!diadem.le-conc.files             :  ${le.output.conc.files}
+diadem.le-conc.files             :  conc-sfc
+
+! kalman filter keys ?
+!   None xb xa xa-xb
+!diadem.le-conc.kfkeys            :  xb xa-xb xa sa xf xa-xf
+!diadem.le-conc.kfkeys            :  xb
+diadem.le-conc.kfkeys            :  xb xf xa
+
+! tracer selection:
+diadem.le-conc.tracer.fnfilter   :  *
+!diadem.le-conc.tracer.fnfilter   :  o3
+!diadem.le-conc.tracer.fnfilter   :  tpm10
+
+! special variable definition, for example to apply adhoc scaling factor;
+! comma seperated list of formula:
+!   ec:ec*2.0:ug/m3, pm:pm*2.0:ug/m3
+diadem.le-conc.tracer.specials    :
+
+! color ranges:
+!diadem.vrange.o3                 :  [0,50]
+
+! figure size, pyplot default is (8,6)
+diadem.le-conc.figsize           :  None
+!diadem.le-conc.figsize           :  (6,6)
+
+! dictioniary with map properties:
+!   'resolution'  :  'c' | 'l' | 'i'
+!   'countries'   :  True | False
+diadem.le-conc.map.style         : { 'resolution' : 'l', 'countries' : True }
+
+! draw border around cells? usefull for non-carthesian grids;
+! define style or leave empty for no border:
+diadem.le-conc.border.style      : {}
+!diadem.le-conc.border.style      : { 'color' : 'red' }
+
+
+!-------------------------------------------------
+! * OMI-NO2 columns
+!-------------------------------------------------
+
+! what has written the files ?
+!   'le'     # LOTOS-EUROS model
+!   'lekf'   # LEKF
+diadem.omi-no2.written_by        :  lekf
+
+! output files have names with 'omi-no2' or 'omi-trc' ?
+diadem.omi-no2.spec             :   trc
+
+! omi output will be regridded
+diadem.omi-no2.outputdir_regridded    : ${diadem.output.dir}/regridded_omi_dir
+
+!
+! variables to be plotted:
+!   [le2]omi_vcd_trop_(y|r|xb|xa|xf)[_(screened|analyzed)]
+! or a difference using:
+!   <varname1>_minus_<varname2>
+!
+diadem.omi-no2.varnames  : omi_vcd_trop_y \
+                           le2omi_vcd_trop_xb omi_vcd_trop_y_minus_le2omi_vcd_trop_xb \
+                           le2omi_vcd_trop_xa omi_vcd_trop_y_minus_le2omi_vcd_trop_xa
+
+! color ranges :
+diadem.vrange.omi_vcd_trop_y                                : [0,20]
+diadem.vrange.le2omi_vcd_trop_xb                            : [0,20]
+diadem.vrange.le2omi_vcd_trop_xa                            : [0,20]
+diadem.vrange.omi_vcd_trop_y_minus_le2omi_vcd_trop_xb       : [-5,5]
+diadem.vrange.omi_vcd_trop_y_minus_le2omi_vcd_trop_xa       : [-5,5]
+
+! error value in output of no2 files
+diadem.omi-no2.errorvalue       : -999.9
+
+! domain of the omi-no2 column plot
+! (here model domain and resulution)
+diadem.omi-no2.minlon           : -25.0
+diadem.omi-no2.maxlon           :  45.0
+diadem.omi-no2.dlon             :   0.50
+diadem.omi-no2.minlat           :  30.0
+diadem.omi-no2.maxlat           :  70.0
+diadem.omi-no2.dlat             :   0.25
+
+! figure sizes, pyplot default in (8,6)
+diadem.omi-no2.figsize          : (8,6)
+
+
+!-------------------------------------------------
+! * KF-MAORI
+!-------------------------------------------------
+
+! keep existing files ?
+!diadem.kf-maori.plots.keep        : True
+diadem.kf-maori.plots.keep        : False
+
+! which maori sets ?
+maori.model.name                  :  LE
+!maori.experiment.id               :  ${my.run.id}
+
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! timeseries at sites
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! apply?
+diadem.kf-maori.site_ts.apply       :  True
+
+! which maori sets ?
+!diadem.kf-maori.sets              :     o3-br-a    o3-br-v    o3-bs-a    o3-bs-v    o3-bu-a    o3-bu-v \
+!                                     tpm25-br-a tpm25-br-v tpm25-bs-a tpm25-bs-v tpm25-bu-a tpm25-bu-v \
+!                                     tpm10-br-a tpm10-br-v tpm10-bs-a tpm10-bs-v tpm10-bu-a tpm10-bu-v \
+!                                       no2-br-a   no2-br-v   no2-bs-a   no2-bs-v   no2-bu-a   no2-bu-v
+!diadem.kf-maori.sets              :  tpm10-n1-a tpm10-n1-v
+diadem.kf-maori.sets              :  o3-br-a
+!diadem.kf-maori.sets              :  tpm10-br-a
+
+#for CLS in br bs bu
+#for AV in a v
+#for COMP in o3 no2
+maori.COMP-CLS-AV.var                  :  COMP
+#endfor
+#for COMP in tpm25 tpm10
+maori.COMP-CLS-AV.var                  :  COMP_biascorr
+#endfor
+#endfor
+#endfor
+
+! line styles; updates the moutput style:
+diadem.kf-maori.entitie.yy.style  :  { 'linestyle' : 'None', 'marker' : '.'   , 'color' : 'red'   }
+!
+diadem.kf-maori.entitie.xb.style  :  { 'linestyle' : '-'   , 'marker' : 'None', 'color' : 'black' }
+! TESTING ...
+!diadem.kf-maori.entitie.xb.style  :  { 'linestyle' : '-'   , 'marker' : 'None' }
+!diadem.kf-maori.entitie.xb.style  :  { 'linestyle' : '-' }
+!
+!diadem.kf-maori.entitie.xf.style  :  { 'linestyle' : '-'   , 'marker' : 'None', 'color' : 'green' }
+!diadem.kf-maori.entitie.sf.style  :  { 'linestyle' : '-'   , 'marker' : 'None', 'color' : 'green' }
+!diadem.kf-maori.entitie.xa.style  :  { 'linestyle' : 'None', 'marker' : 'None', 'color' : 'blue'  }
+!diadem.kf-maori.entitie.sa.style  :  { 'linestyle' : '-'   , 'marker' : 'None', 'color' : 'blue'  }
+! TESTING ...
+diadem.kf-maori.entitie.xf.style  :  { 'linestyle' : '-' , 'marker' : 'None', 'color' : 'green' }
+diadem.kf-maori.entitie.sf.style  :  { 'linestyle' : '--', 'marker' : 'None', 'color' : 'green' }
+diadem.kf-maori.entitie.xa.style  :  { 'linestyle' : '-' , 'marker' : 'None', 'color' : 'blue'  }
+diadem.kf-maori.entitie.sa.style  :  { 'linestyle' : '--', 'marker' : 'None', 'color' : 'blue'  }
+
+! wich component ?
+!diadem.kf-maori.component         :  no2
+!diadem.kf-maori.component         : tpm10
+
+! axis range:
+!diadem.ylim.o3                    : [0,50]
+!diadem.ylim.tpm10                 : [0,80]
+
+! which entities are available at all in this run ?
+!diadem.kf-maori.entities          :  xb
+diadem.kf-maori.entities          :  xb xf sf xa sa
+
+
+! ~ chi2 plots
+
+! plot (T|F) ?
+diadem.kf-maori.plots.chi2              :  F
+
+
+! ~ scatter over all stations
+
+! plot (T|F) ?
+diadem.kf-maori.plots.scatter           :  T
+!! extra scatter style elements:
+!diadem.kf-maori.scatter.style     :  { 'markersize' : 10  }
+
+
+! ~ map with station locations
+
+! plot (True|False) ?
+diadem.kf-maori.plots.sites                     :  True
+
+! 'site' plots with station locations:
+! * map resolution : c=crude, l=low, i=intermediate, h=high
+!diadem.aqord.plots.map.resolution  :  l
+diadem.kf-maori.plots.sites.map.resolution      :  l
+! * how to mark stations:
+diadem.kf-maori.plots.sites.loc.style           :  { 'marker' : 'o', 'markersize' : 10, 'markerfacecolor' : 'r' }
+
+
+
+! ~ forecast skills
+
+! plot ?
+diadem.kf-maori.plots.forecast_skil             :  False
+
+! one or more subdirectories:
+diadem.kf-maori.plots.forecast_skil.subdirs     :  dc_mean-T_default dc_mean-T_average_h1-24
+!diadem.kf-maori.plots.forecast_skil.subdirs     :  ${my.fc.subdir}
+
+! line styles for each subdir in a dictionairy:
+diadem.kf-maori.plots.forecast_skil.styles      :  { 'dc_mean-T_default'       : dict(label='forecast (noise defaults)'   , linestyle='--'), \
+                                                     'dc_mean-T_average_h1-24' : dict(label='forecast (noise 24h average)', linestyle='-') }
+
+! ~ timeseries per station
+
+! plot (T|F) ?
+diadem.kf-maori.plots.timeseries        :  T
+
+! which filter entities ?
+!diadem.kf-maori.plots.timeseries.entities       :  yy xb
+diadem.kf-maori.plots.timeseries.entities       :  yy xb xa sa
+
+! add forecast series ?
+diadem.kf-maori.plots.timeseries.forecasts        :  False
+!! subdir with forecast outputs:
+!diadem.kf-maori.plots.timeseries.forecasts.subdir :  ${my.fc.subdir}
+!! forecast length:
+!diadem.kf-maori.plots.timeseries.forecasts.nfcday :  3
+
+! window length for running mean, use 0 or 1 for none:
+diadem.kf-maori.plots.timeseries.wlen             :  0
+
+! add map with site location ?
+! see 'diadem.kf-maori.plots.sites' settings
+diadem.kf-maori.plots.timeseries.map            :  F
+! map width (lon lat) in degrees:
+diadem.kf-maori.plots.timeseries.map.width      :  6.0 3.0
+
+! country selection: NL, BE, ...
+diadem.kf-maori.plots.timeseries.countries        :  
+
+! add spatial covariance per station location ?
+diadem.kf-maori.plots.timeseries.spat-covar       :  False
+
+! add legend ?
+diadem.kf-maori.plots.timeseries.legend           :  False
+
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! timeseries of stats over sites
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! apply?
+diadem.kf-maori.stat_ts.apply                :  False
+
+! renew existing figures?
+diadem.kf-maori.stat_ts.renew                :  True
+
+! which entities are available at all in this run ?
+diadem.kf-maori.stat_ts.entities             :  xb
+!diadem.kf-maori.stat_ts.entities             :  xb xa
+
+! time resolutions: 'daily' | 'hourly' | 'diurnal'
+!diadem.kf-maori.stat_ts.tres                 :  daily hourly diurnal
+diadem.kf-maori.stat_ts.tres                 :  daily diurnal
+
+! tracers:
+diadem.kf-maori.stat_ts.comps                :  o3 no2 tpm25 tpm10
+
+! statistics:
+diadem.kf-maori.stat_ts.stats                :  mean bias rmse
+!diadem.kf-maori.stat_ts.stats                :  chi2
+
+! station type selection keywords:
+diadem.kf-maori.stat_ts.stypes               :  br bs bu
+!diadem.kf-maori.stat_ts.stypes               :  br
+
+! assim/valid keys:
+diadem.kf-maori.stat_ts.avs                  :  a v
+! styles:
+diadem.kf-maori.stat_ts.av.style.a           :  { 'linestyle' : '-' , 'linewidth' : 2, 'marker' : None }
+diadem.kf-maori.stat_ts.av.style.v           :  { 'linestyle' : '--', 'marker' : None }
+
+! template for dataset:
+diadem.kf-maori.stat_ts.setname              :  %{comp}-%{stype}-%{av}
+
+! for each setname specify variable:
+#for CLS in br bs bu
+#for AV in a v
+#for COMP in o3 no2
+diadem.kf-maori.stat_ts.COMP-CLS-AV.var      :  COMP
+#endfor
+#for COMP in tpm25 tpm10
+diadem.kf-maori.stat_ts.COMP-CLS-AV.var      :  COMP_biascorr
+#endfor
+#endfor
+#endfor
+
+
+!-------------------------------------------------
+! ??
+!-------------------------------------------------
+
+! ...
+diadem.kf-maori.sat_samples.apply            :  False
+
+! ...
+diadem.kf-maori.chi2maps.apply               :  False
+
+
+!-------------------------------------------------
+! * end
+!-------------------------------------------------
+
+
+
+
+

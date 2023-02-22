@@ -1,0 +1,153 @@
+#! /usr/bin/env python
+
+"""
+Count analysed observations.
+"""
+
+#-------------------------------------------------
+# modules
+#-------------------------------------------------
+
+# modules:
+import os
+import netCDF4
+import datetime
+import numpy
+
+#-------------------------------------------------
+# settings
+#-------------------------------------------------
+
+# components:
+comps = ['o3','no2','tpm25','tpm10']
+
+# station classes:
+clss = ['br','bs','bu']
+
+# analyzed/validated:
+#avs = ['a','v']
+avs = ['a']
+
+# run day:
+t = datetime.datetime(2019,5,12)
+
+# run id:
+runid = 'v3.0.002'
+
+# subdirectory:
+subdir = t.strftime('%Y%m%d')
+
+# scratch with run output:
+#scratchdir = os.path.join( os.environ['SCRATCH'] )  # hpc
+scratchdir = os.path.join( os.environ['HOME'], 'sshfs/HPC/work/scratch' )  # ssh mount on pc
+
+# output directory:
+outdir = os.path.join( scratchdir, 'projects/LEKF', runid, subdir, 'output' )
+              
+# names of model tracers as used in output files:
+vnames = {}                               
+vnames['o3'   ] = 'o3'
+vnames['no2'  ] = 'no2_obs'
+vnames['tpm25'] = 'tpm25'
+vnames['tpm10'] = 'tpm10'
+
+# file to use:
+kfkey = 'xa'
+
+
+#-------------------------------------------------
+# begin
+#-------------------------------------------------
+
+# header:
+print( '----------------  --------' )
+print( 'dataset           analysed' )
+print( '----------------  --------' )
+
+#
+# * ground obs
+#
+
+# loop over components:
+for comp in comps :
+    # loop over station classes:
+    for cls in clss :
+        # loop over ana/val:
+        for av in avs :
+        
+            # maori set:
+            mset = '%s-%s-%s' % (comp,cls,av)
+
+            # output file:
+            fname = os.path.join( outdir, 'LE_%s_%s_%s_%s.nc' % (runid,mset,t.strftime('%Y%m%d'),kfkey) )
+
+            # check ...
+            if not os.path.isfile(fname) :
+                print( 'ERROR - file not found: %s' % fname )
+                raise Exception
+            #endif
+            
+            # open for reading:
+            ncid = netCDF4.Dataset( fname, 'r' )
+            # variable with assimilation status:
+            vname = '%s_astat' % vnames[comp]
+            # read:
+            astat = ncid.variables[vname][:]
+            # close:
+            ncid.close()
+            
+            # number of analyzed observations:
+            nana = numpy.sum( astat == 16 )
+
+            # info ...
+            print( '%-16s  %8i' % (mset,nana) )
+            
+        #endfor # av
+    #endfor # cls
+#endfor # comp
+
+# footer:
+print( '----------------  --------')
+
+
+
+#
+# * OMI
+#
+
+# set name:
+mset = 'meas-omi-trc'
+
+# output file:
+fname = os.path.join( outdir, 'LE_%s_%s_%s.nc' % (runid,mset,t.strftime('%Y%m%d')) )
+
+# check ...
+if not os.path.isfile(fname) :
+    print( 'ERROR - file not found: %s' % fname )
+    raise Exception
+#endif
+
+# open for reading:
+ncid = netCDF4.Dataset( fname, 'r' )
+# variable with analysis flag (0|1):
+vname = 'omi_analysed'
+# read:
+omi_analysed = ncid.variables[vname][:]
+# close:
+ncid.close()
+
+# number of analyzed observations:
+nana = numpy.sum( omi_analysed )
+
+# info ...
+print( '%-16s  %8i' % (mset,nana) )
+
+# footer:
+print( '----------------  --------')
+
+
+
+#-------------------------------------------------
+# end
+#-------------------------------------------------
+

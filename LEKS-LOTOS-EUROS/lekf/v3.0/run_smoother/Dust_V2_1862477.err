@@ -1,0 +1,187 @@
+*********************************************************************************************************** 
+* WARNING: This modules-environment is intended for users whose applications
+and locally compiled codes * 
+* depend on toolchains previously available on Cartesius in the 2020 software
+stack. Please * 
+* note that this modules-environment does not and WILL NOT include a complete
+software stack. * 
+* * 
+* If you have any question, please contact us via
+http://servicedesk.surfsara.nl. * 
+*********************************************************************************************************** 
+
+*********************************************************************************************************** 
+* WARNING: This modules-environment is intended for users whose applications
+and locally compiled codes * 
+* depend on toolchains previously available on Cartesius in the 2020 software
+stack. Please * 
+* note that this modules-environment does not and WILL NOT include a complete
+software stack. * 
+* * 
+* If you have any question, please contact us via
+http://servicedesk.surfsara.nl. * 
+*********************************************************************************************************** 
+
+
+
+
+
+
+
+
+
+
+
+
+Currently Loaded Modules:
+  1) 2020                              16) OpenMPI/4.1.1-GCC-10.3.0
+  2) 2021                              17) gompi/2021a
+  3) GCCcore/10.3.0                    18) Szip/2.1.1-GCCcore-10.3.0
+  4) zlib/1.2.11-GCCcore-10.3.0        19) HDF5/1.10.7-gompi-2021a
+  5) binutils/2.36.1-GCCcore-10.3.0    20) cURL/7.76.0-GCCcore-10.3.0
+  6) GCC/10.3.0                        21) netCDF/4.8.0-gompi-2021a
+  7) numactl/2.0.14-GCCcore-10.3.0     22) netCDF-Fortran/4.5.3-gompi-2021a
+  8) XZ/5.2.5-GCCcore-10.3.0           23) OpenBLAS/0.3.15-GCC-10.3.0
+  9) libxml2/2.9.10-GCCcore-10.3.0     24) FlexiBLAS/3.0.4-GCC-10.3.0
+ 10) libpciaccess/0.16-GCCcore-10.3.0  25) expat/2.2.9-GCCcore-10.3.0
+ 11) hwloc/2.4.1-GCCcore-10.3.0        26) UDUNITS/2.2.28-GCCcore-10.3.0
+ 12) OpenSSL/1.1                       27) tm5/default
+ 13) libevent/2.1.12-GCCcore-10.3.0    28) Anaconda3/2021.05
+ 14) UCX/1.10.0-GCCcore-10.3.0         29) udunits/2.2.26_shut-up
+ 15) libfabric/1.12.1-GCCcore-10.3.0   30) makedepf90/2.8.8
+
+ 
+
+
+
+*********************************************************************************************************** 
+* WARNING: This modules-environment is intended for users whose applications
+and locally compiled codes * 
+* depend on toolchains previously available on Cartesius in the 2020 software
+stack. Please * 
+* note that this modules-environment does not and WILL NOT include a complete
+software stack. * 
+* * 
+* If you have any question, please contact us via
+http://servicedesk.surfsara.nl. * 
+*********************************************************************************************************** 
+
+
+
+
+
+
+
+
+
+
+
+
+Currently Loaded Modules:
+  1) 2020                              16) OpenMPI/4.1.1-GCC-10.3.0
+  2) 2021                              17) gompi/2021a
+  3) GCCcore/10.3.0                    18) Szip/2.1.1-GCCcore-10.3.0
+  4) zlib/1.2.11-GCCcore-10.3.0        19) HDF5/1.10.7-gompi-2021a
+  5) binutils/2.36.1-GCCcore-10.3.0    20) cURL/7.76.0-GCCcore-10.3.0
+  6) GCC/10.3.0                        21) netCDF/4.8.0-gompi-2021a
+  7) numactl/2.0.14-GCCcore-10.3.0     22) netCDF-Fortran/4.5.3-gompi-2021a
+  8) XZ/5.2.5-GCCcore-10.3.0           23) OpenBLAS/0.3.15-GCC-10.3.0
+  9) libxml2/2.9.10-GCCcore-10.3.0     24) FlexiBLAS/3.0.4-GCC-10.3.0
+ 10) libpciaccess/0.16-GCCcore-10.3.0  25) expat/2.2.9-GCCcore-10.3.0
+ 11) hwloc/2.4.1-GCCcore-10.3.0        26) UDUNITS/2.2.28-GCCcore-10.3.0
+ 12) OpenSSL/1.1                       27) tm5/default
+ 13) libevent/2.1.12-GCCcore-10.3.0    28) Anaconda3/2021.05
+ 14) UCX/1.10.0-GCCcore-10.3.0         29) udunits/2.2.26_shut-up
+ 15) libfabric/1.12.1-GCCcore-10.3.0   30) makedepf90/2.8.8
+
+ 
+
+
+
+*********************************************************************************************************** 
+* WARNING: This modules-environment is intended for users whose applications
+and locally compiled codes * 
+* depend on toolchains previously available on Cartesius in the 2020 software
+stack. Please * 
+* note that this modules-environment does not and WILL NOT include a complete
+software stack. * 
+* * 
+* If you have any question, please contact us via
+http://servicedesk.surfsara.nl. * 
+*********************************************************************************************************** 
+
+
+
+
+
+
+
+
+
+
+
+
+Currently Loaded Modules:
+  1) 2020                              16) OpenMPI/4.1.1-GCC-10.3.0
+  2) 2021                              17) gompi/2021a
+  3) GCCcore/10.3.0                    18) Szip/2.1.1-GCCcore-10.3.0
+  4) zlib/1.2.11-GCCcore-10.3.0        19) HDF5/1.10.7-gompi-2021a
+  5) binutils/2.36.1-GCCcore-10.3.0    20) cURL/7.76.0-GCCcore-10.3.0
+  6) GCC/10.3.0                        21) netCDF/4.8.0-gompi-2021a
+  7) numactl/2.0.14-GCCcore-10.3.0     22) netCDF-Fortran/4.5.3-gompi-2021a
+  8) XZ/5.2.5-GCCcore-10.3.0           23) OpenBLAS/0.3.15-GCC-10.3.0
+  9) libxml2/2.9.10-GCCcore-10.3.0     24) FlexiBLAS/3.0.4-GCC-10.3.0
+ 10) libpciaccess/0.16-GCCcore-10.3.0  25) expat/2.2.9-GCCcore-10.3.0
+ 11) hwloc/2.4.1-GCCcore-10.3.0        26) UDUNITS/2.2.28-GCCcore-10.3.0
+ 12) OpenSSL/1.1                       27) tm5/default
+ 13) libevent/2.1.12-GCCcore-10.3.0    28) Anaconda3/2021.05
+ 14) UCX/1.10.0-GCCcore-10.3.0         29) udunits/2.2.26_shut-up
+ 15) libfabric/1.12.1-GCCcore-10.3.0   30) makedepf90/2.8.8
+
+ 
+
+
+
+*********************************************************************************************************** 
+* WARNING: This modules-environment is intended for users whose applications
+and locally compiled codes * 
+* depend on toolchains previously available on Cartesius in the 2020 software
+stack. Please * 
+* note that this modules-environment does not and WILL NOT include a complete
+software stack. * 
+* * 
+* If you have any question, please contact us via
+http://servicedesk.surfsara.nl. * 
+*********************************************************************************************************** 
+
+
+
+
+
+
+
+
+
+
+
+
+Currently Loaded Modules:
+  1) 2020                              16) OpenMPI/4.1.1-GCC-10.3.0
+  2) 2021                              17) gompi/2021a
+  3) GCCcore/10.3.0                    18) Szip/2.1.1-GCCcore-10.3.0
+  4) zlib/1.2.11-GCCcore-10.3.0        19) HDF5/1.10.7-gompi-2021a
+  5) binutils/2.36.1-GCCcore-10.3.0    20) cURL/7.76.0-GCCcore-10.3.0
+  6) GCC/10.3.0                        21) netCDF/4.8.0-gompi-2021a
+  7) numactl/2.0.14-GCCcore-10.3.0     22) netCDF-Fortran/4.5.3-gompi-2021a
+  8) XZ/5.2.5-GCCcore-10.3.0           23) OpenBLAS/0.3.15-GCC-10.3.0
+  9) libxml2/2.9.10-GCCcore-10.3.0     24) FlexiBLAS/3.0.4-GCC-10.3.0
+ 10) libpciaccess/0.16-GCCcore-10.3.0  25) expat/2.2.9-GCCcore-10.3.0
+ 11) hwloc/2.4.1-GCCcore-10.3.0        26) UDUNITS/2.2.28-GCCcore-10.3.0
+ 12) OpenSSL/1.1                       27) tm5/default
+ 13) libevent/2.1.12-GCCcore-10.3.0    28) Anaconda3/2021.05
+ 14) UCX/1.10.0-GCCcore-10.3.0         29) udunits/2.2.26_shut-up
+ 15) libfabric/1.12.1-GCCcore-10.3.0   30) makedepf90/2.8.8
+
+ 
+
+

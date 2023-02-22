@@ -1,0 +1,187 @@
+!
+! Input descriptions for ECMWF meteo files.
+!
+! Specify sequence of descriptions valid for different intervals [t1,t2] :
+!
+!   t1, t2, description | t1, t2, description | ...
+!
+! Each description is a list of keyword=value pairs:
+!
+!   filename=/data/blh_%{yyyymmdd}_3h.nc;standard_name=boundary_layer_height
+!
+! Supported keyword/value pairs:
+!
+!   filename        :  template for filenames; time templates are replaced by actual values:
+!                        %{yyyy}        : year
+!                        %{yyyymmdd}    : year, month, day
+!
+!   filename_dtsec  :  offset for time used to form filename ; 
+!                      if a file contains fields for (00:00,24:00], use dtsec=-1
+!
+!   standard_name=name  :  search for variable with this standard_name attribute;
+!   long_name=name      :  search for variable with this long_name     attribute;
+!   var_name=name       :  search for variable with name
+!
+
+! archive properties:
+!~ ERA5
+!  records valid for for (06,30]
+my.mf.EA.levs          :  L137_CL42
+my.mf.EA.grid          :  F320
+my.mf.EA.sfc.tres      :  1h
+my.mf.EA.ml.tres       :  3h
+my.mf.EA.name_dtsec    :  $(( -6*3600 - 1 ))
+my.mf.EA.dir           :  ${my.leip.dir}/ECMWF/ea/ifs/0001
+!~ OD, F640
+!  records valid for for (00,24]
+my.mf.B1.levs          :  L91_CL39
+my.mf.B1.grid          :  F640
+my.mf.B1.sfc.tres      :  1h
+my.mf.B1.ml.tres       :  3h
+my.mf.B1.name_dtsec    :  -1
+my.mf.B1.dir           :  ${my.leip.dir}/ECMWF/od/ifs/0001
+!~ OD, F1280
+!  records valid for for (00,24]
+my.mf.B2.levs          :  L137_CL42
+my.mf.B2.grid          :  F1280
+my.mf.B2.sfc.tres      :  1h
+my.mf.B2.ml.tres       :  3h
+my.mf.B2.name_dtsec    :  -1
+my.mf.B2.dir           :  ${my.leip.dir}/ECMWF/od/ifs/0001
+
+! file names:
+#for VAR in orog lsm blh u10 v10 sd tcc sstk slt swvl1 swvl2 swvl3 swvl4 cp lsp sf ssr ssrd zust sshf slhf
+my.ftype.VAR           :  VAR
+#endfor
+my.ftype.tsurf         :  t2m
+my.ftype.dsurf         :  d2m
+
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! archive timeseries
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! constant surface fields:
+#for VAR in orog lsm slt
+meteo.VAR.input              :  1990-01-01 00:00, 2010-01-01 00:00, meteo.EA.VAR.file |\
+                                2010-01-01 00:00, 2013-06-25 00:00, meteo.B1.VAR.file |\
+                                2013-06-25 00:00, 2030-01-01 00:00, meteo.B2.VAR.file
+#endfor
+
+! surface fields, instant and averaged:
+#for VAR in blh tsurf dsurf uv10 sd sstk swvl1 swvl2 swvl3 swvl4 tcc zust sshf slhf cp lsp sf ssrd
+meteo.VAR.tinterp            :  1 hour
+meteo.VAR.input              :  1990-01-01 00:00, 2010-01-01 00:00, meteo.EA.VAR.file |\
+                                2010-01-01 00:00, 2013-06-25 00:00, meteo.B1.VAR.file |\
+                                2013-06-25 00:00, 2030-01-01 00:00, meteo.B2.VAR.file
+#endfor
+
+! model level fields:
+#for VAR in hp sp t q uv cc clwc
+meteo.VAR.tinterp            :  3 hour
+meteo.VAR.input              :  1990-01-01 00:00, 2010-01-01 00:00, meteo.EA.VAR.file |\
+                                2010-01-01 00:00, 2013-06-25 00:00, meteo.B1.VAR.file |\
+                                2013-06-25 00:00, 2030-01-01 00:00, meteo.B2.VAR.file
+#endfor
+
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! files and variables
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#for ARCH in EA B1 B2
+
+!
+! surface fields, constant
+!
+
+! define input files and variables:
+#for VAR in orog lsm slt
+meteo.ARCH.VAR.file.name          :  ${my.mf.ARCH.dir}/an/sfc/${my.mf.ARCH.grid}/0000/VAR.nc
+#endfor
+meteo.ARCH.orog.file.var          :  standard_name=surface_altitude
+meteo.ARCH.lsm.file.var           :  standard_name=land_binary_mask
+meteo.ARCH.slt.file.var           :  long_name=Soil type
+
+
+!
+! surface fields, instant
+!
+
+! define input files and variables:
+#for VAR in blh tsurf dsurf sd sstk swvl1 swvl2 swvl3 swvl4 tcc zust sshf slhf
+meteo.ARCH.VAR.file.name          :  ${my.mf.ARCH.dir}/fc/sfc/${my.mf.ARCH.grid}/%{yyyy}/${my.ftype.VAR}_%{yyyymmdd}_${my.mf.ARCH.sfc.tres}%{fcext}.nc
+meteo.ARCH.VAR.file.name_dtsec    :  ${my.mf.ARCH.name_dtsec}
+#endfor
+
+meteo.ARCH.blh.file.var           :  long_name=Boundary layer height
+meteo.ARCH.ci.file.var            :  long_name=Sea-ice cover
+meteo.ARCH.tsurf.file.var         :  long_name=2 metre temperature
+meteo.ARCH.dsurf.file.var         :  long_name=2 metre dewpoint temperature
+meteo.ARCH.tcc.file.var           :  long_name=Total cloud cover
+meteo.ARCH.sstk.file.var          :  long_name=Sea surface temperature
+meteo.ARCH.swvl1.file.var         :  long_name=Volumetric soil water layer 1
+meteo.ARCH.swvl2.file.var         :  long_name=Volumetric soil water layer 2
+meteo.ARCH.swvl3.file.var         :  long_name=Volumetric soil water layer 3
+meteo.ARCH.swvl4.file.var         :  long_name=Volumetric soil water layer 4
+meteo.ARCH.sd.file.var            :  standard_name=lwe_thickness_of_surface_snow_amount
+meteo.ARCH.zust.file.var          :  long_name=Friction velocity
+meteo.ARCH.sshf.file.var          :  long_name=Surface sensible heat flux
+meteo.ARCH.slhf.file.var          :  long_name=Surface latent heat flux
+!
+! define input files and variables for vectors:
+meteo.ARCH.uv10.file.u.name       :  ${my.mf.ARCH.dir}/fc/sfc/${my.mf.ARCH.grid}/%{yyyy}/${my.ftype.u10}_%{yyyymmdd}_${my.mf.ARCH.sfc.tres}%{fcext}.nc
+meteo.ARCH.uv10.file.v.name       :  ${my.mf.ARCH.dir}/fc/sfc/${my.mf.ARCH.grid}/%{yyyy}/${my.ftype.v10}_%{yyyymmdd}_${my.mf.ARCH.sfc.tres}%{fcext}.nc
+meteo.ARCH.uv10.file.u.name_dtsec :  ${my.mf.ARCH.name_dtsec}
+meteo.ARCH.uv10.file.v.name_dtsec :  ${my.mf.ARCH.name_dtsec}
+meteo.ARCH.uv10.file.u.var        :  long_name=10 metre U wind component
+meteo.ARCH.uv10.file.v.var        :  long_name=10 metre V wind component
+
+! surface fields, averages:
+#for VAR in cp lsp sf ssrd
+meteo.ARCH.VAR.file.name          :  ${my.mf.ARCH.dir}/fc/sfc/${my.mf.ARCH.grid}/%{yyyy}/${my.ftype.VAR}_%{yyyymmdd}_${my.mf.ARCH.sfc.tres}%{fcext}.nc
+meteo.ARCH.VAR.file.name_dtsec    :  ${my.mf.ARCH.name_dtsec}
+#endfor
+meteo.ARCH.cp.file.var            :  standard_name=lwe_thickness_of_convective_precipitation_amount;standard_name=lwe_convective_precipitation_rate;var_name=cp
+meteo.ARCH.lsp.file.var           :  standard_name=lwe_thickness_of_large_scale_precipitation_amount;standard_name=lwe_stratiform_precipitation_rate;standard_name=lwe_thickness_of_stratiform_precipitation_amount;var_name=lsp
+meteo.ARCH.sf.file.var            :  standard_name=lwe_thickness_of_snowfall_amount;standard_name=lwe_snowfall_rate;var_name=sf
+meteo.ARCH.ssrd.file.var          :  standard_name=surface_downwelling_shortwave_flux_in_air;var_name=ssrd
+
+! compute half-level pressures from surface pressue (defined by long_name)
+! and hybride sigma-pressure coefficients; here read it from the temperature file:
+meteo.ARCH.hp.file.name           :  ${my.mf.ARCH.dir}/fc/${my.mf.ARCH.levs}/${my.mf.ARCH.grid}/%{yyyy}/t_%{yyyymmdd}_${my.mf.ARCH.ml.tres}%{fcext}.nc
+meteo.ARCH.hp.file.name_dtsec     :  ${my.mf.ARCH.name_dtsec}
+meteo.ARCH.hp.file.var            :  standard_name=surface_air_pressure
+meteo.ARCH.hp.file.special        :  compute=sp_to_hp;level_name=level;hlevel_name=hlevel;swap_levels=T
+
+! surface pressure from from the temperature file:
+meteo.ARCH.sp.file.name           :  ${my.mf.ARCH.dir}/fc/${my.mf.ARCH.levs}/${my.mf.ARCH.grid}/%{yyyy}/t_%{yyyymmdd}_${my.mf.ARCH.ml.tres}%{fcext}.nc
+meteo.ARCH.sp.file.name_dtsec     :  ${my.mf.ARCH.name_dtsec}
+meteo.ARCH.sp.file.var            :  standard_name=surface_air_pressure
+
+!
+! model level fields
+!
+! define input files and variables:
+#for VAR in t q cc clwc
+meteo.ARCH.VAR.file.special       :  swap_levels=T
+meteo.ARCH.VAR.file.name          :  ${my.mf.ARCH.dir}/fc/${my.mf.ARCH.levs}/${my.mf.ARCH.grid}/%{yyyy}/VAR_%{yyyymmdd}_${my.mf.ARCH.ml.tres}%{fcext}.nc
+meteo.ARCH.VAR.file.name_dtsec    :  ${my.mf.ARCH.name_dtsec}
+#endfor
+meteo.ARCH.t.file.var             :  long_name=Temperature
+meteo.ARCH.q.file.var             :  long_name=Specific humidity
+meteo.ARCH.cc.file.var            :  long_name=Cloud cover;long_name=Fraction of cloud cover
+meteo.ARCH.clwc.file.var          :  long_name=Specific cloud liquid water content
+!
+! define input files and variables for vectors:
+meteo.ARCH.uv.file.special        :  swap_levels=T
+meteo.ARCH.uv.file.u.name         :  ${my.mf.ARCH.dir}/fc/${my.mf.ARCH.levs}/${my.mf.ARCH.grid}/%{yyyy}/u_%{yyyymmdd}_${my.mf.ARCH.ml.tres}%{fcext}.nc
+meteo.ARCH.uv.file.v.name         :  ${my.mf.ARCH.dir}/fc/${my.mf.ARCH.levs}/${my.mf.ARCH.grid}/%{yyyy}/v_%{yyyymmdd}_${my.mf.ARCH.ml.tres}%{fcext}.nc
+meteo.ARCH.uv.file.u.name_dtsec   :  ${my.mf.ARCH.name_dtsec}
+meteo.ARCH.uv.file.v.name_dtsec   :  ${my.mf.ARCH.name_dtsec}
+meteo.ARCH.uv.file.u.var          :  long_name=U component of wind
+meteo.ARCH.uv.file.v.var          :  long_name=V component of wind
+
+#endfor
+! archives
+

@@ -1,0 +1,66 @@
+Changes w.r.t. base/001
+=======================
+
+Copied from proj/tropomi/001
+----------------------------
+
+Changes to avoid tiny rounding differences between global model grid and grid in local domain.
+  src/c3po_grid_ugg.F90
+  src/le_grid.F90
+
+Support option to skip emission output from ensemble members.
+  src/le_output.F90
+
+Commented depricated AOD calculations.
+Removed tab characters.
+  src/le_maori.F90
+
+Option to return local displacement in decomposition.
+  src/go_comm.F90
+
+Added method to generate random number per pixel.
+  src/le_output_sat.F90
+  
+Added flag to disable track variables, useful for other satellites.
+  src/le_output_sat.F90
+  rc/lotos-euros-output.rc
+
+Merged version for CrIS observations.
+  src/le_output_sat.F90
+
+Removed references to aod bias correction factor.
+  src/maori_set_sample.F90
+
+Limit output to pixels in domain instead of all that were read.
+  src/le_output_sat.F90
+  src/pixels.F90
+
+MAORI output with gather on root instead of parallel write.
+  src/maori_set_sample.F90
+  src/go_comm.F90
+
+Eigenvalue decomposition of symmetric positive definite matrix.
+  src/num_linalg.F90
+
+
+Adding CSO interface
+--------------------
+
+Added routine OverDomain to check if box has any overlap with domain.
+  src/c3po_grid_ugg.F90
+
+Extra gather routines.
+  src/go_comm.F90
+
+Interface to CSO.
+  src/le_output.F90
+  src/le_output_cso.F90
+  src/cso*.F90
+
+Include domain number in timing output files.
+  src/le_driver.F90
+
+
+  
+
+

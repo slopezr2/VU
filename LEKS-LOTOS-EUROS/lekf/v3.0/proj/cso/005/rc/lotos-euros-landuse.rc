@@ -1,0 +1,69 @@
+! ######################################################################
+! ###
+! ### landuse
+! ###
+! ######################################################################
+
+! vegetation parameters (biomass, isoprene emissions, etc):
+le.landuse.vegetation_data    :  file=${my.data.dir}/landuse/forest/vegetation_data_v4.csv;format=csv
+
+! landuse / vegetation maps:
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#if "${my.landuse}" == "smiatek"
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! smiatek 
+my.landuse.glc.define : 
+landuse.file                  :  file=${my.data.dir}/landuse/forest/landuse_vegetation_v2.nc;ftype=smiatek
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#elif "${my.landuse}" == "glc"
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! glc
+my.landuse.glc.define         :  with_glc
+landuse.file                  :  file=${my.data.dir}/landuse/glc/nc/Europe_land_cover_glc_w30e60n25n75_1x1km.nc;ftype=glc2000
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#else
+#error unsupported my.landuse "${my.landuse}"
+#endif
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! Land-sea mask water body file
+my.landsea.waterbody.file     : file=${my.data.dir}/landuse/lsm/nc/Europe_water_bodies_w46e84n26n78_snapped_to_GLC.nc
+
+!For mineral dust emissions from desert/arable land
+landuse.pot_sources.file	: 	${my.data.dir}/landuse/pot_sources/v1/pot_sources_global_0.25x0.25.nc
+!Key is checked, and suggestions are made in the code using ifdef but impact growing seasons on Z0
+! is as yet commented out. Harmonize with other vegetation issues!
+!my.growingseason 			:	grow_europe
+!le.landuse.arablefactor		:	1
+
+!le.dust.rain48h				:	.true.
+!le.landuse.seafrac			:	0.1
+
+! Corine land cover
+! 2006
+!landuse.corine.file          : ${my.data.dir}/landuse/corine2006/g250_06/g250_lu_v2.nc
+! 2012
+landuse.corine.file          : ${my.data.dir}/landuse/corine2012/BIL/nc/clc2012_output_w20e40n30n75_0.100000_0.050000.nc
+
+! start of growing seasons for landuse accumluation type (Ozone flux output)
+le.landuse.accumulation.Wheat.file   : ${my.data.dir}/growing-seasons/ECMWF/wheat/startgrowing_Wheat_ECMWF_%{year}.nc
+le.landuse.accumulation.Beech.file   : ${my.data.dir}/growing-seasons/ECMWF/beeches/startgrowing_Beeches_ECMWF_%{year}.nc
+le.landuse.accumulation.Spruce.file  : ${my.data.dir}/growing-seasons/ECMWF/spruce/startgrowing_Spruce_ECMWF_%{year}.nc
+le.landuse.accumulation.Clover.file  : ${my.data.dir}/growing-seasons/ECMWF/clover/startgrowing_Clover_ECMWF_%{year}.nc
+
+! soil texture (used for dust emissions):
+!landuse.soil_texture.file     :  ${my.data.dir}/landuse/soiltext/v2/LU_SL_1-64_BOB.csv
+!landuse.soil_texture.file	    :   ${my.data.dir}/landuse/soiltext/v2/soil_texture_2min_Europe_w25e60n30n70_0.033x0.033_dominant.nc
+landuse.soil_texture.file	    :   ${my.data.dir}/landuse/soiltext/v2/soil_texture_2min_EUR-SAH_w30e70s5n75_0.033x0.033_fractional.nc
+
+! traffic km maps:
+! ~ old files:
+!landuse.traffic.files         :  ${my.data.dir}/landuse/traffic/v1/traffic_km.nc
+! ~ latest:
+landuse.traffic.files         :  ${my.data.dir}/landuse/traffic/v2/nc/VKM_HIGHWAY+_GRIDDED.nc \
+                                 ${my.data.dir}/landuse/traffic/v2/nc/VKM_NONHIGHWAY_GRIDDED.nc
+

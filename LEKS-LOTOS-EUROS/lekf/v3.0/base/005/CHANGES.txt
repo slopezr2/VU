@@ -1,0 +1,15 @@
+Changes w.r.t. base/004
+=======================
+
+Impelemente LETKF analysis update.
+  src/lekf.F90
+  src/lekf_meas_update.F90
+  src/lekf_meas_andom.F90
+  src/lekf_meas_tools.F90
+  rc/lekf.rc
+  rc/lotos-euros-v2.2.001-output.rc
+  rc/machine-tno-hpc3.rc
+
+Template settings for postprocessing.
+  rc/diadem.rc
+  

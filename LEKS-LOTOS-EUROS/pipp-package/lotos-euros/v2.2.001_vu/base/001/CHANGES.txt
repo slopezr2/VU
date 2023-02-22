@@ -1,0 +1,909 @@
+Changes w.r.t. v2.1.000
+=======================
+
+Support packed hybride coefficient variables in nc files.
+  src/c3po_file_nc.F90
+  
+Changed ifdef use for m7 in particle data,
+in open source version partsize for coarse aerosol was not set
+  src/le_particle_data.F90
+
+Write warning about need of dos2unix for source files fed to makedepf90
+at info level instead of debug level, to be sure that it always pops up.
+  bin/MakeDep.py
+
+Limitted logging messages.
+Write messages to GO logger for cleaner output in MPI environment.
+  src/le_advec.F90
+  src/le_bound_clim_logan.F90
+  src/le_data_variables.F90
+  src/le_emis_dust_agriculture.F90
+  src/le_emis_dust_resuspension.F90
+  src/le_emis_fire_macc.F90
+  src/le_emis_tno.F90
+  src/le_landuse_glc2000.F90
+  src/le_landuse_lsm.F90
+  src/le_landuse_soil.F90
+  src/le_stability.F90
+
+Added status arguments to (de)allocations,
+needed while searching a memory error.
+  src/le_landuse_data.F90
+  src/le_landuse_file_nc.F90
+  src/le_landuse_smiatek.F90
+
+Fixed handling of bias corrected tracers.
+  src/le_biascorr.F90
+  src/le_bound_data.F90
+  data/tracers.csv
+
+Fixed input of forecast data in operational stream.
+  src/le_data_meteo.F90
+
+Updated comment.
+  src/le_drydepos_aero_pollen.F90
+  src/le_indices.F90
+
+Improved test on lookup table.
+  src/le_emis_dust_wind.F90
+
+Support scale factor file for birch pollen emissions.
+  src/pollen_data_birch.F90
+
+Create output and restart directories in run job,
+this allows to skip the init and done jobs.
+  bin/submit_le_step_run
+
+Updated MPI support.
+  src/go.F90
+  src/go_comm.F90
+  src/le_dims.F90
+
+Added verbose option to goVarValue routines.
+  src/go_string.F90
+
+Updated timing routines to support both OpenMP and MPI environments.
+Introduced seperate routine for timing post processing.
+  src/go_timer.F90
+
+Introduced DistanctGrid and RoundToResolution routines.
+  src/grid_type_ll.F90
+
+Removed OPS coupling since MPI interface conflicts with LEKF.
+Trap UDUnits errors.
+Updated timer postprocessing for MPI environment.
+  src/le_driver.F90
+
+Updated MAORI output for new data structures.
+  src/le_maori.F90
+  
+Updated MAORI station lists for CAMS-50 csv format.
+  src/maori_datafile_csv.F90
+  src/maori_loclist_csv.F90
+  src/maori_loclist.F90
+  src/maori_loclist_macc_eva.F90
+  src/maori_set_sample.F90
+
+Fixed argument kind after some compilers complained.
+  src/le_output_modis.F90
+
+Added support for different LAPack flavours.
+  src/num.F90
+  src/num.inc
+  src/num_linalg.F90
+
+Introduced class to facilitate multiple random generators.
+  src/num_random.F90
+
+Improved error messages.
+  src/udunits1.F90
+
+
+Support hyblevel definition.
+  src/le_data_common.F90
+  rc/lotos-euros-data.rc
+  rc/lotos-euros-meteo-ecmwf.rc
+
+Setup data for different time stamps within interval.
+  src/le_data_vdata.F90
+
+Depending on level definition type, either enable volume for mid time only (mixlayer),
+or also enable previous and next (hyblevel). 
+  src/le_meteo_data.F90
+
+Update volumes throughout advection.
+  src/le_advec.F90
+
+Split comp_kz in original version (mixlayer) and new version that fills
+constant high value below boundary layer.
+  src/le_stability.F90
+
+Moved call to comp_kz from monin_ustar in le_stability to le_driver.
+  src/le_stability.F90
+  src/le_driver.F90
+
+
+Support non-carthesian grids for model and input.
+  src/c3po*.F90
+  src/go*.F90
+  src/le*.F90
+
+Skipped support for EMEP monthly boundary conditions,
+should be done by data definition in rcfile in future.
+  src/le_bound.F90
+  src/emep_monthly.F90
+
+Added conversion for snowdepth.
+  src/le_data_variables.F90
+  rc/lotos-euros-data-meteo-wrf.rc
+
+
+Added stability parameterization following IFS.
+  jaql_stability.F90
+  jaql.F90
+
+Added work routines to compute IFS stability fields.
+  le_data_variables.F90
+
+Use stability fields from LE_Data structures.
+Removed old stability arrays.
+  le_dims.F90
+  le_drydepos.F90
+  le_emis_dust_agriculture.F90
+  le_emis_dust_wind.F90                # use ugg to regrid potential sources
+  le_drydepos.F90
+  le_output_dat.F90
+  le_output_vd.F90
+  le_output_vd_diag.F90
+
+Use Kz from LE_Data types.
+Use ghost points in descretization to handle large differences in layer heights.
+  le_vdiff.F90
+  
+Compute solar zenith angle halfway actual timestep instead of assuming
+that that is at 30 minutes.
+Initialize uniform grid.
+  le_driver.F90
+
+Define stability data and calculations.
+  rc/lotos-euros.rc
+  rc/lotos-euros-data-meteo-ecmwf.rc
+  rc/lotos-euros-meteo-ecmwf.rc
+  rc/lotos-euros-data-meteo-wrf.rc
+  rc/lotos-euros-meteo-wrf-d2.rc
+  rc/lotos-euros-meteo-wrf-d3.rc
+
+Updated comment.
+  le_data_common.F90
+  le_data_variable.F90
+
+Fixed bug in implementation of dry-static-energy as used for Kz;
+this was defined on half-levels, but should have been on full levels.
+  src/le_variables.F90
+  jaql_stability.F90
+  
+Added switch for interpolating Kz from meteo half levels to model half levels,
+for mixlayer scheme use the value just above blh.
+  src/le_data_variables.F90
+  rc/lotos-euros-data-meteo-*.rc
+
+Fix for forecast settings for running 1-day in front
+  src/le_data_meteo.F90
+
+Support netcdf variables with only one packing attribute.
+Remove nul-character from units which is sometimes found as termination character.
+  src/c3po_file_nc.F90
+
+Added info to template settings.
+  rc/lotos-euros-emissions-v5.rc
+  rc/lotos-euros-meteo-ecmwf.rc
+
+Fixed comment.
+  src/le_data_common.F90
+
+Enforce definition of file format in landuse settings.
+  src/le_landuse.F90
+
+Extended attribute length after errors from latest compilers.
+  src/le_bound_le.F90
+
+Added latest radiation code.
+  src/num.F90
+  src/num_lut.F90
+  src/jaql_particles.F90
+  src/le_radiation.F90
+  src/le_radiation_mie.F90
+  src/le_radiation_swbands.F90
+  src/le_radiation_lut.F90
+  src/le_output.F90
+  src/le_output_rad.F90
+  rc/lotos-euros.rc
+  rc/lotos-euros-output.rc
+  rc/lotos-euros-radiation.rc
+
+Extend timeprofiles to run with different grid dependent profiles (i.e. Heating and DEHM-Agriculture)
+  src/le_emis_tno.F90
+  src/le_emis_time_prof_grid.F90
+  
+Replace OMP workshare construct by omp parallel in drydepos
+after unexplainable slowdown in deposition that is sometimes seen.
+  src/le_drydepos.F90
+
+Added support for CAMSiRA boundary conditions.
+Use linear extrapolation to estimate cell boundaries of first/last
+cell from centers locations; before the boundaries were the same as
+the center which gave cells of half size at the edges.
+  src/num_interp.F90
+  src/c3po_grid_cgg.F90
+  src/c3po_file_cgg.F90
+  src/c3po_file_nc.F90
+  src/grid_type_ll.F90
+  src/le_emis_edgar.F90
+  rc/lotos-euros-bound-camsira-clim.rc
+  rc/lotos-euros-bound-camsira.rc
+  rc/lotos-euros-output.rc
+  rc/lotos-euros-v2.1.000.rc
+
+Added templates for reading COSMO meteo.
+  rc/lotos-euros-meteo-cosmo.rc
+  rc/lotos-euros-data-meteo-cosmo.rc
+
+Added time zone indicator "UTC" to time units in output.
+  src/le_output_tools.F90
+
+Use abs value for bottom windspeed after gfortran complained about it ...
+In ifort: -8.0**(1.0/3.0) = -(8.0)**(1.0/3.0) = -2.0
+but with gfortran this gives an error.
+  src/le_data_variables.F90
+      
+Fixed ctl-files for writing bounding boxes on ugg-grid-output
+  src/c3po_grid_ugg.F90
+  src/le_output_conc.F90
+
+Included different calculations of monin-obuhkov length and kz stability parameters
+  src/le_driver.F90
+  src/le_vdiff.F90
+  src/le_stability.F90
+  src/jaql_stabilty.F90
+  src/le_data_variables.F90
+  src/le_drydepos.F90
+  rc/lotos-euros-data-meteo-ecwmf.rc
+
+Set 1-hourly meteo as default option for surface parameters
+  rc/lotos-euros-meteo-ecmwf-1h.rc
+  rc/lotos-euros.rc
+  
+Initialisation of Labeling, to get label-definitions in 
+  initialization part instead of after first emissions
+  src/SA_Labeling.F90
+
+Added options to run with COSMO meteo on mixlayer and input levels from COSMO
+  rc/lotos-euros-data-meteo-cosmo-mixlayer.rc
+  rc/lotos-euros-meteo-cosmo.rc
+  rc/lotos-euros-data-meteo-cosmo.rc
+  rc/lotos-euros-data-meteo-cosmo-metlevel.rc
+  src/le_driver.F90
+  src/le_meteo_data.F90
+  src/le_vdiff.F90
+  src/le_data_common.F90
+  src/le_data_variables.F90
+
+Fixed bug in range definition of Richardson number
+  rc/lotos-euros-data-meteo-ecmwf.rc
+  rc/lotos-euros-data-meteo-wrf.rc
+
+Trap tiny Q0v values that lead to division by zero.
+  src/le_data_variables.F90
+
+Make output available on input levels and input half levels
+  rc/lotos-euros-output.rc
+  src/le_output_tools.F90
+  src/le_output_dat2.F90
+  src/le_data_vdata.F90
+  
+Fix for interpolation of Kz to top mixing layer (for 5 layer scheme)
+  src/le_data_variables.F90
+  rc/lotos-euros-data-meteo-ecmwf.F90
+
+Allow input of discontinous series boundary conditions;
+this allows differences in units (mole/mole vs kg/kg) and number of input levels.
+  src/go_field.F90
+  src/le_data_common.F90
+  src/le_data_meteo.F90
+  rc/lotos-euros-bound-nc-cams-nrt-fmt1.rc
+
+Improved option to read grid definition from nc-file, 
+  used for input files with different variable names and dimensions  
+    src/c3po_file_ugg.F90
+
+Correct settings of mkl_lapack routines, fixed to work with Labeling
+    src/num_linalg.F90       
+
+Removed unused status trap.
+  src/le_data_variables.F90
+
+Fixed definition of bias corrected tracers.
+  data/tracers.csv
+  bin/genes_model_le.py
+  src/le_biascorr.F90
+  src/le_particle_data.F90
+
+Conformed scripts to Python3.
+  bin/pycasso.py
+  bin/pycasso_user_scripts_le.py
+  bin/genes_model_le.py
+  bin/genes_reactions.py
+  bin/genes_tracers.py
+  bin/MakeDep.py
+  bin/submit_le_step_init
+  bin/submit_le_step_done
+  bin/submit_le_tools.py
+  bin/go_subprocess.py
+  bin/rc.py
+
+Added general tools for domain decomposition.
+  src/go_domains.F90
+  src/go_comm.F90
+  src/go_print.F90
+  src/go_rc.F90
+  src/go.F90
+  src/lotos-euros.F90
+  src/le_logging.F90
+  
+Introduced common configuration module with outputdir variable
+to write output per domain.
+  src/le_config.F90
+  src/le_driver.F90
+  src/le_meteo_data.F90
+  src/le_chem.F90
+  src/le_chem_oh.F90
+  src/le_emis_dust_wind.F90
+  src/le_emis_ops.F90
+  src/le_emis_tno.F90
+  src/le_bound.F90
+  src/le_bound_le.F90
+  src/le_logging.F90
+  src/le_output_common.F90
+  src/lotos-euros.F90
+
+Moved boundary condition arrays from dims to bound module.
+ src/le_bound_common.F90
+ src/le_bound_clim_const.F90
+ src/le_bound_clim_emep.F90
+ src/le_bound_clim_isak.F90
+ src/le_bound_clim_logan.F90
+ src/le_bound_clim_steady.F90
+ src/le_bound_data.F90
+ src/le_bound_le.F90
+ src/le_bound.F90
+ src/le_advec.F90
+ src/le_adjust.F90
+ src/le_vdiff.F90
+ src/le_output_conc.F90
+ src/le_output_omi_trc.F90
+ src/le_dims.F90
+
+Added timing of grid conversion initialization.
+Added support for wind field output.
+  src/c3po_grid_convert.F90
+  src/le_data_meteo.F90
+  src/le_data_variables.F90
+
+Limit reading of soil texture to target domain.
+  c3po_file_ugg.F90
+  src/le_landuse_soil.F90
+
+Define halo cell around volume.
+  rc/lotos-euros-data-meteo-ecmwf.rc
+  src/le_meteo_data.F90
+  src/le_advec.F90
+  src/le_emis.F90
+  src/le_restart.F90
+
+Define subdomains.
+  src/le_grid.F90
+
+Collect first output on root domain.
+  src/le_output_tools.F90
+  src/le_output_conc.F90
+  src/le_output_dat2.F90
+
+Commented settings for non-advected variables.
+  rc/lotos-euros-bound-nc-macc-rea-fmt1.rc
+
+Exchange halo cells for advection.
+  src/go_comm.F90
+  src/go_domains.F90
+  src/le_advec.F90
+
+Use abs value for bottom windspeed after gfortran complained about it ...
+In ifort: -8.0**(1.0/3.0) = -(8.0)**(1.0/3.0) = -2.0
+but with gfortran this gives an error.
+  src/le_data_variables.F90
+  
+Gridding of EMEP boundary conditions requires maximum over domains.
+  src/le_bound_clim_emep.F90
+  
+Fill initial conditions from boundary conditions of full domain.
+  src/le_bound.F90
+
+Improved SLURM batch job support.
+  bin/submit_le_tools.py
+
+Support latest KNMI platform.
+  rc/machine-knmi-hpc.rdc
+  rc/compiler-intel-17.0.2.rc
+  src/go_domains.F90
+
+Added temlates for latest boundary condition sets.
+  rc/lotos-euros-bound-nc-cams-nrt-fmt3.rc
+  rc/lotos-euros-bound-nc-cams-nrt-fmt3_climb.rc
+  rc/lotos-euros-bound-nc-cams-vra.rc
+
+Support settings used for operational runs.
+  rc/lotos-euros-emissions-v5.rc
+  rc/lotos-euros-landuse.rc
+  rc/lotos-euros-meteo-ecmwf.rc
+  rc/lotos-euros-regions.rc
+
+Replaced old print statements.
+  src/le_emis_dust_agriculture.F90
+  src/le_emis_seasalt.F90
+  
+Use new rcfile structure to keep settings in memory.
+  src/go_rc.F90
+  src/le_config.F90
+
+Read input on limitted area.
+  src/le_data_meteo.F90
+  src/c3po_file_ugg.F90
+
+Compute grid cell edge lengths online and only once.
+  src/c3po_grid_ugg.F90
+  src/le_data_variables.F90
+  rc/lotos-euros-data-meteo-ecmwf.rc
+
+Relaxed threshold to check on regular grid.
+  src/c3po_grid_ugg.F90
+
+Call MPI Abort to terminate model in case of error.
+  src/lotos-euros.F90
+  src/go_comm.F90
+
+Added comment on operator splitting.
+  src/le_driver.F90
+
+Fixed bug in data transfer of boundary condition arrays.
+  src/go_domains.F90
+
+Support EDGAR v4.3 emissions.
+  rc/lotos-euros-emissions-v5.rc
+  src/c3po_file_nc.F90
+  src/c3po_file_ugg.F90
+  src/edgar_data.F90
+  src/le_emis_edgar_heightdistr.F90
+  src/le_emis_edgar_timeprof.F90
+  src/le_emis_edgar.F90
+  
+Support CAMS73 boundary conditions.
+  data/hyblevel-cams73-B.csv
+  src/le_bound_data.F90
+
+Support WetCHARTs wetland CH4 emissions.
+Requires support for time units 'months since etc.'
+  rc/lotos-euros-data-meteo-ecmwf.rc
+  rc/lotos-euros-emissions-v6.rc
+  src/go_date.F90
+  src/c3po_file_nc.F90
+  src/le_bound_le.F90
+  src/le_emis_data.F90
+  src/le_emis.F90
+
+Support output on input (half)levels.
+  src/le_data_vdata.F90
+  src/le_output_tools.F90
+  src/le_output_dat.F90
+  src/le_output_dat2.F90
+
+Removed obsolete calculation.
+  src/le_vdiff.F90
+
+Support netcdf files with only one packing attribute.
+  src/c3po_file_nc.F90
+
+Synchronized settings with latest beta/002.
+  rc/lotos-euros-emissions-v6.rc
+
+Support emis output from domain decomposition.
+  src/le_output_emis.F9
+
+Support CAMS/2015 emissions with North-Africa/Middle-East extension.
+  src/le_emis_composition.F90
+  src/le_time.F90
+
+Fixed support of input fields defined on lons [0,360).
+  src/c3po_file_ugg.F90
+  src/c3po_grid_ugg.F90
+
+Use everywhere vertical grid description halflevels instead of half_levels'
+  rc/lotos-euros-data-meteo-ecmwf.rc
+  rc/lotos-euros-output.rc
+  src/le_output_dat2.F90
+
+Renamed "carthesian" to the more correct "cartesian".
+  src/*
+  rc/*
+
+Allow empty boundary data description, used to result in zero concentrations.
+  src/le_bound_data.F90
+
+Updates to support run over China.
+  src/le_landuse_glc2000.F90
+  rc/lotos-euros-landuse-china.rc
+  rc/lotos-euros-emissions-v6.rc
+
+Update output optical properties
+   src/le_output_rad.rc
+   rc/lotos-euros-output.rc
+   rc/lotos-euros-radiation.rc
+
+Include domain number in log-file name if decomposed.
+Write dust threshold factors from root domain only.
+Do not create domain-specific output directories.
+  src/le_logging.F90
+  src/le_emis_dust_wind.F90
+  src/le_config.F90
+
+Fixed reading of output path from settings.
+  src/le_config.F90
+
+Support domain decomposition in specific output modules.
+Fixed status checks.
+  src/le_output_budget.F90
+  src/le_output_conc.F90
+  src/le_output_dat.F90
+  src/le_output_dat2.F90
+  src/le_output_drydep.F90
+  src/le_output_emis.F90
+  src/le_output_rad.F90
+  src/le_output_wetdep.F90
+
+Support LE output as boundary condition.
+  src/c3po_file_nc.F90
+  src/le_bound_data.F90
+  src/le_data_meteo.F90
+  src/le_data_variables.F90
+
+Improved selection of time profile index.
+  src/le_emis_tno.F90                                                                                                  
+
+Adapted output for domain decomposition.
+  src/le_output_emis.F90                                                                                               
+  src/le_output_dat2.F90                                                                                               
+  src/le_output_tools.F90                                                                                              
+  src/le_output_rad.F90                                                                                                
+  src/le_output_dat.F90                                                                                                
+  src/le_output_conc.F90                                                                                               
+  src/le_output_drydep.F90                                                                                             
+  src/le_output_wetdep.F90                                                                                             
+  src/le_output_budget.F90                                                                                             
+
+Synchronized with latest CAMS50/LUKWA were possible.
+  rc/lotos-euros.rc
+  rc/lotos-euros-bound-nc-cams-nrt-fmt3_climb.rc
+  rc/lotos-euros-emissions-v5.rc
+  rc/lotos-euros-regions.rc
+  rc/machine-knmi-hpc.rc
+  rc/compiler-intel-17.0.2.rc
+  bin/genes_model_le.py
+  bin/submit_le_tools.py
+  src/le_biascorr.F90
+  src/le_data_meteo.F90
+  src/le_emis_fire_macc.F90
+  src/maori_datafile_csv.F90
+  
+Updated output modules for domain decomposition.
+  src/le_output_aod.F90
+  src/le_output_column.F90
+  src/le_output_dat.F90
+  src/le_output_rad.F90
+  src/le_output_vd.F90
+  src/le_output_vd_diag.F90
+
+Improved removal of comment after rc keys.
+  bin/rc.py
+
+Improved check on grids defined on different longitude range.
+  src/c3po_file_nc.F90
+
+Support restart files on domain decomposition.
+  src/le_restart.F90
+
+Store start and end fields for temporal interpolation instead of base 
+and gradient to ensure that restart provides exactly the same results.
+  src/go_field.F90
+
+Added GetTargetPtr methode to Field types to simplify le_data 
+calculation routines.
+  src/go_field.F90
+
+Implemented lai/sai, z0, and zcanopy fields with le_data structures
+to have correct order of initialization.
+  rc/lotos-euros-data-meteo-ecmwf.rc
+  src/le_data_variables.F90
+  src/le_landuse_data.F90
+  src/le_landuse_z0.F90
+  src/le_landuse.F90
+  src/le_stability.F90
+  src/le_drydepos.F90
+  src/le_emis_dust_wind.F90
+  src/le_output_dat.F90
+  src/le_output_vd.F90
+  src/le_drydepos_aero_zhang.F90
+
+Added extra debug templates.
+  src/go_field.F90
+  src/le_grid.F90
+  src/le_logging.F90
+  src/le_driver.F90
+
+Fixed some Fortran standard violations after gfortran complaining about it.
+  src/le_emis_point.F90
+
+Added index ranges to array operations since some variables are defined
+including boundary cells.
+  src/le_meteo_data.F90
+
+Support reading of latest operational observation csv files.
+  src/maori_datafile_csv.F90
+  src/maori_set_sample.F90
+
+Added check on calculated [H+] concentrations.
+TO BE CHECKED: BUG IN CO2 NUMBER?
+  src/jaql_cloud.F90
+  src/le_wetdepos_camx.F90 
+
+Replaced OpenMP workshare environments by parallel do.
+  src/le_drydepos.F90
+
+Synchronized with changes commited to beta/003.
+  src/c3po_file_nc.F90
+  src/num_linalg.F90
+  rc/lotos-euros-expert.rc
+
+Improved error traceback for LOGAN climatology.
+Note that in operational runs it will not be used anymore since not 
+defined above 70N.
+  src/le_bound_clim_logan.F90
+
+Extended error messages.
+Support timeresolution key for latest forecast sequences.
+  src/le_data_meteo.F90
+
+Added rcfile keys to decide if messages should be written to standard 
+output or to log files. For SLURM jobs on KNMI/HPC it is possible to 
+redirect stdout and stderr per MPI task to seperate files,
+so no need to write them to log files anymore.
+  src/le_logging.F90
+
+Updates for operational boundary condition files.
+  rc/lotos-euros-bound-nc-cams-nrt-fmt3_climb.rc
+
+Updated comment.
+  src/go_date.F90
+
+Compute cloud profiles including ice water content.
+This makes the 'proj/wrf-cloud' code obsolete.
+  src/le_data_calc.F90
+  src/le_data_variables.F90
+  rc/lotos-euros-data-meteo-ecmwf.rc
+
+Compute total rain over multiple input fields.
+  src/le_data_variables.F90
+  src/go_field.F90
+  rc/lotos-euros-data-meteo-ecmwf.rc
+
+Updates to support WRF meteo.
+  src/c3po_file_ugg.F90
+  src/le_data_meteo.F90
+  rc/lotos-euros-data-meteo-wrf.rc
+  rc/lotos-euros-meteo-wrf.rc
+  rc/lotos-euros.rc
+
+Updated maori codes for v2.1.004, needed for LEKF.
+  src/le_maori.F90
+  src/maori_datafile_aqord.F90
+
+Support non-regular cartesian grids in climatologies;
+this grid is sometimes defined in case of very high resolutions
+when the model is unable to confirm that the grid is actually regular.
+  src/le_bound_clim_emep.F90
+  src/le_bound_clim_isak.F90
+  src/le_bound_clim_logan.F90
+
+Changed version/patch/release variable for easier connection with LEKF.
+  rc/lotos-euros.rc
+  rc/lotos-euros-emissions-v6.rc
+  rc/lotos-euros-output.rc
+  rc/machine-tno-hpc.rc
+
+Added distance tools from LEKF.
+  src/c3po_grid_ugg.F90
+
+Support change in operator order.
+  rc/lotos-euros.rc
+  src/le_chem.F90
+  src/le_advec.F90
+  src/le_logging.F90
+  src/le_drydepos.F90
+  src/le_driver.F90
+  src/le_emis.F90
+  src/le_vdiff.F90
+  src/le_sedim.F90
+
+Support reading 3D fields defind on longitudes [0,360) 
+into domains defined from west to east hemisphere.
+  src/c3po_file_nc.F90
+  
+Clarified meaning of 'timestep.output' key.
+  rc/lotos-euros.rc
+  src/le_driver.F90
+
+Fixed rounding problem in polygon area computation that lead 
+to ignoring a part of the area. Added a 'CleanUp' routine to 
+remove almost-duplicate vertices.
+  src/go_vector.F90
+
+Fixed problem with slightly negative no-cloud-covers that gave 
+negative concentrations after wet deposition.
+  src/le_data_calc.F90
+  src/le_wetdepos_camx.F90  
+
+Support hourly gfas emissions.
+  src/le_emis_fire_macc.F90
+
+Fixed restart restore for pollen data for domain decomposition.
+  src/le_restart.F90
+  src/le_restart_tools.F90
+  src/pollen_data_birch.F90
+  src/pollen_data_grass.F90
+  src/pollen_data_olive.F90
+
+Added general map with country fractions (not from emission input anymore)
+  src/go_string.F90
+  src/le_country.F90
+  src/le_driver.F90
+  src/le_emis.F90
+  src/le_emis_country.F90
+  src/le_emis_dust_agriculture
+  src/le_emis_dust_resuspension.F90
+  src/le_emis_tno_base.F90
+  src/le_time.F90
+
+Send sector information to labeling part.
+  src/SA_Labeling.F90
+  src/le_emis_edgar.F90
+  src/le_emis_ops.F90
+  src/le_emis_tno.F90
+
+Removed non-standard characters from comment.
+  src/le_biascorr.F90
+
+(code copied from: proj/emis-cams-reg/)
+Support latest TNO emissions with GNFR categories.
+Use latest emissions by default.
+  src/le_emis_tools.F90
+  src/le_emis_time_profiles.F90
+  src/le_emis_composition.F90
+  src/le_emis_basecation.F90
+  src/le_io_tools.F90
+  src/le_emis_time_prof_grid.F90
+  src/le_emis_scenario.F90
+  src/le_emis_heightdistr.F90
+  src/le_emis_time_profiles_comp.F90
+  src/le_emis_ops_pm_composition.F90
+  src/le_emis_ops_ec_fractions.F90
+  src/le_emis_tno.F90
+  src/le_emis_ops.F90
+  src/le_time.F90
+  src/le_emis_tno_base.F90
+  rc/lotos-euros.F90
+
+Added check on chemistry timestep.
+  src/le_chem.F90
+
+Settings to use new meteo/bounds archive.
+  rc/lotos-euros-meteo-ecmwf.rc
+  rc/lotos-euros-bound-nc-cams-nrt-fmt2b.rc
+  rc/lotos-euros.rc
+
+Speed-up labeling (less memory use, skip unnecessary calculations)
+  rc/lotos-euros-expert.rc
+  rc/lotos-euros-output-label.rc
+  rc/lotos-euros.rc
+  src/le_output_emis_label.F90
+  src/le_output.F90
+  src/le_sedim.F90
+  src/le_advec.F90
+  src/le_adjust.F90
+  src/SA_Labeling.F90
+
+Fixed timezone/summertime settings for Belarus (BLR).
+  src/le_time.F90
+
+Merged VBS code from "proj/vbs/005-beta".
+~ Support VBS tracers and low/high-NOx yields in code generation.
+    bin/genes_model_le.py
+~ Include Henry's law constants for VBS species; used in both wet and dry deposition
+    ${LE_DATA}/wet_depos/CAMx/depos_data_wet_dry_v1.0.csv
+    rc/lotos-euros.rc
+~ Added aging reactions in mechanism + NOx-dependent yields
+  Added primary, anthropogenic, biogenic and semi- and intermediate volatile VBS species in gas and aerosol phase 
+    data/reactions.csv
+    data/tracers.csv
+~ Added vbs species to configurations.
+    rc/lotos-euros.rc
+    rc/lotos-euros-expert.rc
+    rc/lotos-euros-bound-nc-cams-nrt-fmt2.rc
+    rc/lotos-euros-output.rc
+~ Define cams emissions that include residential wood combustion (RWC)
+    rc/lotos-euros-emissions-v5-UBA-PolandPM-FINAL.rc
+~ Added new vbs species and groups.
+   src/indices.F90
+    src/depac_lu.inc
+    src/le_cf_conventions.F90
+~ Added solubility-dependent deposition for vbs species and case statements for VBS species
+    src/le_drydepos.F90
+    src/le_drydepos_gas_depac.F90
+~ Emit to vbs_pog species instead of vbs_cg species
+    src/le_emis.F90
+~ Allow for sector dependent time profiles
+    src/le_emis_time_prof_grid.F90
+~ Allow for partitioning of different precursor classes, moved yield calculation, 
+  included terpene SOA again, fixed Tref
+    src/le_vbs.F90
+
+Read name of voc profile from rcfile
+instead of testing precense of txt file in aux dir.
+  src/le_emis_tno.F90
+
+Support different height profiles for point and area sources in TNO emissions.
+  src/le_emis.F90
+  src/le_emis_tno.F90
+  src/le_emis_heightdistr.F90
+  src/le_emis_ops.F90
+  rc/lotos-euros-emissions-v7.rc
+
+Skip sub-steps in vertical diffussion.
+  src/le_vdiff.F90
+
+Make RoadTraffic and Agricultural source for labeling 
+routine avaiblable for CAMS-emissions set
+Default switch off OMI-output for label output
+  src/le_output_omi_trc_label.F90
+  src/SA_Labeling.F90
+  rc/lotos-euros-output-labeling.F90
+  
+Fix read input meteo/boundary conditions for change of levels in input files
+  src/le_data_meteo.F90
+  src/go_field.F90
+
+Support latest EDGAR v4.3 emissions.
+  src/edgar_data.F90
+  src/le_emis_edgar.F90
+  src/le_emis_edgar_composition.F90
+  src/le_emis.F90
+  rc/lotos-euros-emissions-v7.rc
+
+Support emission from specified point sources with domain domain decomposition.
+  src/le_emis_point.F90
+  src/le_emis.F90
+
+Fix output for labelled emissions for domain-decomposition version
+  src/le_output_emis_label.F90
+  
+Fix output for labeleld depositions for domain-decomposition version
+  src/le_output_drydep_label.F90
+  src/le_output_wetdep_label.F90
+  src/le_output_budget_label.F90
+

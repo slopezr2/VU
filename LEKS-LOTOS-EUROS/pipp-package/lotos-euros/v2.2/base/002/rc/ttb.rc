@@ -1,0 +1,136 @@
+!#######################################################################
+!
+! The Test Bench
+!
+! Compare output of two or more runs to see if these are still
+! exactly the same.
+!
+! Supported tests:
+!
+!   'change'
+!
+!     Compare the output of two or more runs that are supposed
+!     to be the same.
+!
+!   'restart'
+!
+!     Perform 1 long run and 2 smaller with restart in between.
+!     Final output should be the same.
+!     This is used to test if the restart function works properly.
+!
+! To run the test bench:
+!
+!    ${LE_TOOLS}/bin/ttb  rc/ttb.rc
+!
+! For more info and extra options of the ttb script:
+!
+!    bin/ttb --help
+!
+!#######################################################################
+
+
+! ------------------------------------------------
+! ttb settings
+! ------------------------------------------------
+
+! tests to be performed:
+!ttb.tests                     :  change
+ttb.tests                     :  restart
+
+! template rcfile used for all runs:
+! (alternative rcfiles might be specified for the 'change' test)
+ttb.rcfile                    :  base/002/rc/lotos-euros.rc
+
+! name of setup script; 
+! alternative setup scripts might be specified for the 'change' test:
+ttb.scripting.setup_le        :  base/002/bin/setup-le
+
+! no runs (True|False) ?
+! overwritten by '--run-only' option:
+ttb.no-run                    :  False
+
+! no output comparison (True|False) ?
+! overwritten by '--test-only' option:
+ttb.no-compare                :  False
+
+
+! ------------------------------------------------
+! change test
+! ------------------------------------------------
+
+! runid's for runs to be performed:
+!
+!  o the first is the id for the reference run,
+!    output of other runs is compared to this one;
+!
+!  o proper settings for each run given the runid
+!    could be defined in 2 ways:
+!
+!     * use the per-runid rcfiles specfied in:
+!
+!        ttb.change.rcfile.v190        :  lotos-euros-v190.rc
+!        ttb.change.rcfile.v191        :  lotos-euros-v191.rc
+
+!     * use '#if' keywords in the template rcfile specified
+!       in 'ttb.rcfile', for example:
+!
+!        #if "${run.id}" == "v190" :
+!        my.patch.nr       :  000
+!        #elif "${run.id}" == "v191" :
+!        my.patch.nr       :  001
+!        #else
+!        #error unsupported run.id ${run.id}
+!        #endif
+!       
+ttb.change.runids             :  v2-2-002 v2-2-001
+
+! do not run some of them ?
+! for example the reference run if already available:
+ttb.change.runids.no-run      : 
+
+!! setup scripts per run id ; 
+!! if commented, the default value defined above is used:
+!ttb.change.setup_le.v190      :  base/000/bin/setup_le
+!ttb.change.setup_le.v191      :  base/001/bin/setup_le
+
+!! rcfile per run id ; if commented, the 'ttb.rcfile' 
+!! is used as template and runid's are inserted:
+!ttb.change.rcfile.v190        :  lotos-euros-v190.rc
+!ttb.change.rcfile.v191        :  lotos-euros-v191.rc
+
+! what to compare ? list with one or more keywords:
+!  restart     : restart files; this is the best choice;
+!                ensure that restart files are put out
+!                at the end of the simulation period
+!  conc-3d     : 3D concentration output ; 
+!                note that in case no differences are found, 
+!                this does not mean that two runs are equal 
+!                since not all concentrations might be put out
+ttb.change.compare            :  restart
+
+! break on error (True|False) ?
+ttb.change.error_on_failure   :  True
+    
+    
+! ------------------------------------------------
+! restart test
+! ------------------------------------------------
+
+! time range:
+ttb.restart.timerange.start   :  2012-08-13 00:00:00
+ttb.restart.timerange.end     :  2012-08-13 02:00:00
+
+! runs to be done; some might be skipped while testing:
+!ttb.restart.periods           :  long part1 part2
+ttb.restart.periods           :  long
+!ttb.restart.periods           :  part1 part2
+!ttb.restart.periods           :  long part1
+!ttb.restart.periods           :  part2
+
+! compare?
+ttb.restart.compare           :  True
+
+
+! ------------------------------------------------
+! end
+! ------------------------------------------------

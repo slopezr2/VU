@@ -1,0 +1,26 @@
+#
+# Particle geomtric radius [um] and std.dev. as used in "le_radiation" codes.
+#
+# Values optimized for best fit with Angstrom value computed from MODIS AOD at different wavelengths.
+# Original files:
+#   ${PROJECTS}/SMO/Space/2019/AEROSOURCE/users/jinj/LOTOS-EUROS/data/aerosol_radius/ensemble/aerosol_radius_posterior2.csv
+#                                                    v2.2_Radius/proj/aerosource/001-beta/src/le_radiation_mie.F90
+#
+label  , r_g   , sigma_g
+#
+sia_f  , 0.0994, 1.59
+sia_c  , 2.7134, 2.00
+bc_f   , 0.1175, 1.59
+bc_c   , 2.7112, 2.00
+oc_f   , 0.0897, 1.59
+oc_c   , 2.5397, 2.00
+aer_ff , 0.1623, 1.59
+aer_f  , 0.3444, 1.59
+aer_ccc, 1.4816, 2.00
+aer_cc , 2.4908, 2.00
+aer_c  , 3.9415, 2.00
+aer_f1 , 0.1623, 1.59 
+aer_f2 , 0.3444, 1.59 
+aer_c1 , 1.4816, 2.00
+aer_c2 , 2.4908, 2.00
+aer_c3 , 3.9415, 2.00

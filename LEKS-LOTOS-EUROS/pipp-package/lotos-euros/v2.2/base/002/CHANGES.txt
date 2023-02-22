@@ -1,0 +1,220 @@
+Changes w.r.t. v2.2.001
+=======================
+
+
+Changes to avoid gfortran warnings about 'unitialized variables.'
+  src/go_date.F90
+  src/go_domains.F90
+  src/jaql_stability.F90
+  src/le_advec.F90
+  src/le_chem_hetro.F90
+  src/le_drydepos.F90
+  src/le_emis_basecation.F90
+  src/le_emis_composition.F90
+  src/le_emis_edgar.F90
+  src/le_emis_edgar_composition.F90
+  src/le_emis_fire_macc.F90
+  src/le_emis_ops.F90
+  src/le_emis_tno.F90
+  src/le_landuse_soil.F90
+  src/le_output_conc.F90
+  src/le_output_vd_diag.F90
+  src/le_wetdepos_camx.F90
+  src/megan_2_04_gamma_etc.F
+  src/xmlf_parse.f90
+  rc/compiler-gcc-8.2.0.rc
+
+Support hourly time profiles with emissions from data files.
+  src/le_emis_data.F90
+  rc/lotos-euros-emissions-v7.rc
+
+Trap end time equal to start time.
+  src/le_time.F90
+
+Added a few status arguments to DEPAC to replace stop statements, many more to be done.
+  src/le_drydepos_gas_depac.F90
+  src/le_drydepos.F90
+  
+Extended debug plot in case of grid mapping error.
+  src/c3po_grid_ugg.F90
+  src/go_vector.F90  
+
+Fixed bug for reading staggered grids as in wrf meteo.
+  src/le_data_meteo.F90
+
+Support output of estimated vertical wind speed.
+  src/le_data_variables.F90
+  rc/lotos-euros-data-meteo-ecmwf.rc
+  rc/lotos-euros-data-meteo-wrf.rc
+  
+Fixed array range selection in emis output.
+  src/le_output_emis.F90
+
+Fixed missing support for SO4a fraction in EDGAR emission composition. (SLR)
+  src/le_emis_edgar_composition.F90
+
+Fixed missing OpenMP declaration. (SLR)
+  src/le_adjust.F90
+
+Support WRF output with total pressure rather than pbase+ppert.
+  rc/lotos-euros-data-meteo-wrf.rc
+
+Set boundary conditions of NH3 to zero, otherwise too high values in top layers.
+  rc/lotos-euros-bound-cams-rea-nrt.rc
+  src/le_bound_data.F90
+  src/le_data_varsum.F90
+
+Do not break on incorrerct files if missing files are allowed (used for LUKWA).
+Fixed missing area conversion for hourly emissions.
+  src/le_emis_fire_macc.F90
+
+Minor fixes to template settings and comments.
+  rc/lotos-euros.rc
+  rc/lotos-euros-bound-cams-rea-nrt.rc
+  rc/lotos-euros-output.rc
+  src/le_output_vd.F90
+
+Removed support for SILAM fire product, did not match with CAMS50 changes for tpmfire tracer.
+  src/le_emis.F90
+  src/le_emis_fire_silam.F90
+  rc/lotos-euros.F90
+
+Changes to support KNMI/HPC.
+  rc/machine-knmi-hpc.rc
+  py/utopya_jobtree.py
+
+Fix for lengt of character array in reading gridded emission timeprofile (Heating, etc.. )
+  src/le_emis_time_prof_grid.F90
+
+Fix to set different hourly gridded timeprofiles
+  src/le_emis_tno.F90  
+
+Changed data flow for half-level pressures.
+  rc/lotos-euros-data-meteo-ecmwf.rc
+
+Layout changes after compiler warnings.
+  src/maori_datafile_csv.F90
+  src/maori_loclist_aqord.F90
+
+Added forgotten key to radiation settings.
+  rc/lotos-euros-radiation.rc
+
+Fixed wrong level index in radiaton output.
+  src/le_output_rad.F90
+
+Extra communication tools.
+  src/go_comm.F90
+
+Fixed check on output from ensemble.
+  src/le_output_wetdep.F90
+
+Support bounding box for column output.
+  src/le_output_column.F90
+
+By default write error messages if searched location is not in domain.
+  src/c3po_grid_ugg.F90
+  src/le_emis_tno_base.F90
+
+Updated paths to LEIP data.
+  rc/lotos-euros.rc
+  rc/machine-*.rc
+  rc/lotos-euros-bound-cams-rea-nrt.rc
+
+Added labeling to Fire-emissions (was unintendedly removed from v2.1.005)
+Fixed Error in adding hourly-wildfire emissions from MACC (gfas-1h)
+  src/le_emis_fire_macc.F90
+
+Avoid possible division by zero.
+  src/le_wetdepos_camx.F90
+
+Fixes to generated VBS code to avoid compiler warnings.
+  py/genes_model_le.py
+
+Allow output timesteps less than hourly.
+  src/go_date.F90
+  src/le_output_column.F90
+  src/le_output_conc.F90
+  rc/lotos-euros-output.rc
+
+Improved debugging.
+  src/c3po_grid_ugg.F90
+
+Introduced 'optim-debug' flags for use with gfortran.
+Changes after compiler warnings.
+  rc/lotos-euros.F90
+  rc/compiler-gcc-8.2.0.rc
+  src/go_vector.F90
+  src/jaql_stability.F90
+
+Debugged: pointer naar "clwc" data, moet naar "icwlc"
+Debugged: computation of in-cloud/below-cloud scavenging
+  src/le_wetdepos_camx.F90
+
+Debugged: computed potential-rain-intentsity with the cloud-ice-water-concentration 
+column instead of profile.
+  src/le_data_calc.F90
+
+Removed intent attribute for pointer arguments after craches with Intel compiler.
+  src/go_field.F90
+  src/le_advec.F90
+  src/le_data_variables.F90
+
+Corrected double counting in total SOA output.
+  src/le_indices.F90
+
+Added routine 'OverDomain' to check on partly coverage.
+  src/c3po_grid_ugg.F90
+
+CSO observation operator for simulation of satellite data.
+  src/cso_*.F90
+  src/le_output_cso.F90
+  src/le_grid.F90
+  src/le_output_grid.F90
+  src/le_ouptut.F90
+  src/le_output_omi_trc.F90
+  rc/lotos-euros-build.rc
+  rc/lotos-euros-expert.rc
+
+Fixed computation of Kz: use layer height insstead of layer altitude, corrected vertical
+gradient of windspeed, corrected Richardson number, restored original comment.
+Updated stability classes following literature.
+  src/jaql_stability.F90
+  src/le_data_variables.F90
+  rc/lotos-euros-data-meteo-ecmwf.rc
+
+Introduced specific height distributions for gfas-wildfires
+  src/le_emis_fire_macc.F90
+  src/SA_Labeling.F90
+  
+Removed unused output variables from radiation code.
+  src/le_radiation_mie.F90
+  src/le_radiation.F90
+  src/le_output_rad.F90
+  rc/lotos-euros-radiation.rc
+  rc/lotos-euros-output.rc
+
+Enable deflation on output files.
+  src/le_output*.F90
+
+Added settings for CAMS/REG/v4.2 emissions.
+  rc/lotos-euros-emissions-v7.rc
+  src/le_emis_composition.F90
+
+Added note on future use of `precission conserving compression`.
+  py/le_tools.py
+
+Added missing deallocate.
+  src/le_emis_composition.F90
+
+Re-implemented GFAS emissions.
+  src/c3po_file_nc.F90
+  src/c3po_grid_ugg.F90
+  src/go_string.F90
+  src/le_data_varsum.F90
+  src/le_emis.F90
+  src/le_emis_fire_macc.F90
+  src/le_emis_gfas.F90
+  rc/lotos-euros.rc
+  rc/lotos-euros-emissions-v8.rc
+  data/gfas-to-le.csv
+

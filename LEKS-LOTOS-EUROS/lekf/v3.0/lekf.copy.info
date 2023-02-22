@@ -1,0 +1,8 @@
+
+b'Submitted batch job 133470\n'b'sbatch: Single node jobs run on a shared node by default. Add --exclusive if you want to use a node exclusively.\n'
+To manage Slurm jobs:
+
+  sbatch lekf.copy.jb   # submit to queue
+  squeue               # list your current jobs
+  scancel batch           # kill this job
+

@@ -1,0 +1,83 @@
+#
+# Distribution of GFAS tracers to LOTOS-EUROS tracers.
+#
+# COLUMNS
+#
+#   name       :  name of emission data, here a tracer name
+#   variables  :  formula with names of variables in GFAS files ;
+#                 this could be used to add or subtract variables to form the emission data
+#   molemass   :  assumed molemass as number in g/mole or as formula;
+#                 this is only used for the gasses to convert from "kg emitted" to "mole emitted"
+#   tracers    :  formula that defines how emission data should be distributed over LOTOS-EUROS tracers
+#
+#
+# NOTES
+#
+# * Fraction NO from NOx : 0.9    (Andrea and Merlet, 2001)
+#   Note that in original code molemass NO was used for NO fraction, and NO2 for NO2 fraction ...
+#   Here we assume "NOx" is in "kg NO2 equivalent".
+#
+# * mole masses as formula, or as number in [g/mole];
+#   values as used in MOZART model:
+#     HIGH_ALKANES  78.8
+#     HIGH_ALKENES  64 
+#     TOL           85.7 
+#
+# * emission "pm2p5fire" is total fine matter, as sum of primary mater, bc, and oc.
+#
+#
+# HISTORY
+#
+#  2021-05, Arjo Segers, TNO
+#    Initial version based on hardcoded parameterizations.
+#
+#
+name      ;variables                            ;molemass                     ; tracers
+
+# gasses, molemass needed to convert from kg to moles:
+co        ;cofire                               ;C + O                        ; co
+nox       ;noxfire                              ;N + O * 2                    ; 0.9 * no + 0.1 * no2  
+nh3       ;nh3fire                              ;N + H * 3                    ; nh3
+so2       ;so2fire                              ;S + O * 2                    ; so2   
+ch4       ;ch4fire                              ;C + H * 4                    ; ch4  
+c2h5oh    ;c2h5ohfire                           ;C * 2 + H * 5 + O + H        ; 1 * par  
+c2h6      ;c2h6fire                             ;C * 2 + H * 6                ; 1 * par
+c3h8      ;c3h8fire                             ;C * 3 + H * 8                ; 1.5 * par   
+hialkanes ;hialkanesfire                        ;78.8                         ; 4 * par
+c2h4      ;c2h4fire                             ;C * 2 + H * 4                ; 1 * eth
+c3h6      ;c3h6fire                             ;C * 3 + H * 6                ; 1 * par + 1 * ole
+c5h8      ;c5h8fire                             ;C * 5 + H * 8                ; iso
+terpenes  ;terpenesfire                         ;C * 10 + H * 18              ; terp
+hialkenes ;hialkenesfire                        ;64.0                         ; 1 * ole
+toluene   ;toluenefire                          ;85.7                         ; 1 * par
+ch2o      ;ch2ofire                             ;C + H * 2 + O                ; 1 * form
+c2h4o     ;c2h4ofire                            ;C + H * 3 + C + H + O        ; 1 * ald
+c3h6o     ;c3h6ofire                            ;C + H * 3 + C + O + C + H * 3; 3 * par
+co2       ;co2fire                              ;C + O * 2                    ; co2
+
+# not assigned yet ...
+nmhc      ;nmhcfire                             ;                             ; 
+h2        ;h2fire                               ;                             ;
+n2o       ;n2ofire                              ;                             ;
+tc        ;tcfire                               ;                             ;
+ch3oh     ;ch3ohfire                            ;                             ;
+c7h8      ;c7h8fire                             ;                             ;
+c6h6      ;c6h6fire                             ;                             ;
+c8h10     ;c8h10fire                            ;                             ;
+c4h8      ;c4h8fire                             ;                             ;
+c5h10     ;c5h10fire                            ;                             ;
+c6h12     ;c6h12fire                            ;                             ;
+c8h16     ;c8h16fire                            ;                             ;
+c4h10     ;c4h10fire                            ;                             ;
+c5h12     ;c5h12fire                            ;                             ;
+c6h14     ;c6h14fire                            ;                             ;
+c7h16     ;c7h16fire                            ;                             ;
+
+# aerosols, no molemass needed:
+bc        ;bcfire                               ;                             ; ec_f
+oc        ;ocfire                               ;                             ; pom_f
+pmf       ;pm2p5fire - bcfire - ocfire          ;                             ; ppm_f
+pmc       ;tpmfire - pm2p5fire                  ;                             ; ppm_c
+
+
+

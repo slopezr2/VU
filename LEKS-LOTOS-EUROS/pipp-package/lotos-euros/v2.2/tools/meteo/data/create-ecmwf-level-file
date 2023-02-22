@@ -1,0 +1,101 @@
+#! /usr/bin/env python
+
+"""
+Create nc files with ECMWF level coefficients.
+"""
+
+# modules:
+import os
+import subprocess
+import netCDF4
+
+# number of levels:
+L =  60 ; ec_dataset = 'interim' ; ec_class = 'ei' ; ec_date = '20170101'
+#L = 137 ; ec_dataset = None ; ec_class = 'od' ; ec_date = '20170101'
+
+# target file
+levelfile = 'ECMWF-L%i.nc' % L
+
+# retrieve grib file?
+if True :
+
+    # tools:
+    import ecmwfapi
+
+    # init:
+    server = ecmwfapi.ECMWFDataServer()
+
+    # mars retrieval:
+    mdict = {}
+    if ec_dataset is not None : mdict['dataset'] = ec_dataset
+    mdict['stream' ] = 'oper'
+    mdict['class'  ] = ec_class
+    mdict['expver' ] = '0001'
+    mdict['type'   ] = 'fc'
+    mdict['levtype'] = 'ml'
+    mdict['levels' ] = '1'
+    mdict['date'   ] = ec_date
+    mdict['time'   ] = '00'
+    mdict['step'   ] = '03'
+    mdict['param'  ] = 'lnsp'
+    mdict['grid'   ] = 'F640'
+    mdict['area'   ] = '10/0/0/10'
+    mdict['target' ] = 'lnsp.gb'
+    mdict['format' ] = 'grib2'
+    # retrieve:
+    server.retrieve( mdict )
+    
+#endif
+
+# convert to netcdf:
+if True :
+
+    # use cdo to have hybride coeffs in file:
+    subprocess.check_call(['cdo','-f','nc','copy','lnsp.gb','lnsp.nc'])
+    
+#endif
+
+# extract level file:
+if True :
+
+    # info ..
+    print( 'extract level variables ...' )
+    # extract level variables:
+    subprocess.check_call(['ncks','-O','-v','hyam,hybm,hyai,hybi','lnsp.nc',levelfile])
+
+    # info ..
+    print( 'rename ...' )
+    # extract level variables:
+    subprocess.check_call(['ncrename','-O','-d','nhym,level','-d','nhyi,hlevel',levelfile])
+    
+    # add level variables:
+    ncid = netCDF4.Dataset( levelfile, 'r+' )
+    # new:
+    varid = ncid.createVariable( 'level', 'i4', ('level',) )
+    varid[:] = range(1,L+1)
+    varid.setncattr( 'standard_name', 'atmosphere_hybrid_sigma_pressure_coordinate' )
+    varid.setncattr( 'formula'      , 'p(n,k,j,i) = ap(k) + b(k)*ps(n,j,i)' )
+    varid.setncattr( 'formula_terms', 'ap: hyam b: hybm ps: sp' )
+    varid.setncattr( 'units'        , '1' )
+    # new:
+    varid = ncid.createVariable( 'hlevel', 'i4', ('hlevel',) )
+    varid[:] = range(0,L+1)
+    varid.setncattr( 'standard_name', 'atmosphere_hybrid_sigma_pressure_coordinate' )
+    varid.setncattr( 'formula'      , 'p(n,k,j,i) = ap(k) + b(k)*ps(n,j,i)' )
+    varid.setncattr( 'formula_terms', 'ap: hyai b: hybi ps: sp' )
+    varid.setncattr( 'units'        , '1' )
+    # done:
+    ncid.close() 
+    
+#endif
+
+# cleanup?
+if True :
+    # loop:
+    for fname in ['lnsp.gb','lnsp.nc'] :
+        # present?
+        if os.path.isfile(fname) : os.remove( fname )
+    #endfor
+#endif
+
+    

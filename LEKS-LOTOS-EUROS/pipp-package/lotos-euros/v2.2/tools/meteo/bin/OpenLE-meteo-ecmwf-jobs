@@ -1,0 +1,143 @@
+#! /usr/bin/env python
+
+#--------------------------------------------------------------------------
+# help
+#--------------------------------------------------------------------------
+
+"""
+Create sequence of job files calling 'OpenLE-meteo-ecmwf'.
+"""
+
+
+#--------------------------------------------------------------------------
+# modules
+#--------------------------------------------------------------------------
+
+# modules:
+import os
+import datetime
+import calendar
+
+
+#--------------------------------------------------------------------------
+# settings
+#--------------------------------------------------------------------------
+
+# script to be called,
+# should use environment variables 'DATE1' and 'DATE2':
+script = os.path.join( os.environ['HOME'], 'lotos-euros', 'v2.2', 'tools', 'meteo', 'bin', 'OpenLE-meteo-ecmwf' )
+
+# time range:
+t1,t2 = datetime.date(2018,12,28),datetime.date(2018,12,28)
+
+# job queue and max time, use 'sqos' for possible values:
+jobqueue='normal'  ;  jobtime='1-00:00:00'  # max 1 day for normal jobs
+#jobqueue='long'    ;  jobtime='2-00:00:00'  # month could take more than a day ...
+
+
+#--------------------------------------------------------------------------
+# begin
+#--------------------------------------------------------------------------
+
+# info ...
+print( '' )
+print( 'Create job sequence:' )
+
+# for info:
+firstjob = None
+
+# loop:
+t = t1
+ijob = 0
+while t <= t2 :
+    # month length:
+    weekday,nday = calendar.monthrange(t.year,t.month)
+    
+    # time range in month:
+    mt1 = t
+    mt2 = min( datetime.date(t.year,t.month,nday), t2 )
+    
+    # next:
+    ijob = ijob + 1
+    
+    # info ...
+    tfmt = '%Y-%m-%d'
+    print( '  create job %3i from  %s  to  %s' % (ijob,mt1.strftime(tfmt),mt2.strftime(tfmt)) )
+
+    # target name:
+    jobname_template = 'openle-meteo-%3.3i'
+    # current:
+    jobname = jobname_template % (ijob)
+    
+    # next?
+    if mt2 < t2 :
+        nextjob = (jobname_template+'.jb') % (ijob+1)
+    else :
+        nextjob = None
+    #endif
+    
+    # content:
+    lines = []
+    lines.append( '#! /bin/bash' )
+    lines.append( '' )
+    lines.append( '#SBATCH --job-name=%s' % jobname )
+    lines.append( '#SBATCH --qos=%s' % jobqueue )
+    lines.append( '#SBATCH --workdir=%s' % os.environ['PWD'] )
+    lines.append( '#SBATCH --output=%s.out' % jobname )
+    lines.append( '#SBATCH --error=%s.err' % jobname )
+    lines.append( '#SBATCH --time=%s' % jobtime  )
+    lines.append( '' )
+    lines.append( '# exit on error:' )
+    lines.append( 'set -e' )
+    lines.append( '' )
+    lines.append( '# date range:' )
+    lines.append( 'export DATE1="%s"' % (mt1.strftime(tfmt)) )
+    lines.append( 'export DATE2="%s"' % (mt2.strftime(tfmt)) )
+    lines.append( '' )
+    lines.append( '# environment:' )
+    lines.append( 'module purge' )
+    lines.append( 'module load ecmwf' )
+    lines.append( 'module load cdo' )
+    lines.append( 'module load nco' )
+    lines.append( 'module load netcdf4' )
+    lines.append( '' )
+    lines.append( '## show:' )
+    lines.append( '#module list' )
+    lines.append( '' )
+    lines.append( '# run:' )
+    lines.append( '%s' % script )
+    lines.append( '' )
+    # next?
+    if nextjob is not None :
+        lines.append( '# next:' )
+        lines.append( 'sbatch %s' % nextjob )
+        lines.append( '' )
+    #endif
+
+    # target file:
+    job = jobname+'.jb'
+    # write:
+    f = open( job, 'w' )
+    for line in lines : f.write( line+'\n' )
+    f.close()
+    
+    # store name?
+    if firstjob is None : firstjob = job
+    
+    # next:
+    t = mt2 + datetime.timedelta(1)
+    
+#endfor
+
+# info ...
+if firstjob is not None :
+    print( '' )
+    print( 'Submit first job using:' )
+    print( '   sbatch %s' % firstjob )
+    print( '' )
+#endif
+
+#--------------------------------------------------------------------------
+# end
+#--------------------------------------------------------------------------
+

@@ -1,0 +1,75 @@
+!
+! GNU Compiler Collection v4.9.2
+!
+
+! fortran compiler:
+compiler.fc                         :  gfortran
+
+! same compiler for openmp, since this is enabled via the flags:
+compiler.fc.openmp                  :  ${compiler.fc}
+
+!! compilers for MPI programs:
+!mpi.compiler.fc                     :  mpif90
+!mpi.compiler.fc.openmp              :  mpif90
+
+! * default flags:
+
+compiler.flags.default.fflags           :  -ffree-line-length-none -ffixed-line-length-none \
+                                           -fimplicit-none 
+compiler.flags.default.ldflags          : 
+
+! * shared library
+
+compiler.flags.shared.fflags            :  -fpic
+compiler.flags.shared.ldflags           :  -shared
+
+! * precision flags:
+
+compiler.flags.real8.fflags             :  -fdefault-real-8
+compiler.flags.real8.ldflags            : 
+
+! * MPI flags:
+
+compiler.flags.mpi.fflags               :  
+compiler.flags.mpi.ldflags              :  
+
+! * OpenMP flags:
+
+compiler.flags.openmp.fflags            :  -fopenmp
+compiler.flags.openmp.ldflags           :  -fopenmp
+
+! * optim
+
+compiler.flags.optim-none.fflags        :  -O0
+compiler.flags.optim-none.ldflags       : 
+    
+compiler.flags.optim-strict.fflags      : 
+compiler.flags.optim-strict.ldflags     : 
+
+compiler.flags.optim-fast.fflags        :  -O3
+compiler.flags.optim-fast.ldflags       : 
+
+compiler.flags.optim-vfast.fflags       :  -Ofast
+compiler.flags.optim-vfast.ldflags      : 
+
+! * check
+
+compiler.flags.check-all.fflags         :  -fbounds-check -ffpe-trap=invalid,zero \
+                                           -fbacktrace \
+                                           -Wall -Wno-zerotrip \
+                                           -Wno-conversion \
+                                           -Wno-unused-variable -Wno-unused-function -Wno-unused-dummy-argument \
+                                           -Wno-tabs
+compiler.flags.check-all.ldflags        : 
+
+! * debug
+
+compiler.flags.debug.fflags             :  -g -fdump-core
+compiler.flags.debug.ldflags            : 
+
+! * specials:
+
+! flags to allow implicit typing ;
+! not available for gfortran, implicit type is allowed
+! if 'implicit' statements are included the code ...
+compiler.flags.implicit.fflags          :  

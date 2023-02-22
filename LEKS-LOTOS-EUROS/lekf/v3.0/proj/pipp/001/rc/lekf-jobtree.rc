@@ -1,0 +1,118 @@
+! ######################################################################
+! ###
+! ### main jobtree
+! ###
+! ######################################################################
+
+! class to create and submit job chain:
+jobtree.lekf.class                      :  utopya.UtopyaJobTree
+! top level job is virtual:
+jobtree.lekf.virtual                    :  True
+
+! lists and sublists:
+!jobtree.lekf.elements                   :  copy build run post
+!jobtree.lekf.elements                   :  copy build run
+jobtree.lekf.elements                   :  copy build run
+
+
+! ######################################################################
+! ###
+! ### copy
+! ###
+! ######################################################################
+
+! no sub list:
+jobtree.lekf.copy.class                  :  utopya.UtopyaJobStep
+
+! default class is defined in machine specific settings;
+! copy is always done in foreground to avoid that files are
+! changed before the job is started:
+jobtree.lekf.copy.script.class           :  utopya.UtopyaJobScriptForeground
+!jobtree.lekf.copy.script.class           :  utopya.UtopyaJobScriptBatchSlurm
+
+! search path to utopya modules;
+! the 'build.utopya' job will create a copy on the workdir
+! for which the path is included in the '*.pypath' setting:
+jobtree.lekf.copy.pypath                   :  ${PWD}/base/${my.lekf.patch}/py
+!jobtree.lekf.copy.pypath                   :  ${PWD}/proj/eafit/000/py
+
+! configure and build:
+jobtree.lekf.copy.task.class               :  utopya.UtopyaCopy
+jobtree.lekf.copy.task.args                :  '%{rcfile}', rcbase='lekf'
+
+! ######################################################################
+! ###
+! ### build
+! ###
+! ######################################################################
+
+! no sub list:
+jobtree.lekf.build.class                :  utopya.UtopyaJobStep
+
+! work directory:
+jobtree.lekf.build.workdir              :  ${my.project.dir}/run
+
+! settings for job creation:
+jobtree.lekf.build.rcfile               :  ${lekf.copy.rcwrite}
+
+! search path to utopya modules, use the work copy:
+jobtree.lekf.build.pypath               :  ${my.project.dir}/build/py
+
+! tasks to be performed:
+jobtree.lekf.build.tasks                    :  configure make
+!
+jobtree.lekf.build.task.configure.class     :  utopya.UtopyaConfigure
+jobtree.lekf.build.task.configure.args      :  '%{rcfile}', rcbase='lekf'
+!
+jobtree.lekf.build.task.make.class          :  utopya.UtopyaMake
+jobtree.lekf.build.task.make.args           :  '%{rcfile}', rcbase='lekf'
+
+
+
+! ######################################################################
+! ###
+! ### run
+! ###
+! ######################################################################
+
+! no sub list:
+jobtree.lekf.run.class                :  utopya.UtopyaJobStep
+
+! work directory:
+jobtree.lekf.run.workdir              :  ${my.project.dir}/run
+
+! settings for job creation:
+jobtree.lekf.run.rcfile               :  ${my.lekf.run.rcfile}
+
+! search path to utopya modules, use the work copy:
+jobtree.lekf.run.pypath               :  ${my.project.dir}/build/py
+
+! run model, command defined in machine settings:
+!   le.run.command      :  mpirun lotos-euros.x
+jobtree.lekf.run.task.class           :  utopya.UtopyaRcCommand
+jobtree.lekf.run.task.args            :  '%{rcfile}', rcbase='le.run'
+
+
+! ######################################################################
+! ###
+! ### post
+! ###
+! ######################################################################
+
+! no sub list:
+jobtree.lekf.post.class                :  utopya.UtopyaJobStep
+
+! work directory:
+jobtree.lekf.post.workdir              :  ${my.project.dir}/run
+
+! settings for job creation:
+jobtree.lekf.post.rcfile               :  ${my.lekf.run.rcfile}
+
+! search path to utopya modules, use the work copy:
+jobtree.lekf.post.pypath               :  ${my.project.dir}/build/py
+
+! run postprocessing class:
+jobtree.lekf.post.task.class           :  le_tools.PostProc
+jobtree.lekf.post.task.args            :  '%{rcfile}'
+
+

@@ -1,0 +1,267 @@
+!#######################################################################
+!
+! TNO / HPC3 computing server
+!
+!#######################################################################
+
+
+!----------------------------------------------------------------------
+! user names
+!----------------------------------------------------------------------
+
+! used for output attributes ...
+
+! name of institution:
+user.institution              :  TNO
+
+! extract user long name from environment variable:
+user.longname                 :  ${USERLONGNAME}
+
+
+!----------------------------------------------------------------------
+! environment
+!----------------------------------------------------------------------
+
+! adhoc: assign dummy values to define environment variables
+! that are not present yet, but will be defined by the modules:
+USERLONGNAME            :  /no/USERLONGNAME
+LE_DATA                 :  /no/LE_DATA
+MODAS_SCRATCH           :  /no/MODAS_SCRATCH
+SCRATCH                 :  /no/SCRATCH
+NETCDF_FORTRAN_HOME     :  /no/NETCDF_FORTRAN_HOME
+NETCDF_C_HOME           :  /no/NETCDF_C_HOME
+HDF5_HOME               :  /no/HDF5_HOME
+UDUNITS_HOME            :  /no/UDUNITS_HOME
+LAPACK_HOME             :  /no/LAPACK_HOME
+SPBLAS_HOME             :  /no/SPBLAS_HOME
+
+! these are needed to load the correct compiler settings ...
+COMPILER_SUITE          :  gcc
+COMPILER_VERSION        :  8.2.0
+
+! modules loaded in job scripts:
+*.modules                     :  purge ; \
+                                 use /tsn.tno.nl/Data/SV/sv-059025_unix/admin/hpc3/modulefiles ; \
+                                 load slurm/18.08.8 ; \
+                                 load anaconda3/2019.03 ; \
+                                 load curl/default ; \
+                                 load openssl/default ; \
+                                 load ${COMPILER_SUITE}-suite/${COMPILER_VERSION} ; \
+                                 load openmpi/4.0.5 ; \
+                                 load szip/2.1.1 ; \
+                                 load hdf5/1.12.0 ; \
+                                 load netcdf-c/4.7.4 ; \
+                                 load netcdf-fortran/4.5.3 ; \
+                                 load udunits/2.2.26 ; \
+                                 load makedepf90 ; \
+                                 load nco/4.8.1 ; \
+                                 load lapack/3.6.1 ; \
+                                 load spblas/1.02.917 ; \
+                                 load lotos-euros
+
+
+!----------------------------------------------------------------------
+! tasks and threads
+!----------------------------------------------------------------------
+
+! number of MPI tasks in run step:
+#if "${par.mpi}" in ["True"] :
+my.run.ntask                      :  ${par.ntask}
+#elif "${par.mpi}" in ["False"] :
+my.run.ntask                      :  1
+#else
+#error Could not set number of MPI tasks for par.mpi "${par.mpi}"
+#endif
+
+! number of OpenMP threads in run step:
+#if "${par.openmp}" in ["True"] :
+my.run.nthread                    :  ${par.nthread}
+#elif "${par.openmp}" in ["False"] :
+my.run.nthread                    :  1
+#else
+#error Could not set number of OpenMP threads for par.openmp "${par.openmp}"
+#endif
+
+
+!----------------------------------------------------------------------
+! job scripts
+!----------------------------------------------------------------------
+
+! default class with the job script creator:
+*.script.class           :  utopya.UtopyaJobScriptBatchSlurm
+!!~ testing ...
+!*.script.class           :  utopya.UtopyaJobScriptForeground
+
+! Define batch job option format for class 'JobScriptBatchSlurm':
+!   #SBATCH --flag=value
+slurm_format.comment       :  #
+slurm_format.prefix        :  SBATCH
+slurm_format.arg           :  '--'
+slurm_format.assign        :  '='
+slurm_format.template      :  %(key)
+slurm_format.envtemplate   :  %(env:key)
+
+! job format for this application:
+*.batch.slurm.format            :  slurm_format
+
+!
+! Current partitions:
+!
+!  partition   time limit     resources           nodes  notes                      
+!  ---------  -----------  ------------  --------------  ---------------------------
+!  defq        2-00:00:00    unlimitted             all  default                    
+!  longq       7-00:00:00    unlimitted             all  long jobs                  
+!  shortq         0:30:00  max  4 cpu's  app-hpc[16-18]  short job, highest priority
+!  lowprio     1-00:00:00  max 22 cpu's  app-hpc[16-17]  low priority jobs          
+!
+
+! which keywords:
+*.batch.slurm.options           :  name queue nodes tasks threads time memory no-requeue output error
+
+! default values:
+*.batch.slurm.option.name       :  job-name %(env:name).${run.id}
+*.batch.slurm.option.queue      :  partition defq
+*.batch.slurm.option.nodes      :  nodes 1
+*.batch.slurm.option.tasks      :  ntasks 1
+*.batch.slurm.option.threads    :  cpus-per-task 1
+*.batch.slurm.option.memory     :  mem 1Gb
+*.batch.slurm.option.no-requeue :  no-requeue
+*.batch.slurm.option.output     :  output %(env:name).out
+*.batch.slurm.option.error      :  error  %(env:name).err
+!~ maximum runtime: days-hours:minutes:seconds 
+*.batch.slurm.option.time       :  time 1:00:00
+
+! specific:
+jobtree.le.run.batch.slurm.option.queue      :  partition ${my.run.queue}
+jobtree.le.run.batch.slurm.option.tasks      :  ntasks ${my.run.ntask}
+jobtree.le.run.batch.slurm.option.threads    :  cpus-per-task ${my.run.nthread}
+jobtree.le.run.batch.slurm.option.memory     :  mem ${my.run.memory}Gb
+#if "${my.run.time}" == "max"
+#if "${my.run.queue}" == "defq"
+jobtree.le.run.batch.slurm.option.time       :  time 2-00:00:00
+#elif "${my.run.queue}" == "longq"
+jobtree.le.run.batch.slurm.option.time       :  time 7-00:00:00
+#elif "${my.run.queue}" == "shortq"
+jobtree.le.run.batch.slurm.option.time       :  time    0:30:00
+#elif "${my.run.queue}" == "lowprio"
+jobtree.le.run.batch.slurm.option.time       :  time 1-00:00:00
+#else
+#error could not set time limit for my.run.queue "${my.run.queue}"
+#endif
+#else
+jobtree.le.run.batch.slurm.option.time       :  time ${my.run.time}
+#endif
+
+!~ postprocessing (pack, deflate) might take more time:
+jobtree.le.post.batch.slurm.option.time      :  time 1-00:00:00
+
+
+!----------------------------------------------------------------------
+! runner
+!----------------------------------------------------------------------
+
+! run model:
+#if "${par.mpi}" in ["True"]
+
+! SLURM version of "mpirun" ;
+! number of tasks etc taken from batch job environment;
+! create stdout/stderr files files including task number:
+le.run.command     :  srun \
+                        --kill-on-bad-exit=1 \
+                        --output=le.run.out.%t \
+                        --error=le.run.err.%t \
+                        ./lotos-euros.x ${my.le.run.rcfile}
+
+#else
+
+! run model, pass evaluated rcfile as argument:
+le.run.command     :  ./lotos-euros.x ${my.le.run.rcfile}
+
+#endif
+
+
+!----------------------------------------------------------------------
+! compiler settings
+!----------------------------------------------------------------------
+
+! GCC compiler suite, selected with environment variables:
+#include base/${my.le.patch}/rc/compiler-${COMPILER_SUITE}-${COMPILER_VERSION}.rc
+
+! MPI wrappers:
+configure.compiler.fc.mpi                   :  mpifort
+configure.compiler.fc.mpi.openmp            :  mpifort
+
+
+!----------------------------------------------------------------------
+! libraries
+!----------------------------------------------------------------------
+
+! (optional) macro to enable udunits library:
+!my.udunits.define             :  
+!my.udunits.define             :  with_udunits1
+my.udunits.define             :  with_udunits2
+
+! define libraries:
+!my.spblas.define              :  
+my.spblas.define              :  with_spblas
+
+! define libraries:
+!my.linalg.define              :  
+my.linalg.define              :  with_lapack
+
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! NetCDF4 library:
+configure.lib.netcdf.fflags       : -I${NETCDF_FORTRAN_HOME}/include
+configure.lib.netcdf.ldflags      : -L${NETCDF_FORTRAN_HOME}/lib -lnetcdff -Wl,-rpath -Wl,${NETCDF_FORTRAN_HOME}/lib \
+                                    -L${NETCDF_C_HOME}/lib -lnetcdf -Wl,-rpath -Wl,${NETCDF_C_HOME}/lib \
+                                    -L${HDF5_HOME}/lib -lhdf5_hl -lhdf5 -Wl,-rpath -Wl,${HDF5_HOME}/lib \
+                                    -L/usr/lib64
+
+! UDUnits library:
+configure.lib.udunits2.fflags     : 
+configure.lib.udunits2.ldflags    : -L${UDUNITS_HOME}/lib -ludunits2 -lexpat -Wl,-rpath -Wl,${UDUNITS_HOME}/lib
+
+!configure.lib.mpi.fflags          : 
+!configure.lib.mpi.ldflags         : 
+
+! BLAS library:
+configure.lib.blas.fflags         : 
+configure.lib.blas.ldflags        : -L${LAPACK_HOME}/lib -lblas -Wl,-rpath -Wl,${LAPACK_HOME}/lib
+
+! Lapack library:
+configure.lib.lapack.fflags       : 
+configure.lib.lapack.ldflags      : -L${LAPACK_HOME}/lib -llapack -Wl,-rpath -Wl,${LAPACK_HOME}/lib
+
+! Sparse BLAS library:
+configure.lib.spblas.fflags       : -I${SPBLAS_HOME}/include
+configure.lib.spblas.ldflags      : -L${SPBLAS_HOME}/lib -lspblas -Wl,-rpath -Wl,${SPBLAS_HOME}/lib
+
+
+!----------------------------------------------------------------------
+! makedep
+!----------------------------------------------------------------------
+
+! Is makedepf90 installed?
+! This flag is used in the 'expert.rc' settings:
+my.with.makedep            :  True
+
+
+!----------------------------------------------------------------------
+! model data
+!----------------------------------------------------------------------
+
+! the user scratch directory:
+my.scratch                    :  ${SCRATCH}
+
+!! base path to input data files:
+!my.data.dir                   :  ${LE_DATA}
+
+!! location of LEIP produced input,
+!! region name is defined together with grid:
+!my.leip.dir                   :  ${MODAS_SCRATCH}/models/LEIP/${my.leip.region}
+
+!~ testbed using data package:
+my.data.dir                   :  ${PWD}/../../inputdata_Europe/v2.2.002
+my.leip.dir                   :  ${my.data.dir}/LEIP/${my.leip.region}
+

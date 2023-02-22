@@ -1,0 +1,13 @@
+# Make settings
+
+# compiler
+FC = gfortran -std=f2003
+LD = gfortran
+
+# compiler
+FFLAGS = -ffree-line-length-none -fimplicit-none -fdefault-real-8 -O0 -fcheck=all
+LDFLAGS = 
+
+NETCDF_INCS = -I/usr/local/apps/netcdf4/4.1.3/LP64/include
+NETCDF_LIBS = -L/usr/local/apps/netcdf4/4.1.3/LP64/lib -lnetcdff -lnetcdf_c++ -lnetcdf -lcurl -Wl,-rpath,/usr/local/apps/netcdf4/4.1.3/LP64/lib
+

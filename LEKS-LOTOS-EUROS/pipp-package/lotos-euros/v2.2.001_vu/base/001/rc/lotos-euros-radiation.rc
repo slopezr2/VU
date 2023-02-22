@@ -1,0 +1,84 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!
+!!! radiation bands
+!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!----------------------------------------------------
+! lookup tables
+!----------------------------------------------------
+
+! archive:
+my.radiation.lut.dir   :  ${my.data.dir}/Radiation
+
+! first version, only included for non updated tables
+le.radiation.lut.1     :  ${my.radiation.lut.dir}/TNO_AOP_LUT_01.nc
+
+! revised version, but lacks first 3 tables
+le.radiation.lut.2     :  ${my.radiation.lut.dir}/TNO_AOP_LUT_02.nc
+
+
+!----------------------------------------------------
+! short wave bands in model
+!----------------------------------------------------
+
+! which definition?
+le.radiation.swbands.name        :  default
+!le.radiation.swbands.name        :  aeronet
+!le.radiation.swbands.name        :  polder
+    
+!
+! ~ original 14 bands
+!
+
+! number:
+le.radiation.swbands.default.n     :  14
+! fill:     wavelenth band                micrometers             mid   
+le.radiation.swbands.default.01    :  3.0770,  3.8460          ! 3461 nm
+le.radiation.swbands.default.02    :  2.5000,  3.0770          ! 2788 nm
+le.radiation.swbands.default.03    :  2.1500,  2.5000          ! 2325 nm
+le.radiation.swbands.default.04    :  1.9420,  2.1500          ! 2045 nm
+le.radiation.swbands.default.05    :  1.6260,  1.9420          ! 1783 nm
+le.radiation.swbands.default.06    :  1.2990,  1.6260          ! 1462 nm
+le.radiation.swbands.default.07    :  1.2420,  1.2990          ! 1270 nm
+le.radiation.swbands.default.08    :  0.7782,  1.2420          ! 1010 nm
+le.radiation.swbands.default.09    :  0.6250,  0.7782          !  701 nm
+le.radiation.swbands.default.10    :  0.4415,  0.6250          !  533 nm
+le.radiation.swbands.default.11    :  0.3448,  0.4415          !  393 nm
+le.radiation.swbands.default.12    :  0.2632,  0.3448          !  304 nm
+le.radiation.swbands.default.13    :  0.2000,  0.2632          !  231 nm
+le.radiation.swbands.default.14    :  3.8460, 12.1952          ! 8020 nm
+
+!
+! ~ syncronize with AERONET inversion bands:
+!
+! 365       515       585 600       750   795       945       1095
+!  | 75 | 75 | 35 | 35 |   | 75 | 75 |     | 75 | 75 | 75 | 75 |
+!      440       550      675             870      1020
+!
+! number:
+le.radiation.swbands.aeronet.n     :  5
+! wavelenth bands                      micrometers               mid   
+le.radiation.swbands.aeronet.01    :  0.365, 0.515          !  440 nm
+le.radiation.swbands.aeronet.02    :  0.515, 0.585          !  550 nm
+le.radiation.swbands.aeronet.03    :  0.600, 0.750          !  675 nm
+le.radiation.swbands.aeronet.04    :  0.795, 0.945          !  870 nm
+le.radiation.swbands.aeronet.05    :  0.945, 1.095          ! 1020 nm
+
+!
+! ~ syncronize with POLDER inversion bands:
+!
+! 415       465       515 538       588 595       745 790       940       1100
+!  | 25 | 25 | 25 | 25 |   | 25 | 25 |   | 75 | 75 |   | 75 | 75 | 80 | 80 |
+!      440       490           563           670           865      1020
+!
+! number:
+le.radiation.swbands.polder.n     :  6
+! wavelenth bands                    micrometers              mid  
+le.radiation.swbands.polder.01    :  0.415, 0.465          !  440 nm
+le.radiation.swbands.polder.02    :  0.465, 0.515          !  490 nm
+le.radiation.swbands.polder.03    :  0.538, 0.588          !  563 nm
+le.radiation.swbands.polder.04    :  0.595, 0.745          !  670 nm
+le.radiation.swbands.polder.05    :  0.790, 0.940          !  865 nm
+le.radiation.swbands.polder.06    :  0.940, 1.100          ! 1020 nm

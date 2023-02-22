@@ -1,0 +1,621 @@
+! ######################################################################
+! ###
+! ### DIADEM post processor
+! ###
+! ### Usage:
+! ###   ${LE_TOOLS}/diadem/vtrunk/bin/diadem  <thisfile>
+! ###
+! ######################################################################
+
+!
+! Python scripts to generate figures and diagnostics
+! from standard model output.
+!
+! HTML index pages are generated to browse through the figures and tables.
+!
+! Which diagnostics are generated is specified by a list of task names.
+! Currently implemented tasks:
+!
+!   o timing          :  profile
+!   o aqord           :  compare with station observation from AQORD database
+!   o le-conc         :  2D concentration fields
+!   o omi-no2         :  regrid the omi-no2 output and compare it with the model simulations
+!   o spatial-corr    :  Map the spatial correlations
+!   o temporal-corr   :  Map the temporal correlations
+!   o grid-variation  :  Plot the mean of several grid cells
+!
+! Include a dummy task '<n>' to have a new row in the main index page.
+!
+! The main index page (html) is always generated,
+! even if some tasks fail because of missing files etc.
+!
+
+! task list:
+!diadem.tasks                  :  le-conc aqord
+!diadem.tasks                  :  le-conc
+!diadem.tasks                  :  aqord
+diadem.tasks                  :  timing
+!diadem.tasks                  :  omi-no2
+!diadem.tasks                  :  spatial-corr
+!diadem.tasks                  :  temporal-corr
+!diadem.tasks                  :  grid-variation
+
+
+!-------------------------------------------------
+! paths
+!-------------------------------------------------
+
+! local:
+TOOLS                         :  ${LE_TOOLS}
+
+! location of example figures used for main index page:
+diadem.example.dir            :  ${TOOLS}/diadem/vtrunk/example
+diadem.rc.dir                 :  ${TOOLS}/diadem/vtrunk/proj/lotos-euros/rc
+
+!! project, similar to setting LOTOS-EUROS rcfile:
+!#if "app-hpc" in "${HOST}"
+!my.wp.dir                :  ${MODAS_SCRATCH04}/projects/EU/CAMS/C50/wp-decompo
+!#else
+!my.wp.dir                :  ${SCRATCH}/projects/EU/CAMS/C50/wp-decompo
+!#endif
+
+! destination of figures and index pages:
+!diadem.output.dir             :  ${my.project.dir}/diadem/${my.batch}
+diadem.output.dir             :  ${my.project.dir}/v2-2-002/diadem
+
+
+!-------------------------------------------------
+! debugging and testing
+!-------------------------------------------------
+
+! break on error (True|False) ?
+diadem.debug                  :  False
+!diadem.debug                  :  True
+
+! do not renew tables/figures for some tasks ?
+! useful to test index generation ...
+diadem.tasks.keep             :
+!diadem.tasks.keep             :  sourcetab timing
+
+
+!-------------------------------------------------
+! (multiple) output(s)
+!-------------------------------------------------
+
+! Specify per model output:
+!   label       : used in legends
+!   model       : supported models: LE EMEP
+!   runid       : as used in filenames etc
+!   kfkey       : used by some tasks to select assimilation output; default 'None'
+!   output.dir  : where is the output ? contains runid probably
+!   style       : python dictionairy with linestyle elements
+!   varmap      : python dictionairy to translate new netcdf variable name ('ppm_f') to
+!                  an other value ('ppm25') that was used in another run
+!   varzero     : list with variables names that are not in the files
+!                  but should be treated as zeros
+
+! extra model output runs:
+!diadem.moutputs                         :  default
+diadem.moutputs                         :  base2 base
+
+! project folders:
+my.project.dir                          :  ${SCRATCH}/projects/LOTOS-EUROS
+
+! for some tasks (le-conc) also the differences between each pair
+! of model outputs is analysed; to limit the number of comparisons,
+! specify a maximum for the 'distance' between two outputs:
+diadem.moutputs.maxdist                 :  1
+
+diadem.moutput.base2.label               :  v2.2.002
+diadem.moutput.base2.model               :  LE
+diadem.moutput.base2.runid               :  v2-2-002
+diadem.moutput.base2.kfkey               :  None
+diadem.moutput.base2.output.dir          :  ${my.project.dir}/${diadem.moutput.base2.runid}/output
+diadem.moutput.base2.style               :  { 'color' : 'b' }
+
+diadem.moutput.base.label               :  v2.2.001
+diadem.moutput.base.model               :  LE
+diadem.moutput.base.runid               :  v2-2-001
+diadem.moutput.base.kfkey               :  None
+diadem.moutput.base.output.dir          :  ${my.project.dir}/${diadem.moutput.base.runid}/output
+diadem.moutput.base.style               :  { 'color' : 'r' }
+
+
+
+
+!-------------------------------------------------
+! common settings
+!-------------------------------------------------
+
+! define timerange:
+diadem.timerange.start        :  2012-07-01 00:00:00
+diadem.timerange.end          :  2012-08-01 00:00:00
+
+
+!-------------------------------------------------
+! * LE Concentrations
+!-------------------------------------------------
+
+! which files ?
+!diadem.le-conc.files             :  ${le.output.conc.files}
+!diadem.le-conc.files             :  meteo conc-sfc conc-3d emis emis_bio budget drydepo dryemis wetdepo
+diadem.le-conc.files             :  conc-sfc
+
+! kalman filter keys ?
+!   None xb xa xa-xb
+diadem.le-conc.kfkeys            :  None
+!diadem.le-conc.kfkeys            :  xb xa xa-xb
+
+! tracer selection:
+diadem.le-conc.tracer.fnfilter   :  *
+!diadem.le-conc.tracer.fnfilter   :  o3
+!diadem.le-conc.tracer.fnfilter   :  tpm10
+!diadem.le-conc.tracer.fnfilter   :  o3 no2 nh3 tpm25 tpm10
+
+! include specials and color ranges:
+#include ${diadem.rc.dir}/diadem-expert.rc
+!
+!! special variable definition, for example to apply adhoc scaling factor;
+!! comma seperated list of formula:
+!!   ec:ec*2.0:ug/m3, pm:pm*2.0:ug/m3
+!diadem.le-conc.tracer.specials    :
+!
+!! color ranges:
+!diadem.vrange.o3                 :  [0,50]
+
+! figure size, pyplot default is (8,6)
+diadem.le-conc.figsize           :  None
+!diadem.le-conc.figsize           :  (6,6)
+
+! Use common target grid? Especially useful for difference plots.
+! If not defined, the grid of the first output set is used for the difference plots.
+! Define domaain as    : west,east,south,north
+! Define resolution as :  dlon,dlat
+!diadem.le-conc.domain-bounds     : -20,40,35,60
+!diadem.le-conc.domain-res        : 0.1,0.1
+
+! dictioniary with map properties:
+!   'resolution'  :  'c' = crude, 'l' = low, 'i' = intermediate, 'h' = high
+!   'countries'   :  True | False
+diadem.le-conc.map.style         : { 'resolution' : 'l', 'countries' : True }
+
+! draw border around cells? usefull for non-cartesian grids;
+! define style or leave empty for no border:
+diadem.le-conc.border.style      : {}
+!diadem.le-conc.border.style      : { 'color' : 'red' }
+
+
+!-------------------------------------------------
+! * OMI-NO2 columns
+!-------------------------------------------------
+
+! what has written the files ?
+!   'le'     # LOTOS-EUROS model
+!   'lekf'   # LEKF
+diadem.omi-no2.written_by        :  le
+
+! output files have names with 'omi-no2' or 'omi-trc' ?
+diadem.omi-no2.spec             :   trc
+
+! omi output will be regridded
+diadem.omi-no2.outputdir_regridded    : ${diadem.output.dir}/regridded_omi_dir
+
+!
+! variables to be plotted:
+!   [le2]omi_vcd_trop_(y|r|xb|xa|xf)[_(screened|analyzed)]
+! or a difference using:
+!   <varname1>_minus_<varname2>
+!
+diadem.omi-no2.varnames  : omi_vcd_trop_y  le2omi_vcd_trop_xb \
+                             omi_vcd_trop_y_minus_le2omi_vcd_trop_xb
+
+! color ranges :
+diadem.vrange.omi_vcd_trop_y                                : [0,10]
+diadem.vrange.le2omi_vcd_trop_xb                            : [0,10]
+diadem.vrange.omi_vcd_trop_y_minus_le2omi_vcd_trop_xb       : [-5,5]
+
+! error value in output of no2 files
+diadem.omi-no2.errorvalue       : -999.9
+
+! domain of the omi-no2 column plot
+diadem.omi-no2.minlon           : -15.0
+diadem.omi-no2.maxlon           : 35.0
+diadem.omi-no2.dlon             : 0.5
+diadem.omi-no2.minlat           : 35.0
+diadem.omi-no2.maxlat           : 70.0
+diadem.omi-no2.dlat             : 0.25
+
+! figure sizes, pyplot default in (8,6)
+diadem.omi-no2.figsize          : (6,6)
+
+
+!-------------------------------------------------
+! * compare with AQORD observation database
+!-------------------------------------------------
+
+! home directory of AQORD archive:
+AQORD_HOME                     :  ${OBSERVATIONS}/AQORD
+
+! prefix for bin and source directories:
+diadem.aqord.prefix            :  ${TOOLS}/aqord/v2.4
+
+! data directory:
+diadem.aqord.data.dir         :  ${AQORD_HOME}/data/v2.1
+
+! main input:
+my.input.id                    :  airbase/v8
+!my.input.id                    :  ebas/emep-20151006
+!my.input.id                    :  emep-monthly/v20120417
+
+! one or more input id's (subdires of data directory);
+! observation files are searched in the given order:
+diadem.aqord.data.input.ids    :  ${my.input.id}
+
+! station list file:
+diadem.aqord.stationlist       :  ${diadem.aqord.data.dir}/${my.input.id}/_stations_/stations_sublist.csv
+
+! time resolutions: 1h 1d ...
+!diadem.aqord.time.resolutions  :  1h 1d 1mo
+diadem.aqord.time.resolutions  :  1h 1d
+
+! table with aqord component names, units, etc:
+diadem.aqord.components.file     :  ${diadem.aqord.data.dir}/_components_/components-014_AQORD.csv
+
+! all or only some components ?
+!diadem.aqord.components.selection     :  *
+diadem.aqord.components.selection     :  ozone__air
+!diadem.aqord.components.selection     :  ozone__air \
+!                                         nitrogen_dioxide__air \
+!                                         nitrogen_monoxide__air \
+!                                         ammonia__air \
+!                                         nitrate__* \
+!                                         sulphate__* \
+!                                         ammonium__* \
+!                                         pm10_mass__pm10 \
+!                                         pm25_mass__pm25 \
+!                                         sodium__* \
+!                                         aerosol_optical_depth_* \
+!                                         single_scattering_albedo_* \
+!                                         refractive_index_* \
+!                                         effective_radius__* \
+!                                         ammonium__precip \
+!                                         nitrate__precip \
+!                                         sulphate_total__precip
+
+! overwrite existing output files ?
+diadem.aqord.output.overwrite            : True
+
+
+! ~~~ observation data ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! run extractor program (True|False) ?
+! if False, at least a message is written about how to run offline:
+diadem.aqord.obs.extract           :  True
+
+! target rcfile to run aqord-extract; always written:
+diadem.aqord.obs.extract.rcfile    :  ${diadem.output.dir}/aqord-extract.rc
+
+! target nc file to store extraced observations ;
+! %-keys are filled with appropriate values:
+diadem.aqord.obs.file          :  ${diadem.output.dir}/aqord__obs__%{tres}__%{component}.nc
+
+! replace existing files ?
+diadem.aqord.obs.file.renew         :  False
+
+! complain if no observations found ?
+! note that this might be by accident, for example due to wrong path names ..
+diadem.aqord.obs.error_on_no_data   :  True
+
+! minimum coverage of timeseries (fraction 0-1) ?
+!diadem.aqord.obs.coverage.minimum   :  0.00
+diadem.aqord.obs.coverage.minimum   :  0.75
+
+! ~~~ model output ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! extract time series from model output ?
+diadem.aqord.model             :  True
+
+! Table describing how an AQORD component ('nitrate__aerosol') could
+! be formed from LE output variables ('NO3a_f + NO3a_c') .
+! To be sure that results are interpreted well, all output variables
+! should be present, otherwise an AQORD component is simply skipped.
+!
+diadem.aqord.model.LE.ftypes         :  conc-sfc
+!diadem.aqord.model.LE.ftypes         :  aod2
+!diadem.aqord.model.LE.ftypes         :  wetdepo
+diadem.aqord.model.LE.compontents    :  ${diadem.aqord.data.dir}/_components_/components-014_LE_v2-0-000.csv
+!
+diadem.aqord.model.EMEP.ftypes       :  hour
+diadem.aqord.model.EMEP.compontents  :  ${diadem.aqord.data.dir}/_components_/components-013_EMEP.csv
+!
+diadem.aqord.model.LEIP.ftypes       :  h
+diadem.aqord.model.LEIP.compontents  :  ${diadem.aqord.data.dir}/_components_/components-013_LEIP.csv
+
+! forecast day ? zero for normal run:
+diadem.aqord.model.fcday       :  0
+
+! target file:
+diadem.aqord.model.file        :  ${diadem.output.dir}/aqord__%{moutput}__%{tres}__%{component}.nc
+
+! replace existing files ?
+diadem.aqord.model.file.renew  :  False
+
+
+! ~~~ stats ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! create table with statistics (True|False) ?
+diadem.aqord.stats            :  True
+
+! renew file if already present ?
+diadem.aqord.file.renew       :  False
+
+!
+! timeseries (derived from) hourly data:
+!   1h, hourly     : hourly  statistics (tres "1h"  only)
+!   1d, daily      : daily   statistics (tres "1d"  only)
+!   1mo, monthly   : monthly statistics (tres "1mo" only)
+!   daymax         : daily maximum, derived from hourly
+!                      (component "o3" and tres "1h" only)
+!   daymax8hr      : daily maximum 8-hour mean, derived from hourly
+!                      (component "o3" and tres "1h" only)
+!
+!diadem.aqord.stats.timeseries     :  1h 1d 1mo daymax daymax8hr
+diadem.aqord.stats.timeseries     :  ${diadem.aqord.time.resolutions}
+
+!
+! summary periods:
+!   all      : all
+!   summer   : april to september
+!
+!
+!diadem.aqord.stats.periods     :  all summer
+diadem.aqord.stats.periods     :  all
+!
+! indicators for single timeseries:
+!    mean     : mean value
+!    stdv     : standard deviation
+!    aot40    : (only for component "o3", timeseries "hourly"   , and period "all")
+!    aot40f   : (only for component "o3", timeseries "hourly"   , and period "all")
+!    somo35   : (only for component "o3", timeseries "daymax8hr", and period "all")
+!    ex120    : (only for component "o3", timeseries "daymax8hr", and period "all")
+!
+!diadem.aqord.stats.indicators.solo   :  mean stdv aot40 aot40f somo35 ex120
+diadem.aqord.stats.indicators.solo   :  mean stdv
+!
+! indicators for difference 'simulation minus observations'
+!    avb      : availability (coverage)
+!    bias     : mean error
+!    mae      : mean absolute error
+!    rmse     : root mean square error
+!    rmsu     : root mean square unbiased error
+!    corr     : correlation
+!    mspc     : msp cov ?
+!
+!diadem.aqord.stats.indicators.diff    :  avb bias rmse rmsu corr mae
+diadem.aqord.stats.indicators.diff    :  avb bias rmse corr
+
+
+! ~~~ plots ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! create plots ?
+diadem.aqord.plots            :  True
+
+! by default no plot is made if no observations were found;
+! specify a list of components that should be plotted anyway,
+! for example meteo variables:
+diadem.aqord.plots.force.components    :
+!diadem.aqord.plots.force.components    :   wind_direction__met wind_speed__met temperature__met
+
+! plot types:
+!  o stats_scat               : (ozone) indicators read from stats table, scatter obs vs sim,
+!    stats_scat1              : idem with 1 station highlighted
+!  o ts                       : per-station timeseries of observations and model
+!    scat                     : per-station scatter obs vs sim (model where obs available)
+!  o diurnal                  : per-station diurnal cycle
+!  o sites                    : map with all locations
+!    sites1                   : idem for single station
+!  o daymax_ts                : per-station timeseries of dailymax ozone
+!    daymax_scat              : idem as scatter plot
+!  o daymax8h_ts              : per-station timeseries of dailymax 8-hour-mean ozone
+!    daymax8h_scat            : idem as scatter plot
+!
+diadem.aqord.plots.types      :  stats_scat  stats_scat1 \
+                                 ts scat \
+                                 diurnal \
+                                 sites sites1
+
+! legends outside axis?
+diadem.aqord.plots.legend_outside            :  T
+! if true, define extra figure width:
+diadem.aqord.plots.legend_outside.dwidth     :  3
+
+! time series plots:
+! * style of observations:
+diadem.aqord.plots.ts.obs.style :  { 'marker' : '.', 'color' : 'r' }
+
+! regression lines in 'means' plot ?
+diadem.aqord.plots.means.regression       :  True
+! add regression parameters to label?
+diadem.aqord.plots.means.regression.label :  False
+
+! 'site' plots with station locations:
+! * domain: 'auto' (from model domain), or fixed:
+diadem.aqord.plots.sites.map.domain      :  auto
+!diadem.aqord.plots.sites.map.domain      :  2,10,49,54
+! * map resolution : c=crude, l=low, i=intermediate, h=high
+!diadem.aqord.plots.map.resolution  :  l
+diadem.aqord.plots.sites.map.resolution  :  i
+! * how to mark stations:
+diadem.aqord.plots.sites.loc.style  :  { 'marker' : 'o', 'markersize' : 10, 'markerfacecolor' : 'r' }
+
+! keep existing plots ?
+diadem.aqord.plots.keep       :  True
+
+
+!-------------------------------------------------
+! * spatial correlation
+!-------------------------------------------------
+
+!
+! Specify:
+!
+!  files      :  filetype, e.g. LE_"conc-sfc" etc
+!
+!  variables  :  variables in file for which to compute correlations
+!
+!  times      :  which times (all, or just one hour, i.e. overpass time) 
+!                Python starts with 0, thus times 0 is 1 o'clock
+!                omi-no2 columns are daily in regridded files
+!
+! files and variables:
+!
+!!~ surface concentrations:
+!diadem.spatial-corr.files          :  conc-sfc
+!diadem.spatial-corr.variables      :  no2
+!diadem.spatial-corr.times          :  13
+!
+!!~ total columns from model:
+!diadem.spatial-corr.files          :  column
+!diadem.spatial-corr.variables      :  no2_column
+!diadem.spatial-corr.times          :  13
+!
+!!~ model simulations of OMI NO2 trop.col.,
+!!  regridded using 'omi-no2' task:
+!diadem.spatial-corr.files          :  omi-no2
+!diadem.spatial-corr.variables      :  le2omi_vcd_trop omi_vcd_trop_y
+!diadem.spatial-corr.times          :  daily
+!
+!~ LEKF simulations of OMI trop.col.
+!  regridded using 'omi-no2' task:
+diadem.spatial-corr.files          :  meas-omi-trc
+diadem.spatial-corr.variables      :  omi_vcd_trop_y_minus_le2omi_vcd_trop_xb
+diadem.spatial-corr.times          :  daily
+
+! which type of calculation (centerpoint or whole grid)
+diadem.spatial-corr.type           : grid
+!diadem.spatial-corr.type           : centerpoint
+
+!diadem.spatial-corr.kfkey          :  xb xa None
+diadem.spatial-corr.kfkey          :  None
+
+! if files omi-no2 is chosen, than regridded omi files must exist and domain must be defined
+diadem.spatial-corr.omi-no2.regridded-west  : -15
+diadem.spatial-corr.omi-no2.regridded-east  :  35
+diadem.spatial-corr.omi-no2.regridded-dlon  :  0.50
+diadem.spatial-corr.omi-no2.regridded-south :  35
+diadem.spatial-corr.omi-no2.regridded-north :  70
+diadem.spatial-corr.omi-no2.regridded-dlat  :  0.25
+
+! if type is Centerpoint (lon, lat)
+diadem.spatial-corr.centerpoint    :  4.0 48.0
+
+! if type is grid , define output file for corr lengths and values for rho_ranges (km)
+diadem.spatial-corr.fname_out      : ${diadem.output.dir}/spatial_corr_lengths.nc
+diadem.spatial-corr.rho_range      : 50.0 100.0 150.0 200.0 250.0
+
+! maximum distance for calculating covariance (km)
+diadem.spatial-corr.maxdist        :  500
+! minimum amount of combinations needed to calculate correlation
+diadem.spatial-corr.min_amount     :  10
+
+! best fitting of spatial covariance ?
+diadem.spatial-corr.best-fit             :  T
+! whcih type of fit function (only exponential is supported now)
+diadem.spatial-corr.best-fit.type        :  exp
+! first guess of paramteres is needed
+diadem.spatial-corr.best-fit.first-guess :  100
+!  fill value for if best fit is not found
+diadem.spatial-corr.best-fit.fill_value  :  10.0
+
+! figure
+diadem.spatial-corr.figsize        : (8,6)
+diadem.spatial-corr.vmin           : 0
+diadem.spatial-corr.vmax           : 300
+
+
+!-------------------------------------------------
+! * Temporal correlations
+!-------------------------------------------------
+
+! which files (omi-no2, conc-sfc, column ..)
+diadem.temporal-corr.files          : omi-no2
+
+! which tracers?
+diadem.temporal-corr.tracers        : omi_vcd_trop_y_minus_le2omi_vcd_trop
+
+! which times (all, or just one hour, i.e. overpass time)
+! hourly:     temporal correlation on hourly basis
+! daily_mean: temporal correlation between daily means
+! daily:      temporal correlation on daily basis (output of OMI-regridded is daily)
+! single hour:  temporal correlation between concentrations on the sme of of each day (ie overpass time)
+!               Python starts with 0, thus times 0 is 1:00 o'clock
+!diadem.temporal-corr.times          :  daily hourly daily_mean 0..23
+diadem.temporal-corr.times          :  daily
+
+!diadem.temporal-corr.kfkey          :  xb xa None
+diadem.temporal-corr.kfkey          :  None
+
+! if files omi-no2 is chosen, than regridded omi files must exist and domain must be defined
+diadem.temporal-corr.omi-no2.regridded-west  : -15
+diadem.temporal-corr.omi-no2.regridded-east  :  35
+diadem.temporal-corr.omi-no2.regridded-dlon  :  0.50
+diadem.temporal-corr.omi-no2.regridded-south :  35
+diadem.temporal-corr.omi-no2.regridded-north :  70
+diadem.temporal-corr.omi-no2.regridded-dlat  :  0.25
+
+! nc output file with temporal correlations and lengths
+diadem.temporal-corr.fname_out      : ${diadem.output.dir}/temporal_lengths.nc
+
+! figsize
+diadem.temporal-corr.figsize        : (8,6)
+
+! minimum amount of combinations needed to calculate correlation
+diadem.temporal-corr.min_amount     : 10
+
+! minimum and maxium allowed temporal correlation.
+diadem.temporal-corr.min_temporal_length :  1.0
+diadem.temporal-corr.max_temporal_length : 10.0
+
+! range for temporal correlations in figure
+diadem.temporal-corr.tau_range           : 1.0 2.0 3.0 4.0
+
+
+!-------------------------------------------------
+! * grid variations
+!-------------------------------------------------
+
+! which files
+diadem.grid-variation.files       :  conc-sfc
+
+! which tracers?
+diadem.grid-variation.tracers     :  no2 form
+diadem.grid-variation.no2.vrange  :  [0,10]
+diadem.grid-variation.form.vrange :  [0,5]
+
+! which times (all, or just one hour, i.e. overpass time)
+! Python starts with 0, thus times 0 is 1 o'clock
+diadem.grid-variation.times       :  all
+
+! figsize
+diadem.grid-variation.figsize     : (8,6)
+
+! how many combined grid cells together (at least four different, to make a fitline)
+diadem.grid-variation.facs        :  1 4 8 12
+
+!-------------------------------------------------
+! * timing
+!-------------------------------------------------
+
+! create plots ? choose none or some of:
+!   bars    : barplot with times spent on children
+!   speedup : line plots with speedup
+!
+!diadem.timing.plots         :
+diadem.timing.plots         : bars
+!diadem.timing.plots         : bars speedup
+
+
+
+!-------------------------------------------------
+! * end
+!-------------------------------------------------

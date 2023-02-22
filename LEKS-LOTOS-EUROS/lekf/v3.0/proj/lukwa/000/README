@@ -1,0 +1,7 @@
+Test NRT analysis
+
+Changes necessary for the CAMS50 operational system (KNMI)
+
+	* maori_set_sample.F90: Adapt so that it doesn't produce error with missing ground observations
+	* le_restart.F90, lekf_state.F90: Adapt so as to be able to handle missing OMI variables
+	                        

@@ -1,0 +1,929 @@
+! ######################################################################
+! ###
+! ### configure, build, and compile
+! ### (pycasso scripting)
+! ###
+! ######################################################################
+
+
+! ------------------------------------------------
+! logging
+! ------------------------------------------------
+
+! Default setting for print debug messages (True|False) ?
+! NOTE: passing '--verbose' or '-v' options to setup_le script will
+!       set this value to 'True'
+verbose      :  False
+
+! Name of log file.
+! Leave empty for no log file.
+! Include '${script}' for the name of the calling script,
+! and '${pid}' for the process id.
+!logfile      :  ${script}.${pid}.log
+logfile      :  ${script}.0000.log
+
+
+! ------------------------------------------------
+! run directory
+! ------------------------------------------------
+
+! submit script, executable, and settings are installed here:
+rundir    :  ${my.project.dir}/run
+
+
+! ------------------------------------------------
+! basename
+! ------------------------------------------------
+
+! basename for executable, runtime rcfile, logfiles, etc:
+my.basename                   :  lekf
+
+
+! ------------------------------------------------
+! build source
+! ------------------------------------------------
+
+!
+! Building an executable could consist of 3 steps:
+!   copy       : copy a source code into a build directory (on scratch)
+!   configure  : generate source files if necessary, create Makefile
+!   make       : compile and link executable
+!
+
+! prefix for source and script files
+! (base path for subdirectories src, py, etc)
+! this should be an absolute path; use ${PWD} for the present dir if necessary:
+!build.prefix      :  ${rundir}/build
+build.prefix      :  ${my.project.dir}/build
+
+! extend with flag groups ? e.g.  build_optim-all_mpi
+! a link with the original name will be created to this extended name
+build.prefix.extend     :  True
+
+! actual source codes will end up in ...
+build.sourcedir   :  ${build.prefix}/src
+
+! Number of jobs (commands) to run simultaneously.
+! An empty value indicates unlimitted number, which might claim all resources;
+! better is to specify a value which will be the default maximum.
+! The value is overwritten by the '-j' or '--jobs' flag passed to the submit script
+! The final number (specified here or from the flags) will be inserted in the maker command:
+!    maker       :  gmake -j ${build.jobs}
+!
+build.jobs          : ${my.build.jobs}
+
+
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! cleanup old build
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! remove existing build directory for a complete new copy of codee and scripts ?
+! NOTE: this flag is set to true by the '--new' option
+build.new           :  False
+
+
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! create a source
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! copy a source code to the build prefix directory (True|False) ?
+build.copy                      : True
+
+! list of source directories to be copied;
+! files in latest directory overwrite previously copied versions:
+!build.copy.dirs                 : base/trunk proj/pycasso
+build.copy.dirs                 : ${my.source.dirs}
+
+! sub directories to be included:
+build.copy.subdirs              : src bin data env rc
+
+! extend python path with these subdirs,
+! e.g. '<build>/bin' etc?
+build.copy.subdirs.pypath       :  bin
+
+! remove project extenstions (True|False) ?
+build.copy.remove.__part        : False
+
+! skip some extensions (list of regex pattern) ?
+build.copy.skip.ext             : \.pyc$ \..*~$
+
+! skip some files ? include in this list:
+!  o files that are (re)written by the scripts, e.g. include files;
+!    if these are copied, the creation times are obscured,
+!    which leads to a re-make during every build
+!  o old stuff that should be removed in a new version;
+!    skip them now to test if these files are really not necessary anymore
+!
+build.copy.skip.file            : lotos-euros.F90 \
+                                  go.inc mdf.inc udunits_version.inc num.inc le.inc \
+                                  le_indices.inc \
+                                  le_chem_work.F90 \
+                                  udunits_inc.F
+
+
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! configure
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+! configure source (True|False) ?
+build.configure                   :  True
+
+! * macro's
+
+! ----------------------------------------
+! macro's
+! ----------------------------------------
+
+! Define some fpp macro's :
+!
+!  * operators:
+!
+!   with_hdiff      # enable horizontal diffusion; 
+!                   # used to be enabled by default, 
+!                   # but seems to limit the variability too much
+!
+!  * enable external libraries:
+!
+!   with_hdf4          : HDF4 library
+!   with_netcdf[4]     : NetCDF[4] library
+!   with_udunits(1|2)  : UniData Units library (used for CF conentions)
+!
+!  * used for labeling code:
+!
+!   with_labeling      : enable labeling code
+!   with_mkl           : Intel Math Kernle Library (incl. lapack)
+!   with_mkl_17        : Intel Math Kernle Library (incl. lapack) version 2017
+!   with_lapack        : Linear Algebra Package
+!
+!  * extra ozone flux landuse classes:
+!
+!   with_extra_lu      : enable extra crops classes
+!
+!  * radiation output:
+!
+!   with_radiation     : enable radiation code
+!
+! defined macro's :
+build.configure.macro.define      :  with_netcdf ${my.udunits.define} ${my.labeling.define} ${my.vbs.define} ${my.landuse.glc.define} ${my.lekf.define} ${my.linalg.define}
+
+! Specify a list of macro groups:
+build.configure.macro.groups      :  go c3po udunits mdf libs num le lekf
+
+! For each of the groups, specify:
+!
+!  o all supported macro's 
+!    (sometimes necessary to identify which macros are NOT defined ...)
+!
+!  o optionally the name of header file; if provided,
+!    this file is filed with appropriate '#define' commands
+!
+! In addition to the macro's defined here, others might be defined
+! in 'pycasso_user_scripts/Build_Define' given the other settings.
+!
+! ~ GO modules
+build.configure.macro.go.all        :  __INTEL_COMPILER \
+                                       __GFORTRAN__ \
+                                       __GNUC____GNUC_MINOR____GNUC_PATCHLEVEL__ \
+                                       __IBMC__ \
+                                       __ecmwf__ \
+                                       with_netcdf \
+                                       _MPI
+build.configure.macro.go.hfile      :  go.inc
+
+! ~ C3PO modules
+build.configure.macro.c3po.all      :
+build.configure.macro.c3po.hfile    :  c3po.inc
+!
+! ~ hdf/netcdf libraries:
+build.configure.macro.mdf.all       :  with_netcdf \
+                                       with_netcdf4 \
+                                       with_netcdf4_par \
+                                       with_hdf4 \
+                                       with_hdf5_beta \
+                                       with_go
+build.configure.macro.mdf.hfile     :  mdf.inc
+!
+! ~ libraries:
+build.configure.macro.libs.all      :  _OPENMP \
+                                       with_udunits1 with_udunits2 \
+                                       with_lapack95 \
+                                       with_lapack \
+                                       with_mkl \
+                                       with_mkl_17 \
+                                       with_spblas \
+                                       _MPI
+build.configure.macro.libs.hfile    :
+!
+! ~ num specific:
+build.configure.macro.num.all       :  with_lapack \
+                                       with_lapack95 \
+                                       with_mkl \
+                                       with_mkl_17
+build.configure.macro.num.hfile     :  num.inc
+!
+!
+! ~ UDUnits specific:
+build.configure.macro.udunits.all   :  with_udunits1 with_udunits2
+build.configure.macro.udunits.hfile :  udunits_version.inc
+!
+! ~ lotos-euros specific:
+build.configure.macro.le.all        :  with_hdiff \
+                                       with_netcdf \
+                                       _OPENMP _MPI \
+                                       with_labeling \
+                                       with_mkl \
+                                       with_mkl_17 \
+                                       with_spblas \
+                                       with_vbs \
+                                       with_glc \
+                                       with_extra_lu \
+                                       without_physics \
+                                       with_m7 \
+                                       with_pollen \
+                                       with_radiation
+build.configure.macro.le.hfile      :  le.inc
+!
+! ~ kalman-filter
+build.configure.macro.lekf.all      :  with_kf_meas_ground \
+                                       with_kf_meas_omi_trc \
+                                       with_kf_meas_modis \
+                                       with_kf_meas_o3 \
+                                       with_kf_meas_pm \
+                                       with_kf_meas_pm_m24 \
+                                       with_kf_meas_aod \
+                                       with_kf_meas_maori \
+                                       skip_timestep \
+                                       with_netcdf \
+                                       _MPI
+build.configure.macro.lekf.hfile    :  lekf.inc
+
+! Pass macro definitions to command lines, e.g. -Dwith_this_flag (True|False) ?
+! Not necessary anymore since include files "le.inc" etc with macro definitions are written:
+build.configure.define.D      :  False
+
+
+! * remove files
+
+! remove some files ?
+build.configure.remove       :  
+
+! remove if macro's are *not* defined ?
+build.configure.remove.ifndef.with_hdf4             :  hdf4.F90
+build.configure.remove.ifndef.with_hdiff            :  le_hdiff.F90
+build.configure.remove.ifndef.with_kf_meas_ground   :  lekf_meas_ground.F90 \
+                                                         lekf_meas_emep_o3.F90 lekf_meas_emep_hour.F90 \
+                                                         lml_statlist_file.F90 lml_data_file.F90
+build.configure.remove.ifndef.with_kf_meas_omi_trc  :  lekf_meas_omi_trc.F90
+build.configure.remove.ifndef.with_kf_meas_pm       :  lekf_meas_pm.F90
+build.configure.remove.ifndef.with_kf_meas_o3       :  lekf_meas_o3.F90
+build.configure.remove.ifndef.with_kf_meas_maori    :  lekf_meas_maori.F90
+build.configure.remove.ifndef.with_kf_meas_aod      :  lekf_meas_aod.F90
+build.configure.remove.ifndef.with_kf_meas_modis    :  lekf_meas_modis.F90
+
+
+! * compiler flags
+
+! Specify space seperated list of compiler flag groups.
+! See the implementation in 'pycasso_user_scripts/Build_FlagGroups' .
+! The 'default' group is included by default,
+! and eventually openmp is added if necessary:
+!    default [openmp]
+! For the actual compiler flags set by a group, see the compiler specific settings.
+!
+build.configure.flags                   :  ${my.build.configure.flags}
+
+! include file to be written for Makefile:
+build.configure.flags.includefile       :  Makefile_flags
+
+! * libraries
+
+! Libraries to be included are specified with a list of keywords, e.g.:
+!    netcdf hdf5 hdf4 z jpeg
+! For each library name, 2 lines should be present that specify 
+! the compile and link flags (probably in the host specific rcfile)
+!
+! list of all supported libraries; this defines the linking order !
+build.configure.libs.all      :  netcdf4 netcdf \
+                                 hdf5 hdf4 \
+                                 sz jpeg z \
+                                 lapack spblas blas \
+                                 mkl \
+                                 udunits2 udunits1 \
+                                 mpi
+!
+! ~ default librries:
+build.configure.libs                              :  
+!
+! ~ libraries to be included if a specific marcro is defined:
+build.configure.libs.ifdef.with_netcdf4           :  netcdf4 hdf5
+build.configure.libs.ifdef.with_netcdf            :  netcdf
+build.configure.libs.ifdef.with_hdf5              :  hdf5     sz jpeg z
+build.configure.libs.ifdef.with_hdf4              :  hdf4     sz jpeg z
+build.configure.libs.ifdef.with_lapack95          :  lapack95 lapack blas
+build.configure.libs.ifdef.with_lapack            :  lapack blas
+build.configure.libs.ifdef.with_spblas            :  spblas blas
+build.configure.libs.ifdef.with_mkl               :  mkl
+build.configure.libs.ifdef.with_mkl_17            :  mkl
+build.configure.libs.ifdef.with_udunits1          :  udunits1
+build.configure.libs.ifdef.with_udunits2          :  udunits2
+build.configure.libs.ifdef._MPI                   :  mpi
+
+
+! * user configuration
+
+! routine 'Build_Configure' in 'pycasso_user_scripts.py' is called now;
+! use this routine to write special include files etc.
+
+! generate source files (True|False) ?
+build.configure.genes                   :  True
+
+!   ~ generate source files
+
+! Group names are used to select tracers and reactions:
+!
+!   cbm4              :  tracers/reactions of CBM4 scheme
+!   sulphur           :  sulphur-only scheme (SO2 and SO4a, OH read)
+!   methane           :  methane-only scheme (CH4, OH read)
+!   co2               :  CO2 tracer
+!   sf6               :  SF6 tracer
+!   ppm               :  primary particulate matter
+!   ec                :  elementary carbon
+!   pom               :  primary organic matter
+!   sia               :  secondary inorganic aerosols
+!   seasalt           :  sodium aerosols representing seasalt
+!   dust              :  dust aerosols
+!   m7                :  M7 aerosol scheme (so4a, bc, oc, seasalt, dust)
+!   soa               :  TERP reactions used as input to VBS
+!   vbs               :  VBS tracers
+!   basecation        :  base-cat-ion aerosols
+!   hm                :  heavy metals
+!   pollen            :  allergenic pollen tracers
+!
+!   accum             :  accumulated species
+!   biascorr          :  bias corrected species
+!
+! Properties are keywords to enable special settings for some tracers:
+!
+!   nmvoc             :  non-methane volotile organic carbon
+!   snox              :  all deposited N in reservoir: nh3 nh4 no2 hno3 no3 pan
+!   radical           :  radical
+!   gas               :  gaseous tracer
+!   aerosol           :  aerosol tracer
+!   pollen            :  pollen tracer
+!   fine_mode         :  fine mode aerosol
+!   coarse_mode       :  coarse mode aerosol
+!   all_modes         :  total aerosol collecting all size modes
+!   vbs_cg vbs_soa    :  VBS condensible gasses and sec. organic aerosols
+!   soa_prec          :  soa precursors
+!
+! These keywords are set automically by the scripts if necessary,
+! depending on settings in the rcfile:
+!
+!   in-cloud          :  if cloud chemistry module is not enabled
+!
+! All supported groups, used for checking:
+genes.group.supported    :  cbm4 cb99 sulphur methane co2 sf6 \
+                               ppm ec pom sia seasalt dust m7 \
+                               basecation hm \
+                               vbs soa pollen \
+                               accum biascorr in-cloud \
+                               ppm_ops
+!
+! All supported properties, used for checking:
+genes.prop.supported     :  sia nmvoc radical \
+                               pom seasalt dust m7 \
+                               basecation hm \
+                               vbs vbs_cg vbs_soa soa soa_prec \
+                               snox \
+                               aerosol pollen \
+                               ff_modes fine_modes \
+                               ccc_mode cc_mode coarse_mode all_modes \
+                               ultra_fine_mode ultra_fine_fine_mode \
+                               fine_medium_mode medium_coarse_mode \
+                               pollen_mode\
+                               nucl_mode aitken_mode accum_mode \
+                               soluble insoluble numberconc \
+                               accum biascorr
+
+! for which properties should an index group be created ?
+! index group 'advected' is created automatically based on the
+! presence of the 'radical' property and the value of 'advection.radicals' :
+genes.indgroup.props      : advected aerosol pollen \
+                             sia dust seasalt m7 basecation hm \
+                             vbs vbs_cg vbs_soa soa_prec \
+                             nmvoc biascorr \
+                             pops snox pom
+
+! for which properties should a per-index flag list be created ?
+genes.flaglist.props      : aerosol m7 soluble numberconc pollen seasalt dust
+
+!   ~ source code checks
+
+! Apply some source code checks ?
+! Provide a space seperated list with keywords; for each keyword, provide below:
+!  o a short message to describe the test;
+!  o the filename pattern to select the files on which the test should be applied;
+!  o a filename pattern to exclude some files;
+!  o a python boolean expression applied to each line of the file;
+!    the line itself is stored in a string variable named 'line';
+!  o a help text to be displayed in case a warning is issued;
+!    include \n for newlines.
+! If for one of the lines in a source file the test evaluates to 'True', 
+! a warning is issued.
+! If the test expression starts with 'not', a warning is issued if none
+! of the lines evaluates to 'True' for the test after the 'not'.
+! If the 'error' flag is set to 'True' and any warnings are issued, then
+! the scripting will exit with an error status.
+
+! list with keywords for checks to be applied:
+build.configure.checks                  :  go_inc le_inc unknown_macro strange_file lekf_inc
+
+! all GO files should include "go.inc"; search files that do not do that:
+build.configure.check.go_inc.msg       :  Test on GO files that do no not include "go.inc" ...
+build.configure.check.go_inc.files     :  go*.F90
+build.configure.check.go_inc.skip      :  
+build.configure.check.go_inc.test      :  not line.startswith('#include "go.inc"')
+build.configure.check.go_inc.help      :  \n\
+          All GO files should include "go.inc" in the header.\n\
+          This include file is filled by the scripting with '#define' pre-processing macros.\n\
+          To compile a source code with LE files that do not include "go.inc",\n\
+          ensure that marco definitions are passed to the compiler directly by setting:\n\
+          .   build.configure.define.D  :  True\n\
+          in the expert.rc file.\n\
+
+! all LE files should include "le.inc"; search files that do not do that:
+build.configure.check.le_inc.msg       :  Test on LE files that do no not include "le.inc" ...
+build.configure.check.le_inc.files     :  le_*.F90 SA_*.F90 lotos-euros.F90
+build.configure.check.le_inc.skip      :  le_indices.inc le_sia_isorropia2_*.* le_meteo_racmo_*.F90
+build.configure.check.le_inc.test      :  not line.startswith('#include "le.inc"')
+build.configure.check.le_inc.help      :  \n\
+          All LE files should include "le.inc" in the header.\n\
+          This include file is filled by the scripting with '#define' pre-processing macros.\n\
+          To compile a source code with LE files that do not include "le.inc",\n\
+          ensure that marco definitions are passed to the compiler directly by setting:\n\
+          .   build.configure.define.D  :  True\n\
+          in the expert.rc file.\n\
+
+! all LEKF files should include "lekf.inc"; search files that do not do that:
+build.configure.check.lekf_inc.msg     :  Test on LEKF files that do no not include "lekf.inc" ...
+build.configure.check.lekf_inc.files   :  lekf_*.F90 lotos-euros-kf.F90
+build.configure.check.lekf_inc.skip    :  
+build.configure.check.lekf_inc.test    :  not line.startswith('#include "lekf.inc"')
+build.configure.check.lekf_inc.help    :  \n\
+          All LEKF files should include "lekf.inc" in the header.\n\
+          This include file is filled by the scripting with '#define' pre-processing macros.\n\
+          To compile a source code with LE files that do not include "lekf.inc",\n\
+          ensure that marco definitions are passed to the compiler directly by setting:\n\
+          .   build.configure.define.D  :  True\n\
+          in the expert.rc file.\n\
+
+! special: check on unknown macros used in '#if[n]def' lines,
+! but not listed in .all lists above ?
+build.configure.check.unknown_macro.msg :  Test for unsupported macros ...
+
+! source directories should not be polluted with strang files
+build.configure.check.strange_file.msg       :  Test on strange file names ...
+build.configure.check.strange_file.files     :  *
+build.configure.check.strange_file.skip      :  *.inc *.f *.F *.f90 *.F90 Makefile* *.o *.mod *.x
+build.configure.check.strange_file.test      :  True
+build.configure.check.strange_file.help      :  \n\
+          Source directories should not be polutted with strange files\
+          such as backup files created by editors;\n\
+          if this file is actually useful, add a filename pattern to the list specified by:\n\
+          .   build.configure.check.strange_file.skip\n\
+          in the expert.rc file.\n\
+          Don't forget to remove this file from the build/src directory,\n\
+          otherwise this check will remain complaining for ever.
+
+! in case some strange things are found, leave with error message (True|False)?
+build.configure.checks.error            :  True
+
+
+! * compile rules
+
+! explicit rules ; specify additional compiler flag groups for object files:
+!      objectfile1  :  flaggroup1 ; objectfile2 : flaggroup2 ; ...
+build.configure.rules.explicit          :  le_sia_isorropia2_isocom.o : implicit ; \
+                                           le_sia_isorropia2_isofwd.o : implicit ; \
+                                           le_sia_isorropia2_isorev.o : implicit ; \
+                                           MKL.o : implicit ; \
+                                           standard_name_table.o      : optim-none
+
+! include file to be written for Makefile:
+build.configure.rules.includefile       :  Makefile_rules
+
+
+! * makedep
+
+! create depencencies using the external 'makedep' program (True|False) ?
+! flag is defined in machine settings:
+build.configure.makedep                 :  ${my.with.makedep}
+
+! include file to be written for Makefile:
+build.configure.makedep.includefile     :  Makefile_deps
+
+! dependencies are created for files matching the pattern:
+build.configure.makedep.files           :  *.[Ff] *.[Ff]90
+
+! define explicit dependencies for some objects, 
+! in case these are not recoqnized by 'makedep',
+! for example dependencies on object files that are no modules;
+! specifiy ';' seperated lines of target and object list seperated by ':' :
+!    target-object1 : object1 object2 ... ;
+!    target-object2 : object3 object4 ...
+build.configure.makedep.explicit        :  \
+    le_meteo_racmo.o            : le_meteo_racmo_caldat.o le_meteo_racmo_julday.o ; \
+    le_sia_isorropia2.o         : le_sia_isorropia2_isocom.o ; \
+    le_sia_isorropia2_isocom.o  : le_sia_isorropia2_isofwd.o le_sia_isorropia2_isorev.o ; \
+    le_m7.o                     : m7.o m7_averageproperties.o m7_equiz.o m7_equimix.o m7_equil.o ; \
+    m7.o                        : m7_dgas.o m7_dnum.o m7_dconc.o ; \
+    m7_dconc.o                  : m7_cumnor.o ; \
+    m7_dnum.o                   : m7_coaset.o m7_nuck.o m7_delcoa.o ; \
+    m7_delcoa.o                 : m7_concoag.o ; \
+    le_emis_megan.o             : megan_2_04_index1.o ; \
+    megan_2_04_gamma_etc.o      : megan_2_04_solarangle.o
+
+
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! make
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! make executable (True||False) ?
+build.make        :  True
+
+! source directory:
+build.make.dir    :  ${build.prefix}/src
+    
+! name of Makefile supporting pycasso stuff,
+! e.g. including Makefile_flags, Makefile_deps etc:
+build.make.makefile   : Makefile
+
+! Which executables to be build ?
+! Provide ';' seperated list.
+! Also provide basename of source file with main program
+! if this is different from the basename of the executable, e.g.:
+!     lekf.x  tracer ; boe.x
+build.make.exec      : lekf.x
+
+
+! ------------------------------------------------
+! install executable and scripts
+! ------------------------------------------------
+
+! Copy files into run directory.
+! Specify a space seperated list with source files.
+! If the copy should obtain another name, append it seperated with a ':', e.g.
+!      model.x:model-myproject.x
+! Include the build directory if necessary, e.g. '${build.prefix}/src/model.x' .
+install.copy             :  ${build.prefix}/src/${build.make.exec}:${job.step.run.exe} \
+                            ${build.prefix}/bin/submit_le \
+                            ${build.prefix}/bin/submit_fc \
+                            ${build.prefix}/bin/Makefile.rundir:Makefile
+
+! name of processed rc file to be written (original this file); 
+! leave empty for not writing:
+install.rc               :  ${my.basename}.rc
+
+! ------------------------------------------------
+! packing script to supress output
+! ------------------------------------------------
+
+output.pack.script       :  ${build.prefix}/bin/pack_output
+
+! ------------------------------------------------
+! Post-processing : defaults
+! ------------------------------------------------
+
+!
+! Settings to store output files in archive.
+! See header of 'submit_le_step_done' for details.
+! 
+
+! only store sourece files; see the 'sources.store.*'keys in the 'expert.rc':o
+store.tasks                   :  sources
+
+! zip files before archiving ? 
+! empty, or a zipper command (gzip, bzip2, compress, ...) :
+default.store.zipper        :  gzip
+
+! store in archive even if already present ?
+! by default probably True, but might not be necessary for some precomputed data:
+default.store.renew         :  True
+
+! not used yet ...
+default.store.arch          :  /no/archive/defined/yet/
+
+
+! ------------------------------------------------
+! Post-processing : archive sources
+! ------------------------------------------------
+
+! Add the name 'sources' to the 'store.tasks' list to enable this!
+
+! specify how to store source files wiht output:
+! o store from run dictory:
+sources.store.from            :  ..
+! o target file name:
+sources.store.files           :  ${my.basename}__sources.tar
+! o filter for files to be included:
+sources.store.tarfilter       :  build/bin/ \
+                                 build/data/ \
+                                 build/src/Makefile* \
+                                 build/src/*.[Ff]* \
+                                 build/src/*.inc \
+                                 run/${install.rc}
+! o archive next to output files:
+sources.store.arch            :  ${le.output.outdir}
+
+
+! ------------------------------------------------
+! job script
+! ------------------------------------------------
+
+! name of job in queue etc:
+job.name            :  ${my.basename}
+
+! names used for job steps:
+!job.steps           :  init run done
+job.steps           :  run
+
+! executable used by the 'run' step:
+job.step.run.exe    :  ${my.basename}.x
+
+
+! ------------------------------------------------
+! submit script
+! ------------------------------------------------
+
+! name of submit script:
+submit.script       :  submit_le
+
+! full submit command from rundirectory:
+submit.command      :  ./${submit.script} ${job.step.run.exe} ${install.rc}
+
+! try to use relative paths if possible ?
+! this will facilitate moving the complete build/run/output directory:
+submit.relpaths     :  True
+
+! submit job to : foreground | background | queue
+! might be replaced given the flags passed to the submit script
+!submit.to           :  foreground
+submit.to           :  ${my.submit.to.default}
+
+! allowed destinations:
+submit.to.allowed   :  ${my.submit.to.allowed}
+
+! if submitted to background, wait for completion ?
+submit.background.wait   :  False
+
+! options passed directly to a submission command (llsubmit, qsub, ...):
+submit.options      :  
+
+! run in debugger (True|False*) ?
+submit.debugger     :  False
+
+! extra message displayed after the submit instructions;
+! include '\n' for newline, and '\t' for indent:
+submit.msg : \n\
+For first glance on settings and results:\n\
+\t\n\
+\t# run diadem postprocessor:\n\
+\ttools/diadem/bin/diadem lotos-euros.rc
+
+
+! ----------------------------------------
+! Start run automatically (True|False) ?
+! ----------------------------------------
+
+! Forced to 'True' by the '--submit' option to 'setup_lekf'. 
+! The job is started in the background, foreground or managed 
+! by a job scheduler, according to ${submit.to} flag;
+! this can also be overwritten at the command line.
+submit.auto                   :  False
+
+
+
+! ######################################################################
+! ###
+! ### installation
+! ###
+! ######################################################################
+
+! See header of 'submit_le_step_init' for details.
+
+! Install tasks to be performed, empty for none:
+install.tasks          :  le.output le.restart
+
+
+
+! ######################################################################
+! ###
+! ### vertical
+! ###
+! ######################################################################
+
+! NOTE: this key is actually not part of the (ecmwf) meteo,
+!       but part of the vertical layer definition ...
+
+! often strongly elevated mixing heights for ecmwf (and racmo) meteo;
+! to avoid very thin residual layers, define the minimum:
+meteo.ecmwf.d_min   :  500.0
+
+
+! ######################################################################
+! ###
+! ### tracers
+! ###
+! ######################################################################
+
+! ----------------------------------------
+! code generation
+! ----------------------------------------
+
+! file with tracer table ;
+! provide absolute path or relateve to 'src' directory:
+genes.tracers.file            :  ../data/tracers.csv
+
+! file with reactions table ;
+! provide absolute path or relateve to 'src' directory:
+genes.reactions.file          :  ../data/reactions.csv
+
+! files to be created:
+genes.files                   :  le_indices.inc le_chem_work.F90
+
+! optional shell command to show generated files:
+genes.show.command            :  
+!genes.show.command            :  nedit ${genes.files} &
+
+! gas-phase chemistry solver:
+genes.solver                  :  TWOSTEP
+
+! add labeling code (True|False) ?
+genes.labeling                :  ${my.with.labeling}
+
+! add VBS code (True|False) ?
+genes.vbs                     :  ${my.with.vbs}
+
+
+
+! ######################################################################
+! ###
+! ### chemistry
+! ###
+! ######################################################################
+
+! minimum and maximum number of iteration in the chemistry:
+le.chem.solver.iter.min       :  10
+le.chem.solver.iter.max       :  15
+
+! NO2 photolysis correction table: (DEPRICATED ?)
+le.chem.JNO2_corr.file        :  ${my.data.dir}/standard/JNO2_correction.txt
+
+!
+! OH fields for sulphur- and methane-only chemistries
+! are read from a model run with output including
+! hourly OH fields on all levels (see le.output flags)
+! Specify:
+!  o path to model output
+!  o filename description key; example below is for files
+!      /output/myproj/base/LE_base_conc-3d_20010203.nc ...
+! Example:
+!   le.chem.OH              :  T
+!   le.chem.OH.path         :  /output/myproj/base
+!   le.chem.OH.key          :  format=netcdf;model=LE;runid=base;type=conc-3d
+!
+#if ("sulphur" in "${genes.group.selected}".split()) or ("methane" in "${genes.group.selected}".split()) :
+le.chem.OH              :  T
+le.chem.OH.path         :  ${my.project.dir}/${run.project}/base
+le.chem.OH.key          :  format=netcdf;model=LE;runid=base;type=conc-3d
+#else
+le.chem.OH              :  F
+#endif
+
+! enable explicit cloud chemistry (T|F) ?
+!  o requires the ml22 cloud meteo files
+#if "sia" in "${genes.group.selected}".split() and "cbm4" in "${genes.group.selected}"
+le.chem.cloud       :  T
+#else
+le.chem.cloud       :  F
+#endif
+
+! Catch if you try to run with sia without cbm4 of cbm4 without sia
+#if "sia" in "${genes.group.selected}".split() and not "cbm4" in "${genes.group.selected}"
+#error WARNING, Model run with SIA components without cbm4 precursor components --> \
+       Define also cbm4 in selected groups of tracers
+#endif
+
+#if "cbm4" in "${genes.group.selected}".split() and not "sia" in "${genes.group.selected}"
+#error WARNING, Model run with CBM4 chemistry, but without aerosol chemistry to form SIA-components --> \
+       Define also sia in selected groups of tracers
+#endif
+
+! * SIA
+
+! which equilibrium code ? 
+! ~ only this one is supported:
+le.chem.sia.scheme      :  isorropia2
+! ~ fast and no particular problems:
+!le.chem.sia.scheme      :  equisam
+
+! * VBS
+
+! Switch on VBS (T/F) ?
+#if "vbs" in "${genes.group.selected}".split()
+my.with.vbs          : T
+my.vbs.define        :  with_vbs
+#else
+my.with.vbs          : F
+my.vbs.define        :
+#endif
+
+! VBS gas-to-aerosol condensation:
+! ~ POM emissions directly into vbs classes (T|F) ? (initially set true if VBS is switched on)
+le.vbs.pom_to_vbs        :  ${my.with.vbs}
+! ~ soa chemistry leading to production into vbs classes (T|F) ? (initially set true if VBS is switched on)
+le.vbs.soa.chemistry     :  ${my.with.vbs}
+
+! * M7
+! switch on M7
+#if "m7" in "${genes.group.selected}".split()
+my.m7.define        :  with_m7
+#else
+my.m7.define        :
+#endif
+
+! * Pollen
+! switch on Pollen?
+#if "pollen" in "${genes.group.selected}".split()
+my.pollen.define    : with_pollen
+#else
+my.pollen.define    :
+#endif
+
+! ######################################################################
+! ###
+! ### advection
+! ###
+! ######################################################################
+
+! advect radicals too (T|F) ?
+advection.radicals      :  F
+
+
+
+! ######################################################################
+! ###
+! ### Labeling
+! ###
+! ######################################################################
+
+! macro definition:
+#if "${my.with.labeling}" == "True"
+my.labeling.define  :  with_labeling ${my.spblas.define}
+#else
+my.labeling.define  :  
+#endif
+
+N_tracers           : no no2 no3 hno3 hno2 n2o5 pan nh3 no3a_c no3a_f nh4a_f
+S_tracers           : so2 so4a_c so4a_f
+C_tracers           : ald xyl form eth par tol ole cres co c2o3 ch4 cro iso ispd to2 open terp mgly
+unreactive_tracers  : na_f na_ff na_ccc na_cc na_c ppm_f ppm_c ec_f ec_c pom_f pom_c dust_ff dust_f dust_ccc dust_cc dust_c
+
+! labeled emissions ?
+labels.emissions       : F
+! which ?
+labels.emissions.specs : no no2 so4a_f ec_f ec_c na_ccc na_cc na_c na_f na_ff dust_ff dust_f dust_ccc dust_cc dust_c
+                      
+
+! ######################################################################
+! ###
+! ### logging
+! ###
+! ######################################################################
+
+! suppress printed output (yes,no) ?
+log.suppress    :  yes
+
+! debug output (yes,no) ?
+log.debug       :  no
+
+! for yes, specifify the grid cell for which debug output should be written:
+log.debug.cell  :  1 1
+! cell '0 0' indicates min/max/aver over 2D field:
+!log.debug.cell  :  0 0
+
+
+
+! ######################################################################
+! ###
+! ### cf-conventions
+! ###
+! ######################################################################
+
+! cf conventions:
+cf.convention           :  CF-1.6
+
+! table with standard names:
+cf.standard.table       :  ${my.data.dir}/cf-standard/cf-standard-name-table-v30.xml
+

@@ -1,0 +1,14 @@
+! 
+! ECMWF ecgate settings
+!
+
+! compiler settings:
+#include ${leip.prefix}/rc/compiler-intel-14.0.1.rc
+
+build.libs                     :  netcdf
+
+build.lib.netcdf.fflags        :  -I${NETCDF_FORTRAN_HOME}/include
+build.lib.netcdf.ldflags       :  -L${NETCDF_FORTRAN_HOME}/lib -lnetcdff -Wl,-rpath -Wl,${NETCDF_FORTRAN_HOME}/lib \
+                                  -L${NETCDF_HOME}/lib -lnetcdf -Wl,-rpath -Wl,${NETCDF_HOME}/lib
+
+

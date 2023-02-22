@@ -1,0 +1,121 @@
+#! /usr/bin/env python
+
+"""
+Get meteo files produced at ECMWF ecgate server.
+
+Filennames:
+  europe_w46e84n26n78__ECMWF__od__ifs__0001__an__sfc__F640__0000__orog.nc
+  :
+  
+On storge, filename parts '__' are translated into path seperations.
+
+Uses the ecaccess tools to get data.
+"""
+
+#-------------------------------------------------
+# modules
+#-------------------------------------------------
+
+# modules:
+import sys
+import os
+import subprocess
+
+
+#-------------------------------------------------
+# settings
+#-------------------------------------------------
+
+# source directory in ecaccess form:
+srcdir = 'scratch:OpenLE/meteo'
+
+# exptected extension:
+ext = 'nc'
+
+# start of files:
+filestart = 'europe_w46e84n26n78'
+
+# renew files already present?
+renew = False
+
+
+#-------------------------------------------------
+# begin
+#-------------------------------------------------
+
+# info ...
+print( '' )
+print( '** OpenLE meteo get' )
+print( '' )
+
+# info ...
+print( 'list ECMWF files in "%s" ...' % srcdir )
+# command to list remote content:
+command = [ 'ecaccess-file-dir', srcdir ]
+# run:
+try :
+    output = subprocess.check_output( command )
+except :
+    print( 'ERROR from command : %s' % command )
+    sys.exit(1)
+#endtry
+
+# info ...
+print( 'loop over files ...' )
+# split in filenames:
+filenames = output.split('\n')
+# loop:
+for filename in filenames :
+
+    # filter ...
+    if not filename.endswith(ext) : continue
+    if not filename.startswith(filestart) : continue
+    
+    # info ...
+    print( '  %s ..' % filename )
+    
+    # target file:
+    target = filename.replace('__',os.sep)
+
+    # target directory:
+    dirname = os.path.dirname( target )
+    # create if necessary:
+    if not os.path.isdir(dirname) : os.makedirs( dirname )
+    
+    # newfile ?
+    if os.path.isfile(target) and (not renew) :
+        # info ...
+        print( '    local copy already present ...' )
+    else :
+        # info ...
+        print( '    get ...' )
+        # temporary target:
+        tmpfile = filename+'.tmp'
+        # get command:
+        command = [ 'ecaccess-file-get', os.path.join(srcdir,filename), tmpfile ]
+        # run:
+        subprocess.check_call( command )
+        # check, command does not always return with proper error:
+        if not os.path.isfile( tmpfile ) :
+            print( '    local file not found: %s' % tmpfile )
+            sys.exit(1)
+        #endif
+        # info ...
+        print( '    store: %s' % target )
+        # rename:
+        os.rename( tmpfile, target )
+    #endif
+    
+#endfor # filenames
+    
+# info ...
+print( 'done' )
+
+# info ...
+print( '' )
+print( '** end' )
+print( '' )
+
+#-------------------------------------------------
+# end
+#-------------------------------------------------

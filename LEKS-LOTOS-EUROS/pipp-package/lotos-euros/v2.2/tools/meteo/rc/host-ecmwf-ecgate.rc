@@ -1,0 +1,13 @@
+! 
+! ECMWF ecgate settings
+!
+
+! compiler settings:
+#include ${leip.prefix}/rc/compiler-gcc-${gcc_VERSION}.rc
+
+build.libs                     :  netcdf
+
+build.lib.netcdf.fflags        :  ${NETCDF_INCLUDE}
+build.lib.netcdf.ldflags       :  ${NETCDF_LIB}
+
+

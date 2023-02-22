@@ -1,0 +1,206 @@
+! ######################################################################
+! ###
+! ### horizontal grid
+! ###
+! ######################################################################
+
+
+! Predefined grid-settings
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#if "${grid.name}" == "MACC"
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+!
+! * MACC grid
+!   domain     : [-15,35] x [35,70]
+!   resolution :    1/2   x   1/4
+!
+
+! define grid type:
+grid.type          :  cartesian
+grid.meteo_mapping :  interpol
+
+! south-west corner:
+grid.west          :  -15.0
+grid.south         :   35.0
+! resolution:
+grid.dlon          :    0.50
+grid.dlat          :    0.25
+! spacing:
+grid.nx            :  100
+grid.ny            :  140
+
+! domain name in LEIP input:
+my.leip.region     :  europe_w30e70s5n75
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#elif "${grid.name}" == "MACC-II"
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+!
+! * MACC-II grid
+!   domain     : [-25,45] x [30,70]
+!   resolution :    1/2   x   1/4
+!
+
+! define grid type:
+grid.type          :  cartesian
+grid.meteo_mapping :  interpol
+
+! south-west corner:
+grid.west          :  -25.0
+grid.south         :   30.0
+grid.dlon          :    0.50
+grid.dlat          :    0.25
+! spacing:
+grid.nx            :  140
+grid.ny            :  160
+
+! domain name in LEIP input:
+my.leip.region     :  europe_w30e70s5n75
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#elif "${grid.name}" == "MACC-III"
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+!
+! * MACC-III grid
+!   domain     :   [-25,45] x [30,70]    degrees
+!   size       :       70   x    40      degrees
+!   resolution :      1/4   x   1/8      degrees
+!   shape      :      280   x   320      cells
+!
+
+! define grid type:
+grid.type          :  cartesian
+grid.meteo_mapping :  interpol
+
+! south-west corner:
+grid.west          :  -25.0
+grid.south         :   30.0
+grid.dlon          :    0.25
+grid.dlat          :    0.125
+! spacing: 
+grid.nx            :  280
+grid.ny            :  320
+
+! domain name in LEIP input:
+my.leip.region     :  europe_w30e70s5n75
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#elif "${grid.name}" == "CAMS-II"
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+!
+! * CAMS-II grid   (= MACC-III domain extend to 72N on 0.1 deg resolution)
+!   domain     :   [-25,45] x [30,72]    degrees
+!   size       :       70   x    42      degrees
+!   resolution :      0.1   x   0.1      degrees
+!   shape      :      700   x   420      cells
+!
+
+! define grid type:
+grid.type          :  cartesian
+grid.meteo_mapping :  interpol
+
+! south-west corner:
+grid.west          :  -25.0
+grid.south         :   30.0
+grid.dlon          :    0.1
+grid.dlat          :    0.1
+! spacing: 
+grid.nx            :  700
+grid.ny            :  420
+
+! domain name in LEIP input:
+my.leip.region     :  europe_w30e70s5n75
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#elif "${grid.name}" == "NL-smogprog"
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+!
+! * zoom over NL
+!   domain     : [3,9] x [49,55]
+!   resolution : 1/8 x 1/16
+!
+
+! define grid type:
+grid.type          :  cartesian
+grid.meteo_mapping :  interpol
+
+! south-west corner:
+grid.west          :   3.0
+grid.south         :   49.0
+! resolution:
+grid.dlon          :    0.125
+grid.dlat          :    0.0625
+! spacing:
+grid.nx            :   48
+grid.ny            :   96
+
+! domain name in LEIP input:
+my.leip.region     :  europe_w30e70s5n75
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#elif "${grid.name}" == "NL"
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+!
+! * zoom over NL
+!   domain     : [1,11] x [48,55]
+!   resolution : 1/8 x 1/16
+!
+
+! define grid type:
+grid.type          :  cartesian
+grid.meteo_mapping :  interpol
+
+! south-west corner:
+grid.west          :   1.0
+grid.south         :   48.0
+! resolution:
+grid.dlon          :    0.125
+grid.dlat          :    0.0625
+! spacing:
+grid.nx            :   80
+grid.ny            :   112
+
+! domain name in LEIP input:
+my.leip.region     :  europe_w30e70s5n75
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#elif "${grid.name}" == "wrfd02"
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+!
+! WRF d02 domain
+!   largest rectangle within grid: [-9.5,10.5] x [49,60.25]
+!
+
+! define grid type:
+grid.type          :  cartesian
+grid.meteo_mapping :  area-average
+
+! south-west corner:
+grid.west          :  -9.5
+grid.south         :   49.0
+! resolution:
+grid.dlon          :   0.125
+grid.dlat          :   0.0625
+! spacing:
+grid.nx            :   160
+grid.ny            :   180
+
+! domain name in LEIP input:
+my.leip.region     :  europe_w30e70s5n75
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#else
+#error unsupported grid.name "${grid.name}"
+#endif
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+

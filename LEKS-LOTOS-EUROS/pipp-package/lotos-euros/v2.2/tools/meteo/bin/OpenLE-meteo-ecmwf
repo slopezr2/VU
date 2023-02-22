@@ -1,0 +1,811 @@
+#! /usr/bin/env python
+
+"""
+OpenLE - extract meteo files from ECMWF archive.
+
+Run this script on ECMWF member state server (ecgate).
+
+
+BATCH JOB
+
+    Example of batch job on ecgate:
+    
+        #! /bin/sh
+
+        #SBATCH --job-name=openle-meteo
+        #SBATCH --qos=normal
+        #SBATCH --workdir=/scratch/ms/xx/you/OpenLE
+        #SBATCH --output=openle-meteo.out
+        #SBATCH --error=openle-meteo.err
+        #SBATCH --time=1-00:00:00
+
+        # run:
+        ${HOME}/OpenLE/bin/OpenLE-meteo-ecmwf
+
+
+MARS ARCHIVE
+
+    Meteo is archived in hypercubes with output from a single simulation.
+    Data should be retrieved as much as possible per hypercube,
+    thus perferably a loop over simulations than a loop over variables.
+
+    The structure of the archive is shown in online manual:
+      software.ecmwf.int  >  Site Space "User Documentation"
+        MARS user documentation  >  MARS actions  >  Retrieve  >  Data collocation
+    (https://software.ecmwf.int/wiki/display/UDOC/Retrieve#Retrieve-Datacollocation)
+
+       class:                od
+                              |
+       stream:              oper
+                              |
+       expver:              0001
+                          /      \
+       type:            fc        an
+                         |
+       year:           yyyy     
+       month:           mm      
+                     /      \
+       levtype:   sfc        ml
+                   |
+       date:      yyyymmdd
+                    /  \
+       time:      00    12
+                   |     |
+                 cube   cube
+       
+    Example of mars retrieval command:
+      
+        retrieve, 
+            class    = od, 
+            stream   = oper, 
+            expver   = 0001, 
+            type     = fc, 
+            levtype  = sfc, 
+            date     = 20120710, 
+            time     = 00/12,
+            step     = 03/06/09/12, 
+           [levels   = off,]
+            grid     = F160, 
+            param    = t2m, 
+            target   = "od-oper-0001-fc-sfc-20120710-F160-t2m.gb"
+
+    Useful settings for some of the keywords:
+
+        grid:
+            F160      : regular              Gaussian grid
+            N320      : 'normal'     reduced Guassian grid
+            O640      : 'octahedral' reduced Gaussian grid
+            1.0/1.0   : regular lon/lat
+
+
+CONVERSION TO NETCDF
+
+    The 'grib_to_netcdf' tool is used for conversion from grib to netcdf.
+    Note that this tool only works for regular grids.
+    
+    
+CF-COMPLIANCE
+
+    The NetCDF files should be fed to a checker for CF compliance:
+        http://puma.nerc.ac.uk/cgi-bin/cf-checker.pl
+
+    The following errata were found:
+    - Unsupported units:
+      - Land sea mask (lsm), soil type (slt), sea ice (ci), cloud cover (cc)
+        units "(0 - 1)" should be "1"
+      - Soil type (slt)
+        units "~" should be "1"
+      - Snow depth (sd), Snowfall (sf)
+        units "m of water equivalent" should "m"
+    - Model level files lack hybride coefficients;
+      also surface pressure field is missing initially.
+      These are added from other files:
+      - surface pressure file is created from original log-surface pressure
+        (on model levels, only log-surface pressure is in archive)
+      - hybride coefficients are copied from log-surface pressure file
+        that is converted from grib to netcdf by cdo
+
+POST PROCESSING
+
+    The following post-processing are applied:
+    - Accumulated fields are transformed to averages over time interval
+    - Model levels are coarsened to about 20 in the troposphere.
+
+"""
+
+#-------------------------------------------------
+# modules
+#-------------------------------------------------
+
+# modules:
+import os
+import sys
+import datetime
+import calendar
+import subprocess
+
+# path to scripts:
+openledir = os.path.join( os.environ['HOME'], 'lotos-euros', 'v2.2', 'tools', 'meteo')
+
+# extend search path:
+sys.path.insert( 0, os.path.join(openledir,'bin') )
+
+# tools:
+import rc
+import leip_build
+import c3po
+
+
+#-------------------------------------------------
+# settings
+#-------------------------------------------------
+
+# rcfile with settings for building source code.
+rcfile = os.path.join( openledir, 'rc', 'openle-meteo.rc' )
+
+# run directory:
+rundir = os.path.join( os.environ['SCRATCH'], 'OpenLE', 'meteo' )
+
+# remove temporary files ?
+cleanup = True   # default
+#cleanup = False  # testing ...
+
+# run mars command? False for testing grib-to-netcdf:
+with_mars = True   # default
+#with_mars = False  # testing ...
+
+# ***
+
+# date range:
+days = [ datetime.datetime(2012, 12,28), datetime.datetime(2012, 12,28) ]
+
+# date range defined in job creation script:
+#tfmt = '%Y-%m-%d'
+#days = [ datetime.datetime.strptime(os.environ['DATE1'],tfmt), datetime.datetime.strptime(os.environ['DATE2'],tfmt) ]
+
+# ***
+
+# number of days per retrieval, None for monthly;
+# use monthyly for analysis, 
+# for forecast eventually limit if not enough space:
+days_per_retrieval = { 'an' : None, 'fc' : None }
+
+# meteo dataset:
+ec_class   = 'od'   # operational data
+#ec_class   = 'ea'   # ERA5 (public)
+
+# atmosphere model:
+ec_stream  = 'oper'
+
+# default experiment:
+ec_expver  = '0001'
+
+# time resolution keys per level type:
+tress = { 'sfc' : '1h', 'ml' : '3h' }
+# forecast times and steps per keyword:
+ec_times = {} ; ec_steps = {}
+ec_times['3h'] = '00/12' ; ec_steps['3h'] = '03/06/09/12'
+ec_times['1h'] = '00/12' ; ec_steps['1h'] = '01/02/03/04/05/06/07/08/09/10/11/12'
+
+# target grid:
+#ec_grid  = 'F1280'   # regular gaussian grid
+#ec_grid  = 'F640'   # regular gaussian grid
+ec_grid  = 'F320'   # era5 resolution is N320
+
+# area selection N/W/S/E (only possible for regular grids!)
+#ec_area  = '10/0/0/10' ; domain = 'test_w0e10n0n10'
+ec_area  = '75/-30/-5/70' ; domain = 'europe_w30e70s5n75'
+#ec_area  = '40/-30/0/30'  ; domain = 'africa_w30e30n0n40'
+
+# number of levels in ECMWF model for this time period:
+#L = 60    # ei
+#L = 91
+L = 137  # od from 2014, era5
+
+# model level range:
+levels = '1/to/%i' % L
+
+# coarsen levels to about 20 in troposphere,
+# depends on original number of layers:
+levcoarse = {}
+levcoarse[137] = { 'name' : 'L137_CL42', 'coarsening' : '3/4/4/4/4/4/4/4/4/4/4/4/4/4/4/4/4/4/4/4/4/4/4/4/4/4/4/3/3/3/3/3/2/2/2/2/2/1/1/1/1/1' }
+
+# basename for target files; keys:
+#   %{domain}    : expanded before creation of mars script
+#   [param]      : expanded by mars
+#   YYYY         : expanded by post-processing
+#   __           : future path seperation
+target_template = '%{domain}__ECMWF__%{class}__ifs__%{expver}__%{type}__%{levtype}__%{grid}__YYYY__[param]_[date]_%{tres}'
+
+# parameters, define lists following archive structure:
+#   params[type][levtype]
+# for model level field, first param should be 'lnsp'
+params = {}
+params['xx'] = {}
+params['xx']['sfc'] = ['orog','lsm','slt']
+params['an'] = {}
+params['fc'] = {}
+params['fc']['sfc'] = ['blh','ci','cp','d2m','lsp','sd','sf','skt','slhf','sshf','ssr','ssrd','sstk','stl1','stl2','stl3','stl4','swvl1','swvl2','swvl3','swvl4','t2m','tcc','u10','v10','zust']
+params['fc']['ml'] = ['lnsp','cc','ciwc','clwc','crwc','cswc','q','t','u','v']
+
+# source parameters:
+sparams = {}
+sparams['orog'] = 'z'   # will be converted from geopotential ("z") to surface altitude ("orog")
+
+# translation to grib mars abbreviation:
+gparams = {}
+gparams['t2m' ] = '2T'
+gparams['d2m' ] = '2D'
+gparams['u10' ] = '10U'
+gparams['v10' ] = '10V'
+
+# grib codes as expanded from '[param]' by mars:
+gcodes = {}
+gcodes['z'    ] = '129.128'
+gcodes['lsm'  ] = '172.128'
+gcodes['blh'  ] = '159.128'
+gcodes['2T'   ] = '167.128'
+gcodes['2D'   ] = '168.128'
+gcodes['10U'  ] = '165.128'
+gcodes['10V'  ] = '166.128'
+gcodes['sstk' ] =  '34.128'
+gcodes['ci'   ] =  '31.128'
+gcodes['swvl1'] =  '39.128'
+gcodes['swvl2'] =  '40.128'
+gcodes['swvl3'] =  '41.128'
+gcodes['swvl4'] =  '42.128'
+gcodes['skt'  ] =  '43.128'
+gcodes['slt'  ] =  '43.128'
+gcodes['sd'   ] = '141.128'
+gcodes['ssr'  ] = '176.128'
+gcodes['ssrd' ] = '169.128'
+gcodes['lsp'  ] = '142.128'
+gcodes['cp'   ] = '143.128'
+gcodes['sf'   ] = '144.128'
+gcodes['tcc'  ] = '164.128'
+gcodes['lnsp' ] = '152'
+gcodes['t'    ] = '130'
+gcodes['q'    ] = '133'
+gcodes['u'    ] = '131'
+gcodes['v'    ] = '132'
+gcodes['cc'   ] = '248'
+gcodes['clwc' ] = '246'
+gcodes['ciwc' ] = '247'
+gcodes['crwc' ] = '75'
+gcodes['cswc' ] = '76'
+gcodes['zust' ] = '3.228'
+gcodes['sshf'   ] = '146.128'
+gcodes['slhf'   ] = '147.128'
+gcodes['skt'    ] = '235.128'
+gcodes['stl1'   ] = '139.128'  # soil temperature level 1
+gcodes['stl2'   ] = '170.128'  # soil temperature level 2
+gcodes['stl3'   ] = '183.128'  # soil temperature level 3
+gcodes['stl4'   ] = '236.128'  # soil temperature level 4
+
+# accumulated fields:
+accums = ['sshf','slhf','ssr','ssrd','lsp','cp','sf']
+
+
+#-------------------------------------------------
+# begin
+#-------------------------------------------------
+
+# info ...
+print( '' )
+print( '** OpenLE meteo extract' )
+print( '' )
+
+# info ...
+print( 'goto rundir : %s' % rundir )
+# current location:
+cwd = os.getcwd()
+# create if necessary:
+if not os.path.isdir(rundir) : os.makedirs( rundir )
+# goto:
+os.chdir( rundir )
+
+# *
+
+# ensure consisting naming of target files:
+os.environ['MARS_MULTITARGET_STRICT_FORMAT'] = '1'
+
+# set flag to build executable if necessary:
+isbuild = False
+
+# info ...
+print( 'loop over types ...' )
+# loop over types (an,fc):
+for ec_type in params.keys() :
+    # info ...
+    print( '  type "%s" ...' % ec_type )
+
+    # init list of (start,end) days per month:
+    mdays = []
+    # switch:
+    if ec_type == 'xx' :
+        # first day:
+        mdays.append( (days[0],days[0]) )
+    else :
+        # days per retrieval:
+        if ec_type in days_per_retrieval.keys() :
+            dpr = days_per_retrieval[ec_type]
+        else :
+            dpr = None  # monthly
+        #endif
+        # first:
+        day1 = days[0]
+        # loop:
+        while day1 <= days[1] :
+            # number of days per month:
+            weekday,nday = calendar.monthrange(day1.year,day1.month)
+            # end of month:
+            eom = datetime.datetime(day1.year,day1.month,nday)
+            # limited number of days? otherwise monthly:
+            if dpr is None :
+                # set end day:
+                day2 = eom
+            else :
+                # step, not over end of month:
+                day2 = min( day1 + datetime.timedelta(dpr-1), eom )
+            #endif
+            # truncate to overall range:
+            day2 = min( day2, days[1] )
+            # store:
+            mdays.append( (day1,day2) )
+            # next:
+            day1 = day2 + datetime.timedelta(1)
+        #endwhile # month loop
+    #endif # constant or timeseries
+
+    # loop over day ranges:
+    for day1,day2 in mdays :
+
+        # info ...
+        tfmt = '%Y-%m-%d'
+        if day2 > day1 :
+            print( '    date range: %s - %s' % (day1.strftime(tfmt),day2.strftime(tfmt)) )
+        else :
+            print( '    date: %s' % day1.strftime(tfmt) )
+        #endif
+
+        # date(s):
+        tfmt = '%Y%m%d'
+        if day2 > day1 :
+            ec_date = '%s/to/%s' % (day1.strftime(tfmt),day2.strftime(tfmt))
+        else :
+            ec_date = '%s' % day1.strftime(tfmt)
+        #endif
+
+        # loop over leveltypes:
+        for ec_levtype in params[ec_type].keys() :
+            # info ...
+            print( '      levtype "%s" ...' % ec_levtype )
+            
+            # * mars
+            
+            # info ...
+            print( '        mars ...' )
+
+            # levels:
+            if ec_levtype == 'sfc' :
+                ec_levels = None
+            else :
+                ec_levels = levels
+            #endif
+
+            # time resolution:
+            tres = tress[ec_levtype]
+
+            # single record for some constant fields:
+            if ec_type == 'xx' :
+                xx_type = 'an'
+                xx_time = '00'
+                xx_step = None
+            else :
+                xx_type = ec_type
+                xx_time = ec_times[tres]
+                xx_step = ec_steps[tres]
+            #endif
+
+            # parameters:
+            ec_param = ''
+            for param in params[ec_type][ec_levtype] :
+                # seperation in list:
+                sep = ''
+                if len(ec_param) > 0 : sep = '/'
+                # source params:
+                sparam = param
+                if param in sparams.keys() : sparam = sparams[param]
+                # translate ?
+                gparam = sparam
+                if sparam in gparams.keys() : gparam = gparams[sparam]
+                # add to list:
+                ec_param = ec_param+sep+gparam
+            #endif
+
+            # target name; expand retrieval keywords to individual files:
+            ec_target = target_template+'.gb'
+            ec_target = ec_target.replace( '%{domain}' , domain     )
+            ec_target = ec_target.replace( '%{class}'  , ec_class   )
+            ec_target = ec_target.replace( '%{stream}' , ec_stream  )
+            ec_target = ec_target.replace( '%{expver}' , ec_expver  )
+            ec_target = ec_target.replace( '%{type}'   , xx_type    )
+            ec_target = ec_target.replace( '%{levtype}', ec_levtype )
+            ec_target = ec_target.replace( '%{grid}'   , ec_grid    )
+            if ec_type == 'xx' :
+                ec_target = ec_target.replace( 'YYYY'    , '0000' )
+                ec_target = ec_target.replace( '_[date]' , '' )
+                ec_target = ec_target.replace( '_%{tres}', '' )
+            else :
+                ec_target = ec_target.replace( '%{tres}' , tres )
+            #endif
+
+            # init mars job:
+            lines = ['retrieve,']
+            lines.append( 'class    = %s,' % ec_class   )
+            lines.append( 'stream   = %s,' % ec_stream  )
+            lines.append( 'expver   = %s,' % ec_expver  )
+            lines.append( 'type     = %s,' % xx_type    )
+            lines.append( 'levtype  = %s,' % ec_levtype )
+            lines.append( 'date     = %s,' % ec_date    )
+            lines.append( 'time     = %s,' % xx_time    )
+            if xx_step is not None :
+                lines.append( 'step     = %s,' % xx_step    )
+            #endif
+            if ec_levels is not None :
+                lines.append( 'levels   = %s,' % ec_levels  )
+            #endif
+            lines.append( 'grid     = %s,' % ec_grid    )
+            lines.append( 'area     = %s,' % ec_area    )
+            lines.append( 'param    = %s,' % ec_param   )
+            lines.append( 'target   = "%s"'  % ec_target  )
+            
+            # form line for history attribute:
+            hline = '%s mars:' % datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+            for line in lines :
+                hline = hline+(' '+line.replace(' ',''))
+            #endfor
+
+            # mars job file:
+            marsjb = 'mars.jb'
+            # write mars job:
+            f = open( marsjb, 'w' )
+            for line in lines : f.write( line+'\n' )
+            f.close()
+
+            # retrieval command:
+            command = [ 'mars', marsjb ]
+            # run?
+            if with_mars :
+                subprocess.check_call( command )
+            #endif
+
+            # cleanup?
+            if cleanup : os.remove( marsjb )
+
+            # * postprocessing
+            
+            # info ...
+            print( '        postprocessing ...' )
+
+            # loop over dates:
+            day = day1
+            while day <= day2 :
+                # formated:
+                syear = day.strftime('%Y')
+                sdate = day.strftime('%Y%m%d')
+
+                # dummies:
+                lnsp_gbfile     = 'None'
+                lnsp_ncfile     = 'None'
+                lnsp_ncfile_cdo = 'None'
+                sp_ncfile       = 'None'
+
+
+                # loop over parameters:
+                for param in params[ec_type][ec_levtype] :
+
+                    ## testing ...
+                    #if param not in accums : continue
+
+                    # name of source param:
+                    sparam = param
+                    if param in sparams.keys() : sparam = sparams[param]
+
+                    # name of grib param:
+                    gparam = sparam
+                    if sparam in gparams.keys() : gparam = gparams[sparam]
+
+                    # grib codes:
+                    gcode = gcodes[gparam]
+
+                    # grib file, has grib code as param name:
+                    gbfile = ec_target
+                    gbfile = gbfile.replace('[date]',sdate)
+                    gbfile = gbfile.replace('[param]',gcode)
+
+                    # info ...
+                    print( '          convert "%s" to netcdf ...' % gbfile )
+
+                    # skip if not present (anymore):
+                    if not os.path.isfile(gbfile) :
+                        print( '            grib file not present (anymore), continue ...' )
+                        continue
+                    #endif
+                    
+                    # target file with parameter name:
+                    ncfile = ec_target
+                    ncfile = ncfile.replace('YYYY',syear)
+                    ncfile = ncfile.replace('[date]',sdate)
+                    ncfile = ncfile.replace('[param]',sparam)
+                    ncfile = ncfile.replace('.gb','.nc')
+                    
+                    # reference date at start of year:
+                    refdate = '%4.4i0101' % day.year
+                    # conversion tool ;
+                    # define time to be unlimitted (useful for nco tools);
+                    command = [ 'grib_to_netcdf', '-R', refdate, '-u', 'time',
+                                    '-o', ncfile, gbfile ]
+                    # run:
+                    subprocess.check_call( command )
+
+                    # save name of lnsp files, used for level definitions by other variables:
+                    if param == 'lnsp' :
+                        lnsp_gbfile = gbfile
+                        lnsp_ncfile = ncfile
+                    #endif
+
+                    # info ...
+                    print( '          add mars command to history ...' )
+
+                    # use NCO attribute editor to add mars command to history;
+                    # do not add this command itself to the history ...
+                    command = [ 'ncatted', '-h', '-a', 'history,global,a,c,"\n%s"' % hline, ncfile ]
+                    # run:
+                    subprocess.check_call( command )
+
+                    # convert?
+                    if param == 'orog' :
+                        # info ...
+                        print( '          compute orog = z/g ...' )
+                        # Convert from geopotential to surface altitude:
+                        #    orog = z / 9.8   # devide by standard gravitiy acceleration
+                        # Use NCO arithmatic processor (ncap, ncap2 does not work properly?);
+                        # first create algebra:
+                        algebra = 'orog=pack(z/9.8)'
+                        algebra = algebra+';orog@units="m"'
+                        algebra = algebra+';orog@long_name="Surface altitude"'
+                        algebra = algebra+';orog@standard_name="surface_altitude"'
+                        # source file with source param name:
+                        ncfile_in = ncfile
+                        # target file with final param name:
+                        ncfile = ec_target
+                        ncfile = ncfile.replace('YYYY',syear)
+                        ncfile = ncfile.replace('[date]',sdate)
+                        ncfile = ncfile.replace('[param]',param)
+                        ncfile = ncfile.replace('.gb','.nc')
+                        # command, only keep new variables:
+                        command = [ 'ncap2', '-O', '-v', '-s', algebra, ncfile_in, ncfile ]
+                        # run:
+                        subprocess.check_call( command )
+                        # cleanup?
+                        if cleanup : 
+                            print( '          remove %s ...' % ncfile_in )
+                            os.remove( ncfile_in )
+                        #endif
+                    #endif
+
+                    # remove useless time dimension from constant files:
+                    if param in ['orog','lsm','slt'] :
+                        # TO BE CHECKED: this fails on ecgate:
+                        #   "NetCDF: Attempting netcdf-4 operation on netcdf-3 file"
+                        ## weighted average removes dimension:
+                        #subprocess.check_call( [ 'ncwa', '-O', '-a', 'time', ncfile, ncfile ] )
+                        ## remove time variable:
+                        #subprocess.check_call( [ 'ncks', '-O', '-x', '-v', 'time', ncfile, ncfile ] )
+                        # open file:
+                        ncf = c3po.file.GridFile( ncfile )
+                        # remove dimension:
+                        ncf.RemoveDimension( 'time' )
+                        # done:
+                        ncf.close()
+                    #endif
+
+                    # change units?
+                    # ~ '(0 - 1)' to '1'
+                    if param in ['lsm','slt','ci','cc'] :
+                        # new units:
+                        units     = '1'
+                        # info ...
+                        print( '              reset units to "%s" ...' % units )
+                        # use NCO attribute editor to overwrite units:
+                        try :
+                            subprocess.check_call( [ 'ncatted', '-a', 'units,%s,o,c,%s' % (param,units), ncfile ] )
+                        except :
+                            # "ci" is sometimes named "siconc" ...
+                            if param == 'ci' :
+                                param2 = 'siconc'
+                                subprocess.check_call( [ 'ncrename', '-v', '%s,%s' % (param2,param), ncfile ] )
+                                subprocess.check_call( [ 'ncatted', '-a', 'units,%s,o,c,%s' % (param,units), ncfile ] )
+                            #endif
+                        #endtry
+                        # run:
+                        subprocess.check_call( command )
+                    #endif
+                    # ~ 'm of water equivalent' to 'm'
+                    if param in ['sd','sf'] :
+                        # new units:
+                        units = 'm'
+                        # info ...
+                        print( '          reset units to "%s" ...' % units )
+                        # use NCO attribute editor to overwrite units:
+                        command = [ 'ncatted', '-a', 'units,%s,o,c,%s' % (param,units), ncfile ]
+                        # run:
+                        subprocess.check_call( command )
+                    #endif
+
+                    # accumulated field ?
+                    if param in accums :
+                        # info ...
+                        print( '          de-accumulate ...' )
+                        # open existing file for read/write:
+                        ecfile = c3po.ecmwf.ncfile.EcGridFile( ncfile )
+                        # convert from accumulated to temporal avarge fields:
+                        ecfile.DeAccum( '%s, step=%s' % (xx_time,xx_step) )
+                        # close:
+                        ecfile.close()
+                    #endif
+
+                    # fix level definition?
+                    if (ec_levtype == 'ml') and (param != 'lnsp') :
+                        # info ...
+                        print( '          fix level definition ...' )
+
+                        # Convert from log-surface-pressure to surface pressure.
+                        # Target file:
+                        sp_ncfile = lnsp_ncfile.replace('lnsp','sp')
+                        # not present yet ?
+                        if not os.path.isfile(sp_ncfile) :
+                            # info ...
+                            print( '            convert from lnsp to sp ...' )
+                            # Use NCO arithmatic processor;
+                            # ncap2 does not seem to work properly, use ncap;
+                            # create algebra:
+                            algebra = 'sp=pack(exp(lnsp))'
+                            algebra = algebra+';sp@units="Pa"'
+                            algebra = algebra+';sp@long_name="Surface air pressure"'
+                            algebra = algebra+';sp@standard_name="surface_air_pressure"'
+                            # command:
+                            command = [ 'ncap2', '-O', '-s', algebra, lnsp_ncfile, sp_ncfile ]
+                            # run:
+                            subprocess.check_call( command )
+                        #endif
+
+                        # also use 'cdo' to convert lnsp file to netcf;
+                        # this while add variables 'hy[ab][im]' with hybride level coefficients,
+                        # where 'grib_to_netcdf' has none of these:
+                        lnsp_ncfile_cdo = lnsp_ncfile.replace( '.nc', '_cdo.nc' )
+                        # not present yet ?
+                        if not os.path.isfile(lnsp_ncfile_cdo) :
+                            # info ...
+                            print( '            convert lnsp from grib to netcdf using cdo ...' )
+                            # conversion command:
+                            command = [ 'cdo', '-f', 'nc', 'copy', lnsp_gbfile, lnsp_ncfile_cdo ]
+                            # run:
+                            subprocess.check_call( command )
+                        #endif
+
+                        # fix level definition:
+                        # - copy 'sp' from 'sp_ncfile':
+                        #   - convert from 'lnsp'
+                        #   - keep packing
+                        # - fix 'lev' coordinate:
+                        #   - add attributes
+                        #   - copy 'hy[ab]m' from 'lnsp_ncfile_cdo'
+                        # - create 'levi' coordinate:
+                        #   - create 'levi' dimension
+                        #   - create 'levi' coordinate
+                        #   - copy 'hy[ab]i' from 'lnsp_ncfile_cdo'
+                        #
+                        # info ...
+                        print( '            merge level definitions ...' )
+                        # open existing file for read/write:
+                        ecfile = c3po.ecmwf.ncfile.EcGridFile( ncfile )
+                        # convert from accumulated to temporal avarge fields:
+                        ecfile.ComplyModelLevels2( sp_ncfile, lnsp_ncfile_cdo, indent='              ' )
+                        # close:
+                        ecfile.close()
+
+                        # info ...
+                        print( '          coarsen levels ...' )
+                        # build ?
+                        if not isbuild :
+                            # read settings:
+                            rcf = rc.RcFile( rcfile )
+                            # build program to coarsen levels:
+                            coarselevs_x = leip_build.Build( rcf, 'coarselevs' )
+                            # reset flag:
+                            isbuild = True
+                        #endif
+                        # coarsen levels:
+                        clevs_name       = levcoarse[L]['name']
+                        clevs_coarsening = levcoarse[L]['coarsening']
+                        # target file:
+                        ncfile_clevs = ncfile.replace('_ml_','_'+clevs_name+'_')
+                        # command for external executable:
+                        command = [ coarselevs_x, 'level', 'hlevel', clevs_coarsening, ncfile, ncfile_clevs ]
+                        # run:
+                        subprocess.check_call( command )
+                        
+                        # cleanup?
+                        if cleanup :
+                            # info ...
+                            print( '          cleanup: %s ...' % ncfile )
+                            # remove version with original levels:
+                            os.remove( ncfile )
+                        #endif
+                        
+                    #endif # model levels?
+                    
+                    # cleanup ?
+                    if cleanup and (param != 'lnsp') :
+                        # info ...
+                        print( '          cleanup: %s ...' % gbfile )
+                        # remove gribfile:
+                        os.remove( gbfile )
+                        # coarsened file present ?
+                    #endif
+
+                #endfor # params
+                    
+                # cleanup lnsp files, used for multiple ml files :
+                if cleanup :
+                    # loop:
+                    for fname in [lnsp_gbfile,lnsp_ncfile,lnsp_ncfile_cdo,sp_ncfile] :
+                       # present?
+                        if os.path.isfile(fname) :
+                            # info ...
+                            print( '          cleanup: %s ...' % fname )
+                            # remove gribfile:
+                            os.remove( fname )
+                        #endif
+                    #endif
+                #endif
+
+                # next:
+                day = day + datetime.timedelta(1)
+            #endwhile # days
+
+            # *
+            
+            ## testing ...
+            #break
+
+        #endfor  # month loop
+        
+        ## testing ...
+        #break
+        
+    #endfor # levtype
+    
+    ## testing ...
+    #break
+
+#endfor # type
+
+# info ...
+print( '' )
+print( 'back to %s ...' % cwd )
+# back:
+os.chdir( cwd )
+
+# info ..
+print( '' )
+print( '** end' )
+print( '' )
+
+
+#-------------------------------------------------
+# end
+#-------------------------------------------------
+

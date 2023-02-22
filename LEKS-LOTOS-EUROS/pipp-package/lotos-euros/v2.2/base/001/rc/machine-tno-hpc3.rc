@@ -1,0 +1,201 @@
+!#######################################################################
+!
+! TNO / HPC3 computing server
+!
+!#######################################################################
+
+
+!----------------------------------------------------------------------
+! user names
+!----------------------------------------------------------------------
+
+! used for output attributes ...
+
+! name of institution:
+user.institution              :  TNO
+
+! extract user long name from environment variable:
+user.longname                 :  ${USERLONGNAME}
+
+
+!----------------------------------------------------------------------
+! environment
+!----------------------------------------------------------------------
+
+! modules loaded in job scripts:
+*.modules                     :  purge ; \
+                                 load slurm ; \
+                                 load anaconda3/2019.03 ; \
+                                 load curl/default ; \
+                                 load openssl/default ; \
+                                 load gcc-suite/8.2.0 ; \
+                                 load openmpi/4.0.1 ; \
+                                 load hdf5/1.10.5 ; \
+                                 load netcdf-c/4.7.0 ; \
+                                 load netcdf-fortran/4.4.5 ; \
+                                 load udunits/2.2.26 ; \
+                                 load makedepf90 ; \
+                                 load nco/4.8.1 ; \
+                                 load lapack/3.6.1 ; \
+                                 load spblas/1.02.917 ; \
+                                 load lotos-euros
+
+
+!----------------------------------------------------------------------
+! tasks and threads
+!----------------------------------------------------------------------
+
+! number of MPI tasks in run step:
+#if "${par.mpi}" in ["True"] :
+my.run.ntask                      :  ${par.ntask}
+#elif "${par.mpi}" in ["False"] :
+my.run.ntask                      :  1
+#else
+#error Could not set number of MPI tasks for par.mpi "${par.mpi}"
+#endif
+
+! number of OpenMP threads in run step:
+#if "${par.openmp}" in ["True"] :
+my.run.nthread                    :  ${par.nthread}
+#elif "${par.openmp}" in ["False"] :
+my.run.nthread                    :  1
+#else
+#error Could not set number of OpenMP threads for par.openmp "${par.openmp}"
+#endif
+
+
+!----------------------------------------------------------------------
+! job scripts
+!----------------------------------------------------------------------
+
+! default class with the job script creator:
+*.script.class           :  utopya.UtopyaJobScriptBatchSlurm
+
+! Define batch job option format for class 'JobScriptBatchSlurm':
+!   #SBATCH --flag=value
+slurm_format.comment       :  #
+slurm_format.prefix        :  SBATCH
+slurm_format.arg           :  '--'
+slurm_format.assign        :  '='
+slurm_format.template      :  %(key)
+slurm_format.envtemplate   :  %(env:key)
+
+! job format for this application:
+*.batch.slurm.format            :  slurm_format
+
+! which keywords:
+*.batch.slurm.options           :  name nodes tasks threads memory no-requeue output error
+
+! default values:
+*.batch.slurm.option.name       :  job-name %(env:name).${run.id}
+*.batch.slurm.option.nodes      :  nodes 1
+*.batch.slurm.option.tasks      :  ntasks 1
+*.batch.slurm.option.threads    :  cpus-per-task 1
+*.batch.slurm.option.memory     :  mem 1Gb
+*.batch.slurm.option.no-requeue :  no-requeue
+*.batch.slurm.option.output     :  output %(env:name).out
+*.batch.slurm.option.error      :  error  %(env:name).err
+
+! specific:
+jobtree.le.run.batch.slurm.option.tasks      :  ntasks ${my.run.ntask}
+jobtree.le.run.batch.slurm.option.threads    :  cpus-per-task ${my.run.nthread}
+jobtree.le.run.batch.slurm.option.memory     :  mem ${my.run.memory}Gb
+
+
+!----------------------------------------------------------------------
+! runner
+!----------------------------------------------------------------------
+
+! run model:
+#if "${par.mpi}" in ["True"]
+
+! SLURM version of "mpirun" ;
+! number of tasks etc taken from batch job environment;
+! create stdout/stderr files files including task number:
+le.run.command     :  srun \
+                        --kill-on-bad-exit=1 \
+                        --output=le.run.out.%t \
+                        --error=le.run.err.%t \
+                        ./lotos-euros.x ${my.le.run.rcfile}
+
+#else
+
+! run model, pass evaluated rcfile as argument:
+le.run.command     :  ./lotos-euros.x ${my.le.run.rcfile}
+
+#endif
+
+
+!----------------------------------------------------------------------
+! compiler settings
+!----------------------------------------------------------------------
+
+! GCC compiler suite, selected with environment variables:
+#include base/${my.le.patch}/rc/compiler-${COMPILER_SUITE}-${COMPILER_VERSION}.rc
+
+! MPI wrappers:
+configure.compiler.fc.mpi                   :  mpifort
+configure.compiler.fc.mpi.openmp            :  mpifort
+
+
+!----------------------------------------------------------------------
+! libraries
+!----------------------------------------------------------------------
+
+! (optional) macro to enable udunits library:
+!my.udunits.define             :  
+!my.udunits.define             :  with_udunits1
+my.udunits.define             :  with_udunits2
+
+! define libraries:
+!my.spblas.define              :  
+my.spblas.define              :  with_spblas
+
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! NetCDF4 library:
+configure.lib.netcdf.fflags       : -I${NETCDF_FORTRAN_HOME}/include
+configure.lib.netcdf.ldflags      : -L${NETCDF_FORTRAN_HOME}/lib -lnetcdff -Wl,-rpath -Wl,${NETCDF_FORTRAN_HOME}/lib \
+                                    -L${NETCDF_C_HOME}/lib -lnetcdf -Wl,-rpath -Wl,${NETCDF_C_HOME}/lib \
+                                    -L${HDF5_HOME}/lib -lhdf5_hl -lhdf5 -Wl,-rpath -Wl,${HDF5_HOME}/lib \
+                                    -L/usr/lib64
+
+! UDUnits library:
+configure.lib.udunits2.fflags     : 
+configure.lib.udunits2.ldflags    : -L${UDUNITS_HOME}/lib -ludunits2 -lexpat
+
+!configure.lib.mpi.fflags          : 
+!configure.lib.mpi.ldflags         : 
+
+! BLAS library:
+configure.lib.blas.fflags         : 
+configure.lib.blas.ldflags        : -L${LAPACK_HOME}/lib -lblas
+
+! Lapack library:
+!configure.lib.lapack.fflags       : 
+!configure.lib.lapack.ldflags      : -L${LAPACK_HOME}/lib -llapack
+
+! Sparse BLAS library:
+configure.lib.spblas.fflags       : -I${SPBLAS_HOME}/include
+configure.lib.spblas.ldflags      : -L${SPBLAS_HOME}/lib -lspblas
+
+
+!----------------------------------------------------------------------
+! makedep
+!----------------------------------------------------------------------
+
+! Is makedepf90 installed?
+! This flag is used in the 'expert.rc' settings:
+my.with.makedep            :  True
+
+
+!----------------------------------------------------------------------
+! model data
+!----------------------------------------------------------------------
+
+! the user scratch directory:
+my.scratch                    :  ${SCRATCH}
+
+! base path to input data files:
+my.data.dir                   :  ${LE_DATA}
+

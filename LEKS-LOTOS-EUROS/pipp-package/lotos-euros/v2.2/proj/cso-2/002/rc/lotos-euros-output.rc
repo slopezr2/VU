@@ -1,0 +1,885 @@
+! ######################################################################
+! ###
+! ### output
+! ###
+! ######################################################################
+
+! ** destination
+
+! destination directory; <project>/<runid> should be included if necessary
+le.output.outdir            :  ${my.project.dir}/output
+
+
+! ** attributes
+
+! global attributes:
+le.output.author            :  ${user.longname}
+le.output.institution       :  ${user.institution}
+le.output.version           :  ${my.le.release}
+le.output.model             :  LE
+le.output.expid             :  ${run.id}
+
+
+! ** conventions
+
+! Key "convention" is used for formatting:
+!   cf        : following CF conventions
+!   racmo     : following requirements for Racmo-LE coupling
+!   megapoli  : following requirements for MEGAPOLI project
+!
+my.output.convention    : cf
+
+
+! ** overwrite
+
+! replace existing files (T|F) ?
+! if False, an error message is issuesed if a file already exist
+le.output.replace           :  T
+
+
+! ** GrADS support
+
+! write GrADS control files (T|F) ?
+le.output.ctl               :  T
+
+
+! ** lockfile
+
+! write lockfile after finishing output ?
+le.output.lockfile.apply    :  F
+! every .. hour ?
+le.output.lockfile.dhour    :  3.0
+! filename template, replace %{ccyymmdd} and %{hhmm} by date and time:
+le.output.lockfile.template :  ${le.output.outdir}/lock_racmo_%{ccyymmdd}_%{hhmm}
+
+
+! ** file descriptions
+
+! Key "collect" describes how time records are collected in a single file:
+!   daily       :  hours [00,24), used for instantanious fields
+!   daily24     :  hours [00,24], used for budgets
+!   instant     :  one time record per file
+
+! Key "levtype" describes the type of vertical levels
+! (only used for conc and dat files):
+!   levels      : model levels; indices 0 (ground), 1 .. nz, nz+1 (aloft)
+!   heights     : relative to orography (m)
+!   elevations  : relative to sea-level (m)
+! The actual levels (indices, or absolute number in m) are set in the key "levels" .
+!
+! In case of heights/elevations, the key "height_dist" determines
+! the vertical sampling method:
+!   'sample'    : layer value
+!   'interp'    : linear interpolation between mid of layers
+!
+
+! Key "dhour" specifies the output frequency in hours, probably "1.0" .
+!
+my.output.dhour         :  1.0
+
+
+
+
+!
+! Tracer names as in array 'specname' :
+!   o3 no no2 ...
+!   dust_f dust_c ...
+! Special names:
+!   tpm10 tpm25                   : total aerosol loads
+!   tss tdust                     : total seasalt, total dust
+!   (tpm25|tpm10|o3)_biascorr     : bias corrected fields
+!
+
+! ** data files
+
+!le.output.dat.files                 :  meteo lu pollendat
+le.output.dat.files                 :  meteo
+!le.output.dat.files                 :  
+
+!~ meteo data:
+!le.output.dat.meteo.fields          :  area oro lsm \
+!                                       blh h dh dens rhumid temper \
+!                                       ovol vol \
+!                                       afluxx afluxy afluxz \
+!                                       cflx cfly cflz \
+!                                       hpressure mpressure\
+!                                       icc bcc clwc iclwc praini raini\
+!                                       tsurf srh dsurf \
+!                                       usurf vsurf wspd_surf wdir_surf \
+!                                       sst tcc radd rain snow \
+!                                       slt swvl1 swvl2 swvl3 smi2 smi3
+le.output.dat.meteo.fields          :  area oro h temper rain \
+                                         usurf vsurf wspd_surf wdir_surf
+le.output.dat.meteo.bounding_box    : 
+le.output.dat.meteo.levtype         :  levels
+le.output.dat.meteo.levels          :  all
+le.output.dat.meteo.convention      :  ${my.output.convention}
+le.output.dat.meteo.dhour           :  ${my.output.dhour}
+le.output.dat.meteo.collect         :  daily
+
+!~ landuse fractions:
+le.output.dat.lu.fields             :  lu_grs lu_ara lu_crp lu_cnf lu_dcf lu_wat lu_urb lu_tun lu_des lu_ice lu_sav lu_trf lu_wai lu_med
+le.output.dat.lu.bounding_box       : 
+le.output.dat.lu.levtype            :  levels
+le.output.dat.lu.levels             :  1
+le.output.dat.lu.convention         :  ${my.output.convention}
+le.output.dat.lu.dhour              :  ${my.output.dhour}
+le.output.dat.lu.collect            :  daily
+
+!! pollen data:
+!#include lotos-euros-output-pollen.rc
+
+
+! ** data2 files
+le.output.dat2.files                    :
+!le.output.dat2.files                    : meteo-2d meteo-3dh meteo-3dih
+!le.output.dat2.files                    : meteo-2d meteo-3du meteo-3dv
+!le.output.dat2.files                    : meteo-2d meteo-3dc meteo-3du meteo-3dv
+!le.output.dat2.files                    :  meteo-2d meteo-3d meteo-h3d
+!le.output.dat2.files                    :  meteo-3d meteo-3di meteo-3dih
+
+!~ surface data at grid cells:
+le.output.dat2.meteo-2d.fields          :  area lsm tsurf wspd_surf wdir_surf
+le.output.dat2.meteo-2d.bounding_box    : 
+le.output.dat2.meteo-2d.gridtype        :  cells
+le.output.dat2.meteo-2d.levtype         :  levels
+le.output.dat2.meteo-2d.levels          :  1
+le.output.dat2.meteo-2d.convention      :  ${my.output.convention}
+le.output.dat2.meteo-2d.dhour           :  ${my.output.dhour}
+le.output.dat2.meteo-2d.collect         :  daily
+
+!~ full level data at cell centers:
+le.output.dat2.meteo-3d.fields          :  uv.u uv.v
+le.output.dat2.meteo-3d.bounding_box    : 
+le.output.dat2.meteo-3d.gridtype        :  cells
+le.output.dat2.meteo-3d.levtype         :  levels
+le.output.dat2.meteo-3d.levels          :  all
+le.output.dat2.meteo-3d.convention      :  ${my.output.convention}
+le.output.dat2.meteo-3d.dhour           :  ${my.output.dhour}
+le.output.dat2.meteo-3d.collect         :  daily
+
+!~ full level data (input levels!) at grid corners:
+le.output.dat2.meteo-3dc.fields          :  u_crnr_met v_crnr_met uv_crnr_met.u uv_crnr_met.v
+le.output.dat2.meteo-3dc.bounding_box    : 
+le.output.dat2.meteo-3dc.gridtype        :  corners
+le.output.dat2.meteo-3dc.levtype         :  levels
+le.output.dat2.meteo-3dc.levels          :  1:20
+le.output.dat2.meteo-3dc.convention      :  ${my.output.convention}
+le.output.dat2.meteo-3dc.dhour           :  ${my.output.dhour}
+le.output.dat2.meteo-3dc.collect         :  daily
+
+!~ full level data at u-edges:
+le.output.dat2.meteo-3du.fields         :  uflux
+le.output.dat2.meteo-3du.bounding_box   : 
+le.output.dat2.meteo-3du.gridtype       :  u-edges
+le.output.dat2.meteo-3du.levtype        :  levels
+le.output.dat2.meteo-3du.levels         :  all
+le.output.dat2.meteo-3du.convention     :  ${my.output.convention}
+le.output.dat2.meteo-3du.dhour          :  ${my.output.dhour}
+le.output.dat2.meteo-3du.collect        :  daily
+
+!~ full level data at v-edges:
+le.output.dat2.meteo-3dv.fields         :  vflux
+le.output.dat2.meteo-3dv.bounding_box   : 
+le.output.dat2.meteo-3dv.gridtype       :  v-edges
+le.output.dat2.meteo-3dv.levtype        :  levels
+le.output.dat2.meteo-3dv.levels         :  all
+le.output.dat2.meteo-3dv.convention     :  ${my.output.convention}
+le.output.dat2.meteo-3dv.dhour          :  ${my.output.dhour}
+le.output.dat2.meteo-3dv.collect        :  daily
+
+!~ half level data at cells:
+le.output.dat2.meteo-3dh.fields          :  kz halt hp
+le.output.dat2.meteo-3dh.bounding_box    : 
+le.output.dat2.meteo-3dh.gridtype        :  cells
+le.output.dat2.meteo-3dh.levtype         :  halflevels
+le.output.dat2.meteo-3dh.levels          :  all
+le.output.dat2.meteo-3dh.convention      :  ${my.output.convention}
+le.output.dat2.meteo-3dh.dhour           :  ${my.output.dhour}
+le.output.dat2.meteo-3dh.collect         :  daily
+
+!~ input half level data at cells:
+le.output.dat2.meteo-3dih.fields          :  kz_ifs halt_met hp_met
+le.output.dat2.meteo-3dih.bounding_box    : 
+le.output.dat2.meteo-3dih.gridtype        :  cells
+le.output.dat2.meteo-3dih.levtype         :  input_halflevels
+le.output.dat2.meteo-3dih.levels          :  all
+le.output.dat2.meteo-3dih.convention      :  ${my.output.convention}
+le.output.dat2.meteo-3dih.dhour           :  ${my.output.dhour}
+le.output.dat2.meteo-3dih.collect         :  daily
+
+! ** concentration files
+
+! Set key 'addheight'    to 'T' to have the height levels written too.
+! Set key 'addthickness' to 'T' to have the height thickness written too.
+
+!le.output.conc.files                :  
+le.output.conc.files                : conc-sfc conc-3d
+!le.output.conc.files                : conc-sfc conc-3d conc-bound conc-3d-full
+
+! surface level only:
+le.output.conc.conc-sfc.fields        :  o3 no2 no nh3 so2 hno3 co n2o5 form iso pan \
+                                           no3a_f no3a_c so4a_f so4a_c nh4a_f \
+                                           ppm_f ppm_c ec_f ec_c pom_f pom_c \
+                                           na_f1 na_f2 na_c1 na_c2 na_c3 \
+                                           dust_f1 dust_f2 dust_c1 dust_c2 dust_c3 \
+                                           tpm25 tpm10 tnmvoc tdust tss
+le.output.conc.conc-sfc.bounding_box  :
+le.output.conc.conc-sfc.levtype       :  levels
+le.output.conc.conc-sfc.levels        :  0
+le.output.conc.conc-sfc.addheight     :  F
+le.output.conc.conc-sfc.addthickness  :  F
+le.output.conc.conc-sfc.halo          :  F
+le.output.conc.conc-sfc.dhour         :  ${my.output.dhour}
+le.output.conc.conc-sfc.collect       :  daily
+le.output.conc.conc-sfc.convention    :  ${my.output.convention}
+
+!le.output.conc.conc-3d.fields         :  o3 no no2 co tpm25 tpm10
+le.output.conc.conc-3d.fields         :  ${le.output.conc.conc-sfc.fields}
+le.output.conc.conc-3d.bounding_box   : 
+le.output.conc.conc-3d.levtype        :  levels
+le.output.conc.conc-3d.levels         :  all
+le.output.conc.conc-3d.addheight      :  T
+le.output.conc.conc-3d.addthickness   :  F
+le.output.conc.conc-3d.halo           :  F
+le.output.conc.conc-3d.dhour          :  ${my.output.dhour}
+le.output.conc.conc-3d.collect        :  daily
+le.output.conc.conc-3d.convention     :  ${my.output.convention}
+le.output.conc.conc-3d.height_dist    :  -
+
+! full level range, top from boundary conditions:
+le.output.conc.conc-3d-full.fields         :  o3 ch4 co
+le.output.conc.conc-3d-full.bounding_box   : 
+le.output.conc.conc-3d-full.levtype        :  levels
+le.output.conc.conc-3d-full.levels         :  top
+le.output.conc.conc-3d-full.addheight      :  T
+le.output.conc.conc-3d-full.addthickness   :  F
+le.output.conc.conc-3d-full.halo           :  F
+le.output.conc.conc-3d-full.dhour          :  ${my.output.dhour}
+le.output.conc.conc-3d-full.collect        :  daily
+le.output.conc.conc-3d-full.convention     :  ${my.output.convention}
+le.output.conc.conc-3d-full.height_dist    :  -
+
+! 3D fields used for boundary conditions;
+! define bounding box to limit data volume:
+le.output.conc.conc-bound.fields           :  ${le.output.conc.conc-sfc.fields}
+le.output.conc.conc-bound.bounding_box     :  2.0 10.0 48.0 56.0
+le.output.conc.conc-bound.levtype          :  levels
+le.output.conc.conc-bound.levels           :  all
+le.output.conc.conc-bound.addheight        :  F
+le.output.conc.conc-bound.addthickness     :  F
+le.output.conc.conc-bound.halo             :  F
+le.output.conc.conc-bound.dhour            :  ${my.output.dhour}
+le.output.conc.conc-bound.collect          :  daily
+le.output.conc.conc-bound.convention       :  ${my.output.convention}
+le.output.conc.conc-bound.height_dist      :  -
+
+
+! ** emission files
+
+! only levtype "levels" is supported;
+! interpretation of "levels" is:
+!   0         : total column
+!   1 .. nz   : model layers
+!   nz+1      : aloft
+
+! target files:
+!le.output.emis.files                    :  
+!le.output.emis.files                    :  emis
+le.output.emis.files                    :  emis emis_bio
+
+! total emissions:
+le.output.emis.emis.fields              :  no no2 so2 so4a_f co ch4 nh3 tpm10 tpm25
+le.output.emis.emis.bounding_box        :   
+le.output.emis.emis.levtype             :  levels
+le.output.emis.emis.levels              :  0
+le.output.emis.emis.dhour               :  ${my.output.dhour}
+le.output.emis.emis.collect             :  daily24
+le.output.emis.emis.convention          :  ${my.output.convention}
+le.output.emis.emis.bio                 :  F
+
+! bio emissions:
+le.output.emis.emis_bio.fields          :  iso no terp
+le.output.emis.emis_bio.bounding_box    :   
+le.output.emis.emis_bio.levtype         :  levels
+le.output.emis.emis_bio.levels          :  0
+le.output.emis.emis_bio.dhour           :  ${my.output.dhour}
+le.output.emis.emis_bio.collect         :  daily24
+le.output.emis.emis_bio.convention      :  ${my.output.convention}
+le.output.emis.emis_bio.bio             :  T
+
+! ** vd files
+
+!
+! supported fields that are important for deposition:
+!    Ra_<lu>          (x,y,h,t)     ! [s/m] atm. resistance over [z0,z0+h]
+!    Rb_<tr>_<lu>     (x,y  ,t)     ! [s/m] laminair visc. bound. layer resistance
+!    Rc_<tr>_<lu>     (x,y  ,t)     ! [s/m] canopy surface resistance
+!    vd_<tr>_<lu>     (x,y,h,t)     ! [m/s] deposition velocity
+!    lufrac_<lu>      (x,y    )     ! [0-1] landuse fraction
+!    fluxdry_<tr>_<lu>(x,y  ,t)     ! [kg/m2/s] drydeposition flux
+!    area             (x,y    )     ! [m2] grid cell area
+!    fstom_o3_hr      (x,y  ,t)     ! [umol m-2 s-1] LU dependent stomatal ozone flux
+!    Rstom            (x,y  ,t)     ! [s/m] Stomatal resistance
+!    lai              (x,y  ,t)     ! [m2 leaf m-2 surface] Leaf Area Index
+!    sai              (x,y  ,t)     ! [m2 leaf m-2 surface] Surface Area Index
+!    rbc_o3_lu        (x,y  ,t)     ! [s/m] canopy surface and boud. layer resistance
+!    czcanopytop_lu   (x,y  ,t)     ! [mol mol-1] canopy surface concentrations (IN Future change to concentration output??)
+!    
+! landuse classes following DEPAC :
+!   grs = grass                     
+!   ara = arable                    
+!   crp = permanent crops           
+!   cnf = coniferous forest         
+!   dec = deciduous forest          
+!   wat = water                     
+!   urb = urban                     
+!   oth = other (short grassy area) 
+!   dsr = desert 
+!
+!   whe = wheat
+!   bee = beeches
+!   spr = spruce
+!   sem = semi-natural grassland                   
+!
+
+! compute ozone flux specials (T|F) ?
+!    fstom_o3_hr      (x,y  ,t)     ! [umol m-2 s-1] LU dependent stomatal ozone flux
+!    Rstom            (x,y  ,t)     ! [s/m] Stomatal resistance
+!    rbc_o3_lu        (x,y  ,t)     ! [s/m] canopy surface and boud. layer resistance
+!    czcanopytop_lu   (x,y  ,t)     ! [mol mol-1] canopy surface concentrations (IN Future change to concentration output??)
+!deposition.extra_output   :  T
+deposition.extra_output   :  F
+
+le.output.vd.files                  :  
+!le.output.vd.files                  :  vd
+!
+le.output.vd.vd.fields              :  fluxdry vd
+le.output.vd.vd.tracers             :  o3 no hno3 so2 nh3 no2 no3a_f nh4a_f so4a_f so4a_c no3a_c
+le.output.vd.vd.landuses            :  grs ara crp cnf dec
+le.output.vd.vd.bounding_box        : 
+le.output.vd.vd.levtype             :  heights
+le.output.vd.vd.levels              :  0.0 2.5 5.0 10.0 20.0 25.0
+le.output.vd.vd.convention          :  ${my.output.convention}
+le.output.vd.vd.dhour               :  ${my.output.dhour}
+le.output.vd.vd.collect             :  daily
+
+
+! deposition velocities and resistances, diagnostic calculations on different heigths
+! surface concentrations calculated for different landuse surface types
+
+le.output.vd-diag.files                  :  
+!le.output.vd-diag.files                  :  vd-diag conc-sfc-lu
+
+le.output.vd-diag.vd-diag.fields         :  vd
+le.output.vd-diag.vd-diag.tracers        :  o3 no hno3 so2 n2o5 no3 no2 nh3 na_f1 na_f2 na_c1 na_c2 na_c3 so4a_f so4a_c
+le.output.vd-diag.vd-diag.landuses       :  grs ara crp cnf dec wat urb oth dsr
+le.output.vd-diag.vd-diag.bounding_box   : 
+le.output.vd-diag.vd-diag.levtype        :  heights
+le.output.vd-diag.vd-diag.levels         :  0.0 2.5 25.0
+le.output.vd-diag.vd-diag.convention     :  ${my.output.convention}
+le.output.vd-diag.vd-diag.dhour          :  ${my.output.dhour}
+le.output.vd-diag.vd-diag.collect        :  daily
+
+le.output.vd-diag.conc-sfc-lu.fields         :  conc_sfc_lu
+le.output.vd-diag.conc-sfc-lu.tracers        :  o3 no hno3 so2 n2o5 no3 no2 nh3 na_f1 na_f2 na_c1 na_c2 na_c3 so4a_f so4a_c
+le.output.vd-diag.conc-sfc-lu.landuses       :  grs ara crp cnf dec wat urb oth dsr
+le.output.vd-diag.conc-sfc-lu.bounding_box   : 
+le.output.vd-diag.conc-sfc-lu.levtype        :  levels
+le.output.vd-diag.conc-sfc-lu.levels         :  0
+le.output.vd-diag.conc-sfc-lu.convention     :  ${my.output.convention}
+le.output.vd-diag.conc-sfc-lu.dhour          :  ${my.output.dhour}
+le.output.vd-diag.conc-sfc-lu.collect        :  daily
+
+! ** dry depositon budgets (hourly)
+
+! target files:
+!le.output.drydep.files              :  
+le.output.drydep.files              :  drydepo dryemis
+
+! specify per target:
+le.output.drydep.drydepo.fields      :  o3 so2 so4a_f so4a_c no no2 hno3 no3a_f no3a_c nh3 nh4a_f co form na_f1 na_f2 na_c1 na_c2 na_c3 dust_f1 dust_f2 dust_c1 dust_c2 dust_c3
+le.output.drydep.drydepo.bounding_box:
+le.output.drydep.drydepo.dhour       :  ${my.output.dhour}
+le.output.drydep.drydepo.collect     :  daily24
+le.output.drydep.drydepo.convention  :  ${my.output.convention}
+le.output.drydep.drydepo.process     :  drydepo
+
+! specify per target:
+le.output.drydep.dryemis.fields      :  nh3
+le.output.drydep.dryemis.bounding_box:  
+le.output.drydep.dryemis.dhour       :  ${my.output.dhour}
+le.output.drydep.dryemis.collect     :  daily24
+le.output.drydep.dryemis.convention  :  ${my.output.convention}
+le.output.drydep.dryemis.process     :  dryemis
+
+
+! ** wet depositon budgets (hourly)
+
+! target files:
+!le.output.wetdep.files              :  
+le.output.wetdep.files              :  wetdepo
+
+! specify per target:
+le.output.wetdep.wetdepo.fields      :  so2 so4a_f so4a_c hno3 no no2 no3a_f no3a_c nh3 nh4a_f na_f1 na_f2 na_c1 na_c2 na_c3 dust_f1 dust_f2 dust_c1 dust_c2 dust_c3
+le.output.wetdep.wetdepo.bounding_box:
+le.output.wetdep.wetdepo.dhour       :  ${my.output.dhour}
+le.output.wetdep.wetdepo.collect     :  daily24
+le.output.wetdep.wetdepo.convention  :  ${my.output.convention}
+
+
+! ** budgets (daily)
+
+! daily budget files to be put out:
+!le.output.budget.files              :  
+le.output.budget.files              :  budget
+
+! specify per target file:
+! supported fields:
+!  daily dry deposition budgets :
+!    dry[sox|noy|nhx]
+!  daily wet deposition budgets : 
+!    wet[sox|noy|nhx]
+!  ozone dry deposition flux and emission per landuse class:
+!    o3[fe]_[gr|ar|pc|cf|df|wa|ur|sg|de|wh|sp|be|se]
+!  daily ozone maximum:
+!    o3max
+!  NH3 of previous month:
+!    nh3ave
+le.output.budget.budget.fields      :  wetsox wetnoy wetnhx \
+                                       drysox drynoy drynhx
+                                       !\
+                                       o3max nh3ave
+le.output.budget.budget.bounding_box : 
+le.output.budget.budget.landuses     :  grs ara crp cnf dec
+
+
+! ** tracer columns
+
+! target files:
+le.output.column.files                  :  
+!le.output.column.files                  :  column col200
+
+! specify per target:
+le.output.column.column.fields          : no2
+le.output.column.column.bounding_box    :  
+! level type: "all" for model layers only, "top" including aloft
+le.output.column.column.levtype         :  top
+! top in Pa, 0.0 for all:
+le.output.column.column.ptop            :  0.0
+! time resolution:
+le.output.column.column.dhour           :  ${my.output.dhour}
+le.output.column.column.collect         :  daily
+! save in kg/m2:
+le.output.column.column.convention      :  ${my.output.convention}
+!! save in column mixing ratio (ppb):
+!le.output.column.column.convention      :  x
+
+! specify per target:
+le.output.column.col200.fields          :  no2
+le.output.column.col200.bounding_box    :  
+! level type: "all" for model layers only, "top" including aloft
+le.output.column.col200.levtype         :  top
+! top in Pa, 0.0 for all:
+le.output.column.col200.ptop            :  200.0e2
+! time resolution:
+le.output.column.col200.dhour           :  ${my.output.dhour}
+le.output.column.col200.collect         :  daily
+! save in kg/m2:
+le.output.column.col200.convention      :  ${my.output.convention}
+!! save in column mixing ratio (ppb):
+!le.output.column.col200.convention      :  x
+
+! ** AOD files
+
+! target files:
+le.output.aod.files                     :  
+!le.output.aod.files                     :  aod
+
+! specify per target:
+le.output.aod.aod.biascorr              :  F
+le.output.aod.aod.bounding_box          :  
+le.output.aod.aod.dhour                 :  1.0
+le.output.aod.aod.convention            :  ${my.output.convention}
+
+
+! ** radiance output
+
+! target files:
+le.output.rad.files                 :  
+!le.output.rad.files                 :  aod2
+
+!~ optical properties
+le.output.rad.aod2.fields           :  aod_550nm aod_1020nm   \
+                                       tau_550nm tau_1020nm \
+                                       extinction_550nm extinction_1020nm \
+                                       ssa_550nm ssa_1020nm\
+                                       asy_550nm asy_1020nm \
+                                       refr_re_fine_550nm refr_re_fine_1020nm\
+                                       refr_im_fine_550nm refr_im_fine_1020nm\
+                                       refr_re_coarse_550nm refr_re_coarse_1020nm\
+                                       refr_im_coarse_550nm refr_im_coarse_1020nm\
+                                       reff_f reff_c \
+                                       angstrom
+
+le.output.rad.aod2.bounding_box    : 
+le.output.rad.aod2.levtype         :  levels
+le.output.rad.aod2.levels          :  top
+le.output.rad.aod2.convention      :  ${my.output.convention}
+le.output.rad.aod2.dhour           :  ${my.output.dhour}
+le.output.rad.aod2.collect         :  daily
+
+
+
+!=======================================================================
+!===
+!=== CSO
+!===
+!=======================================================================
+
+
+! file keys:
+!le.output.cso.files                     :  
+!le.output.cso.files                     :  s5p-no2 s5p-so2
+le.output.cso.files                     :  s5p-no2
+
+
+!-----------------------------------------------------------------------
+! S5p no2
+!-----------------------------------------------------------------------
+
+! listing file:
+!le.output.cso.s5p-no2.listing           :   ${my.work_base}/CSO-data/S5p/listing-NO2-MACC.csv
+le.output.cso.s5p-no2.listing           :   /Scratch/segersaj/CAMS-61/WP6130/CSO-data/S5p/listing-NO2-CAMS.csv
+
+! also read info on original track (T|F)?
+! if enabled, this will be stored in the output too:
+le.output.cso.s5p-no2.with_track        :  T
+
+! put out mapping arrays? used for gridded averages:
+le.output.cso.s5p-no2.with_mapping      :  T
+
+! mapping from footprints to grid cells using sample points in polygon;
+! sample points is centroid of footprint (level 0),
+! or centroids of triangles in which footprint is recursevely devided;
+! number of points for 4-sided footprint:
+!  1 point (levels=0), 4 (1), 16 (2), 64 (3)
+!le.output.cso.s5p-no2.mapping.levels    :  0
+le.output.cso.s5p-no2.mapping.levels    :  3
+
+! tracer:
+le.output.cso.s5p-no2.tracer            :  no2
+
+!~ data
+
+! data variables:
+le.output.cso.s5p-no2.dvars             :  hp yr vr A M nla
+
+! half-level pressures:
+!~ dimensions, copied from data file:
+le.output.cso.s5p-no2.dvar.hp.dims      :  layeri
+!~ source variable:
+le.output.cso.s5p-no2.dvar.hp.source    :  pressure
+
+! retrieval: 
+!~ dimensions, copied from data file:
+le.output.cso.s5p-no2.dvar.yr.dims      :  retr
+!~ source variable:
+le.output.cso.s5p-no2.dvar.yr.source    :  vcd
+
+! retrieval error covariance: 
+!~ dimensions, copied from data file:
+le.output.cso.s5p-no2.dvar.vr.dims      :  retr retr
+!~ source variable:
+le.output.cso.s5p-no2.dvar.vr.source    :  vcd_errvar
+
+! kernel:
+!~ dimensions, copied from data file:
+le.output.cso.s5p-no2.dvar.A.dims       :  retr layer
+!~ source variable:
+le.output.cso.s5p-no2.dvar.A.source     :  kernel_trop
+
+! tropospheric airmass factor
+!~ dimensions, copied from data file:
+le.output.cso.s5p-no2.dvar.M.dims       :  retr
+!~ source variable:
+le.output.cso.s5p-no2.dvar.M.source     :  amf_trop
+
+! number of apriori layers in retrieval layer:
+!~ dimensions, copied from data file:
+le.output.cso.s5p-no2.dvar.nla.dims     :  retr
+!~ source variable:
+le.output.cso.s5p-no2.dvar.nla.source   :  nla
+
+!~ state
+
+! state varaiables to be put out from model:
+!le.output.cso.s5p-no2.vars                         :  mod_conc mod_hp mod_tcc mod_cc hx ys
+le.output.cso.s5p-no2.vars                         :  mod_conc mod_hp hx ys shx M_m A_m yr_m ys_m
+
+
+! model concentration profile:
+!~ model layer dimension:
+le.output.cso.s5p-no2.var.mod_conc.dims            :  model_layer
+!~ standard attributes:
+le.output.cso.s5p-no2.var.mod_conc.attrs           :  long_name units
+le.output.cso.s5p-no2.var.mod_conc.attr.long_name  :  model NO2 concentrations
+le.output.cso.s5p-no2.var.mod_conc.attr.units      :  ppb
+
+! model hpentration profile:
+!~ model layer interfaces:
+le.output.cso.s5p-no2.var.mod_hp.dims              :  model_layeri
+!~ standard attributes:
+le.output.cso.s5p-no2.var.mod_hp.attrs             :  long_name units
+le.output.cso.s5p-no2.var.mod_hp.attr.long_name    :  model pressure at layer interfaces
+le.output.cso.s5p-no2.var.mod_hp.attr.units        :  Pa
+
+!! total cloud cover:
+!!~ no extra dimensions:
+!le.output.cso.s5p-no2.var.mod_tcc.dims             :  
+!!~ standard attributes:
+!le.output.cso.s5p-no2.var.mod_tcc.attrs            :  long_name units
+!le.output.cso.s5p-no2.var.mod_tcc.attr.long_name   :  total cloud cover
+!le.output.cso.s5p-no2.var.mod_tcc.attr.units       :  1
+!
+!! cloud cover profiles:
+!!~ model layer dimension:
+!le.output.cso.s5p-no2.var.mod_cc.dims              :  model_layer
+!!~ standard attributes:
+!le.output.cso.s5p-no2.var.mod_cc.attrs             :  long_name units
+!le.output.cso.s5p-no2.var.mod_cc.attr.long_name    :  cloud cover
+!le.output.cso.s5p-no2.var.mod_cc.attr.units        :  1
+
+! model concentrations at apriori layers:
+!~ apriori layers:
+le.output.cso.s5p-no2.var.hx.dims                  :  layer
+!~ how computed:
+le.output.cso.s5p-no2.var.hx.formula               :  LayerAverage( hp, mod_hp, mod_conc )
+le.output.cso.s5p-no2.var.hx.formula_terms         :  hp: hp mod_hp: mod_hp mod_conc: mod_conc
+!~ standard attributes:
+le.output.cso.s5p-no2.var.hx.attrs                 :  long_name units
+le.output.cso.s5p-no2.var.hx.attr.long_name        :  model simulations at apriori layers
+le.output.cso.s5p-no2.var.hx.attr.units            :  mol m-2
+
+! TO BE DONE
+! - simulated retrievals
+!~ retrieval layers:
+le.output.cso.s5p-no2.var.ys.dims                  :  retr
+!~ how computed:
+le.output.cso.s5p-no2.var.ys.formula               :  A x
+le.output.cso.s5p-no2.var.ys.formula_terms         :  A: A x: hx
+!~ standard attributes:
+le.output.cso.s5p-no2.var.ys.attrs                 :  long_name units multiplication_factor_to_convert_to_molecules_percm2
+le.output.cso.s5p-no2.var.ys.attr.long_name        :  simulated retrieval
+le.output.cso.s5p-no2.var.ys.attr.units            :  mol m-2
+le.output.cso.s5p-no2.var.ys.attr.multiplication_factor_to_convert_to_molecules_percm2 : float: 6.022141e+19
+
+
+! partial columns as sum over apriori layers
+!~ retrieval layers:
+le.output.cso.s5p-no2.var.shx.dims                 :  retr
+!~ how computed:
+le.output.cso.s5p-no2.var.shx.formula              :  PartialColumns( nla, x )
+le.output.cso.s5p-no2.var.shx.formula_terms        :  nla: nla x: hx
+!~ standard attributes:
+le.output.cso.s5p-no2.var.shx.attrs                :  long_name units multiplication_factor_to_convert_to_molecules_percm2
+le.output.cso.s5p-no2.var.shx.attr.long_name       :  tropospheric column in local model
+le.output.cso.s5p-no2.var.shx.attr.units           :  mol m-2
+le.output.cso.s5p-no2.var.shx.attr.multiplication_factor_to_convert_to_molecules_percm2 : float: 6.022141e+19
+
+! airmass factor from local model
+!~ retrieval layers:
+le.output.cso.s5p-no2.var.M_m.dims                 :  retr
+!~ how computed:
+le.output.cso.s5p-no2.var.M_m.formula              :  AltAirMassFactor( M, A, x, Sx )
+le.output.cso.s5p-no2.var.M_m.formula_terms        :  M: M A: A x: hx Sx: shx
+!~ standard attributes:
+le.output.cso.s5p-no2.var.M_m.attrs                :  long_name units
+le.output.cso.s5p-no2.var.M_m.attr.long_name       :  airmass factors from local model
+le.output.cso.s5p-no2.var.M_m.attr.units           :  1
+
+! kernel using airmass factor from local model
+!~ retrieval layers times apriori layers
+le.output.cso.s5p-no2.var.A_m.dims                 :  retr layer
+!~ how computed:
+le.output.cso.s5p-no2.var.A_m.formula              :  AltKernel( A, M, M_m )
+le.output.cso.s5p-no2.var.A_m.formula_terms        :  A: A M: M M_m: M_m
+!~ standard attributes:
+le.output.cso.s5p-no2.var.A_m.attrs                :  long_name units
+le.output.cso.s5p-no2.var.A_m.attr.long_name       :  averaging kernel using local airmass factors
+le.output.cso.s5p-no2.var.A_m.attr.units           :  1
+
+! retrieval using airmass factor from local model
+!~ retrieval layers:
+le.output.cso.s5p-no2.var.yr_m.dims                :  retr
+!~ how computed:
+le.output.cso.s5p-no2.var.yr_m.formula             :  AltRetrieval( y, M, M_m )
+le.output.cso.s5p-no2.var.yr_m.formula_terms       :  y: yr M: M M_m: M_m
+!~ standard attributes:
+le.output.cso.s5p-no2.var.yr_m.attrs               :  long_name units multiplication_factor_to_convert_to_molecules_percm2
+le.output.cso.s5p-no2.var.yr_m.attr.long_name      :  retrieval using local airmass factors
+le.output.cso.s5p-no2.var.yr_m.attr.units          :  mol m-2
+le.output.cso.s5p-no2.var.yr_m.attr.multiplication_factor_to_convert_to_molecules_percm2 : float: 6.022141e+19
+
+! retrieval covariance using airmass factor from local model
+!~ retrieval layers:
+le.output.cso.s5p-no2.var.R_m.dims                 :  retr retr
+!~ how computed:
+le.output.cso.s5p-no2.var.R_m.formula              :  AltRetrievalCovar( R, M, M_m )
+le.output.cso.s5p-no2.var.R_m.formula_terms        :  R: vr M: M M_m: M_m
+!~ standard attributes:
+le.output.cso.s5p-no2.var.R_m.attrs                :  long_name units
+le.output.cso.s5p-no2.var.R_m.attr.long_name       :  retrieval error covariance using local airmass factors
+le.output.cso.s5p-no2.var.R_m.attr.units           :  (mol m-2)**2
+
+! simulated retrievals using airmass factor from local model
+!~ retrieval layers:
+le.output.cso.s5p-no2.var.ys_m.dims                 :  retr
+!~ how computed:
+le.output.cso.s5p-no2.var.ys_m.formula              :  A x
+le.output.cso.s5p-no2.var.ys_m.formula_terms        :  A: A_m x: hx
+!~ standard attributes:
+le.output.cso.s5p-no2.var.ys_m.attrs                :  long_name units multiplication_factor_to_convert_to_molecules_percm2
+le.output.cso.s5p-no2.var.ys_m.attr.long_name       :  simulated retrieval based on local airmass factors
+le.output.cso.s5p-no2.var.ys_m.attr.units           :  mol m-2
+le.output.cso.s5p-no2.var.ys_m.attr.multiplication_factor_to_convert_to_molecules_percm2 : float: 6.022141e+19
+
+
+!-----------------------------------------------------------------------
+! S5p so2
+!-----------------------------------------------------------------------
+
+! listing file:
+le.output.cso.s5p-so2.listing           :   ${my.work_base}/CSO-data/S5p/listing-SO2-MACC.csv
+
+! also read info on original track (T|F)?
+! if enabled, this will be stored in the output too:
+le.output.cso.s5p-so2.with_track        :  T
+
+! put out mapping arrays? used for gridded averages:
+le.output.cso.s5p-so2.with_mapping      :  T
+
+! mapping from footprints to grid cells using sample points in polygon;
+! sample points is centroid of footprint (level 0),
+! or centroids of triangles in which footprint is recursevely devided;
+! number of points for 4-sided footprint:
+!  1 point (levels=0), 4 (1), 16 (2), 64 (3)
+!le.output.cso.s5p-so2.mapping.levels    :  0
+le.output.cso.s5p-so2.mapping.levels    :  3
+
+! tracer:
+le.output.cso.s5p-so2.tracer            :  so2
+
+!~ data
+
+! data variables:
+le.output.cso.s5p-so2.dvars             :  hp yr vr A
+
+! half-level pressures:
+!~ dimensions, copied from data file:
+le.output.cso.s5p-so2.dvar.hp.dims      :  layeri
+!~ source variable:
+le.output.cso.s5p-so2.dvar.hp.source    :  pressure
+
+! retrieval: 
+!~ dimensions, copied from data file:
+le.output.cso.s5p-so2.dvar.yr.dims      :  retr
+!~ source variable:
+le.output.cso.s5p-so2.dvar.yr.source    :  vcd
+
+! retrieval error covariance: 
+!~ dimensions, copied from data file:
+le.output.cso.s5p-so2.dvar.vr.dims      :  retr retr
+!~ source variable:
+le.output.cso.s5p-so2.dvar.vr.source    :  vcd_errvar
+
+! kernel:
+!~ dimensions, copied from data file:
+le.output.cso.s5p-so2.dvar.A.dims       :  retr layer
+!~ source variable:
+le.output.cso.s5p-so2.dvar.A.source     :  kernel
+
+!~ state
+
+! state varaiables to be put out from model:
+le.output.cso.s5p-so2.vars                         :  mod_conc mod_hp hx ys
+
+! model concentration profile:
+!~ model layer dimension:
+le.output.cso.s5p-so2.var.mod_conc.dims            :  model_layer
+!~ standard attributes:
+le.output.cso.s5p-so2.var.mod_conc.attrs           :  long_name units
+le.output.cso.s5p-so2.var.mod_conc.attr.long_name  :  model SO2 concentrations
+le.output.cso.s5p-so2.var.mod_conc.attr.units      :  ppb
+
+! model hpentration profile:
+!~ model layer interfaces:
+le.output.cso.s5p-so2.var.mod_hp.dims              :  model_layeri
+!~ standard attributes:
+le.output.cso.s5p-so2.var.mod_hp.attrs             :  long_name units
+le.output.cso.s5p-so2.var.mod_hp.attr.long_name    :  model pressure at layer interfaces
+le.output.cso.s5p-so2.var.mod_hp.attr.units        :  Pa
+
+! model concentrations at apriori layers:
+!~ apriori layers:
+le.output.cso.s5p-so2.var.hx.dims                  :  layer
+!~ how computed:
+le.output.cso.s5p-so2.var.hx.formula               :  LayerAverage( hp, mod_hp, mod_conc )
+le.output.cso.s5p-so2.var.hx.formula_terms         :  hp: hp mod_hp: mod_hp mod_conc: mod_conc
+!~ standard attributes:
+le.output.cso.s5p-so2.var.hx.attrs                 :  long_name units
+le.output.cso.s5p-so2.var.hx.attr.long_name        :  model simulations at apriori layers
+le.output.cso.s5p-so2.var.hx.attr.units            :  mol m-2
+
+! TO BE DONE
+! - simulated retrievals
+!~ retrieval layers:
+le.output.cso.s5p-so2.var.ys.dims                  :  retr
+!~ how computed:
+le.output.cso.s5p-so2.var.ys.formula               :  A x
+le.output.cso.s5p-so2.var.ys.formula_terms         :  A: A x: hx
+!~ standard attributes:
+le.output.cso.s5p-so2.var.ys.attrs                 :  long_name units multiplication_factor_to_convert_to_molecules_percm2
+le.output.cso.s5p-so2.var.ys.attr.long_name        :  simulated retrieval
+le.output.cso.s5p-so2.var.ys.attr.units            :  mol m-2
+le.output.cso.s5p-so2.var.ys.attr.multiplication_factor_to_convert_to_molecules_percm2 : float: 6.022141e+19
+
+
+
+!=======================================================================
+!===
+!=== MODIS
+!===
+!=======================================================================
+
+! list with MODIS files to put out (space seperated, empty for none);
+! this defines the name of the file; no further settings yet:
+le.output.modis.files             :  
+!le.output.modis.files             :  modis
+
+!
+! Data files are stored in:
+!   <archive>/<platform>/
+! Each of these directories should contain a listing file with all file names:
+!   <product>.list
+! Filename contains the 'average' time ;
+! for Europe, the actual measurement times differ less than 5 minutes:
+!   <product>.A<year><jday>.<hour><minu>.*.*.hdf
+!
+
+! archive directory:
+le.output.modis.archive           :  /projects/SATELLIETEN/MODIS_c5/2006
+le.output.modis.platforms         :  AQUA1 TERRA
+! AQUA1 settings:
+le.output.modis.AQUA1.product     :  MYD04_L2
+! TERRA settings:
+le.output.modis.TERRA.product     :  MOD04_L2
+
+
+! ** MAORI output
+
+! MAORI : sample model at station locations
+!   Used for Kalman Filter, not supported for model yet.
+maori.sets                        :  
+
+

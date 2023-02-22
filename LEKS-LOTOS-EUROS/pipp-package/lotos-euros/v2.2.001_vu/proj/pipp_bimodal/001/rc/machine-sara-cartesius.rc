@@ -1,0 +1,248 @@
+!#######################################################################
+!
+! TNO / HPC3 computing server
+!
+!#######################################################################
+
+
+!----------------------------------------------------------------------
+! user names
+!----------------------------------------------------------------------
+
+! used for output attributes ...
+
+! name of institution:
+user.institution              :  VU
+
+! extract user long name from environment variable:
+user.longname                 :  ${USER}
+
+
+!----------------------------------------------------------------------
+! environment
+!----------------------------------------------------------------------
+
+! Toolchain modules (2020):
+!my.toolchain.name             :  intel
+!my.toolchain.version          :  2018b
+! module commands, first system, then locally installed:
+!*.modules                     :  purge ; \
+!                                   load 2020 ; \
+!                                   load 2021;\
+!                                   load eb ; \
+!                                   load ${my.toolchain.name}/${my.toolchain.version} ; \
+!                                   load netCDF-Fortran/4.4.4-${my.toolchain.name}-${my.toolchain.version} ; \
+!                                   load UDUNITS/2.2.26-${my.toolchain.name}-${my.toolchain.version} ; \
+!                                 use /projects/0/tm5meteo/admin/modulefiles ; \
+!                                   load tm5 ; \
+!                                   load Anaconda3/2020.07-${my.toolchain.name}-${my.toolchain.version} ; \
+!                                   load udunits/2.2.26_shut-up ; \
+!                                   load makedepf90
+
+! Toolchain modules (2020):
+my.toolchain.name             :  gompi
+my.toolchain.version          :  2021a
+! module commands, first system, then locally installed:
+*.modules                     :  purge ; \
+                                   load 2020 ; \
+                                   load 2021;\
+                                   load ${my.toolchain.name}/${my.toolchain.version} ; \
+                                   load netCDF-Fortran/4.5.3-${my.toolchain.name}-${my.toolchain.version} ; \
+                                   ScaLAPACK/2.1.0-gompi-2021a-fb; \
+                                   load UDUNITS/2.2.28-GCCcore-10.3.0; \
+                                  use /projects/0/tm5meteo/admin/modulefiles ; \
+                                   load tm5/default ; \
+                                   load Anaconda3/2021.05 ; \
+                                   load udunits/2.2.26_shut-up ; \
+                                   load makedepf90/2.8.8
+
+
+!----------------------------------------------------------------------
+! tasks and threads
+!----------------------------------------------------------------------
+
+! number of MPI tasks in run step:
+#if "${par.mpi}" in ["True"] :
+my.run.ntask                      :  ${par.ntask}
+#elif "${par.mpi}" in ["False"] :
+my.run.ntask                      :  1
+#else
+#error Could not set number of MPI tasks for par.mpi "${par.mpi}"
+#endif
+
+! number of OpenMP threads in run step:
+#if "${par.openmp}" in ["True"] :
+my.run.nthread                    :  ${par.nthread}
+#elif "${par.openmp}" in ["False"] :
+my.run.nthread                    :  1
+#else
+#error Could not set number of OpenMP threads for par.openmp "${par.openmp}"
+#endif
+
+
+!----------------------------------------------------------------------
+! job scripts
+!----------------------------------------------------------------------
+
+! default class with the job script creator:
+*.script.class           :  utopya.UtopyaJobScriptBatchSlurm
+!*.shell :                      /usr/bin/env python3
+! Define batch job option format for class 'JobScriptBatchSlurm':
+!   #SBATCH --flag=value
+slurm_format.comment       :  #
+slurm_format.prefix        :  SBATCH
+slurm_format.arg           :  '--'
+slurm_format.assign        :  '='
+slurm_format.template      :  %(key)
+slurm_format.envtemplate   :  %(env:key)
+
+! job format for this application:
+*.batch.slurm.format            :  slurm_format
+
+! which keywords:
+*.batch.slurm.options           :  name partition nodes ntasks nproc memory time workdir output error
+!*.batch.slurm.options           :  name nodes ntasks nproc memory time workdir output error
+
+! job name, take from job environment: 
+!*.batch.slurm.option.name            :  job-name %(env:name)
+*.batch.slurm.option.name            :  job-name ${run.id}
+! partitions:
+! - normal    # always full node
+! - short     # always full node, max 1 hour
+! - staging   # archiving etc
+!*.batch.slurm.option.partition       :  partition short
+*.batch.slurm.option.partition       :  partition thin
+
+! single node, single task:
+*.batch.slurm.option.nodes           :  nodes  1
+*.batch.slurm.option.ntasks          :  ntasks 1
+! single core:
+*.batch.slurm.option.nproc           :  cpus-per-task 1
+
+! max memory:
+*.batch.slurm.option.memory          :  mem 16Gb
+
+! max run time MM:SS
+*.batch.slurm.option.time            :  time 72:00:00
+
+! work directory, use current workdir from job environment:
+*.batch.slurm.option.workdir         :  chdir %(env:cwd)
+
+! log files, use the job name as base:
+*.batch.slurm.option.output          :  output %(name).out
+*.batch.slurm.option.error           :  error  %(name).err
+
+! specific:
+#if (${my.run.ntask} > 1) or (${my.run.nthread} > 1)
+!jobtree.le.run.batch.slurm.option.partition  :  partition short
+jobtree.le.run.batch.slurm.option.ntasks     :  ntasks ${my.run.ntask}
+jobtree.le.run.batch.slurm.option.threads    :  cpus-per-task ${my.run.nthread}
+#endif
+jobtree.le.run.batch.slurm.option.memory     :  mem ${my.run.memory}Gb
+jobtree.le.run.batch.slurm.option.time       :  time 72:00:00
+
+
+
+!----------------------------------------------------------------------
+! runner
+!----------------------------------------------------------------------
+
+! run model:
+#if "${par.mpi}" in ["True"]
+
+! SLURM version of "mpirun" ;
+! number of tasks etc taken from batch job environment;
+! create stdout/stderr files files including task number:
+le.run.command     :  srun \
+                        --kill-on-bad-exit=1 \
+                        --output=le.run.out.%t \
+                        --error=le.run.err.%t \
+                        ./lotos-euros.x ${my.le.run.rcfile}
+
+#else
+
+! run model, pass evaluated rcfile as argument:
+le.run.command     :  ./lotos-euros.x ${my.le.run.rcfile}
+
+#endif
+
+
+!----------------------------------------------------------------------
+! compiler settings
+!----------------------------------------------------------------------
+
+! intel suite:
+!#include proj/pipp/${my.le.patch}/rc/compiler-intel-18.0.3.rc
+#include base/${my.le.patch}/rc/compiler-gcc-8.2.0.rc
+
+! MPI wrappers:
+configure.compiler.fc.mpi                   :  mpifort
+configure.compiler.fc.mpi.openmp            :  mpifort
+
+
+!----------------------------------------------------------------------
+! libraries
+!----------------------------------------------------------------------
+
+! (optional) macro to enable udunits library:
+!my.udunits.define             :  
+!my.udunits.define             :  with_udunits1
+my.udunits.define             :  with_udunits2
+
+! define libraries:
+my.spblas.define              :  
+!my.spblas.define              :  with_spblas
+
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! dummy values, will be replaced by actual environment values ...
+EBROOTNETCDFMINFORTRAN      : /opt
+HDF_HOME                    : /opt
+EBROOTUDUNITS               : /opt
+EBROOTIMKL                  : /opt
+
+! NetCDF4 library:
+configure.lib.netcdf.fflags       : -I${EBROOTNETCDFMINFORTRAN}/include
+configure.lib.netcdf.ldflags      : -lnetcdff -lnetcdf
+
+! UDUnits library:
+configure.lib.udunits2.fflags     : -I${EBROOTUDUNITS}/include
+configure.lib.udunits2.ldflags    : -ludunits2
+
+!! sequential version:
+!configure.lib.mkl.fflags         : -mkl=sequential
+!configure.lib.mkl.ldflags        : -L${EBROOTIMKL}/lib/intel64 \
+!                                    -lmkl_lapack95_lp64 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core \
+!                                    -lpthread -lm -ldl \
+!                                    -Wl,-rpath -Wl,${EBROOTIMKL}/lib/intel64
+!
+!! if only blas is needed, for example by optimizer:
+!configure.lib.blas.fflags         : -mkl=sequential
+!configure.lib.blas.ldflags        : -mkl=sequential
+
+
+!----------------------------------------------------------------------
+! makedep
+!----------------------------------------------------------------------
+
+! Is makedepf90 installed?
+! This flag is used in the 'expert.rc' settings:
+my.with.makedep            :  True
+
+
+!----------------------------------------------------------------------
+! model data
+!----------------------------------------------------------------------
+
+! the user scratch directory:
+my.scratch                    :  /scratch-shared/slr
+
+! base path to input data files:
+!my.data.dir                   :  /scratch/shared/epopa/OpenLE/inputdata_Europe/v2.2
+my.data.dir                   :  /projects/0/tm5meteo/OpenLE/inputdata_Europe/v2.2
+
+! location of LEIP produced input,
+! region name is defined together with grid:
+!my.leip.dir        :  ${my.data.dir}/LEIP/${my.leip.region}
+my.leip.dir        :  /projects/0/tm5meteo/LEIP/${my.leip.region}
+
+

@@ -1,0 +1,125 @@
+#! /usr/bin/env python3
+
+
+
+#
+# *** modules
+#
+
+# modules:
+import os
+import sys
+
+# extend path:
+sys.path.insert( 0, "/gpfs/home1/slr/lekf/v3.0/base/005/py" )
+
+# tools:
+import utopya
+
+
+#
+# *** environment modules
+#
+
+# check ...
+if "MODULESHOME" not in os.environ.keys() :
+    print( "ERROR - could not load environment modules without MODULESHOME" )
+    raise Exception
+#endif
+# initialization scripts for environment modules:
+initfiles = []
+initfiles.append( os.path.join( os.environ["MODULESHOME"], "init", "python.py" ) )
+initfiles.append( os.path.join( os.environ["MODULESHOME"], "init", "python" ) )
+initfiles.append( os.path.join( os.environ["MODULESHOME"], "init", "env_modules_python.py" ) )
+# search first one that is present:
+found = False
+for initfile in initfiles :
+    found = os.path.isfile(initfile)
+    if found : break
+#endfor
+if not found :
+    print( "ERROR - could not find any environment modules initialization file: %s" % initfile )
+    for initfile in initfiles :
+        print( "ERROR -   %s" % initfile )
+    #endfor
+    raise Exception
+#endif
+# load module functions:
+exec( open(initfile).read() )
+
+# module commands:
+module( 'purge' )
+module( 'load', '2020' )
+module( 'load', '2021' )
+module( 'load', 'gompi/2021a' )
+module( 'load', 'netCDF-Fortran/4.5.3-gompi-2021a' )
+module( 'load', 'FlexiBLAS/3.0.4-GCC-10.3.0' )
+module( 'load', 'UDUNITS/2.2.28-GCCcore-10.3.0' )
+module( 'use', '/projects/0/tm5meteo/admin/modulefiles' )
+module( 'load', 'tm5/default' )
+module( 'load', 'Anaconda3/2021.05' )
+module( 'load', 'udunits/2.2.26_shut-up' )
+module( 'load', 'makedepf90/2.8.8' )
+
+# show current modules:
+module( 'list' )
+
+# modules might have extended the PYTHONPATH environment variable,
+# but these are not automatically added to the python search path;
+# check enviornment:
+if "PYTHONPATH" in os.environ.keys() :
+    # extract as list:
+    ppaths = os.environ["PYTHONPATH"].split(":")
+    # reverse order to have correct order for inserting:
+    ppaths.reverse()
+    # add to search path
+    for ppath in ppaths :
+        # insert at start if not present yet:
+        if ppath not in sys.path : sys.path.insert(0,ppath)
+    #endfor # paths
+#endif  # PYTHONPATH defined
+
+#
+# *** variables
+#
+
+# current:
+name = "lekf.copy"
+
+# job variables:
+env = {}
+
+
+#
+# *** task(s)
+#
+
+# task class:
+tskclass = utopya.ImportClass( "utopya.UtopyaCopy" )
+# create task object and initialize, which does the actual work:
+tsk = tskclass( 'proj/smoother_V2/002/rc/lekf_v2.rc', rcbase='lekf' )
+
+
+#
+# *** next job
+#
+
+# workdir:
+wdir = "/scratch-shared/slr/projects/Smoother_V2/SO2_Convertion_V1/run"
+# create if necessary:
+if not os.path.isdir( wdir ) : os.makedirs( wdir )
+# goto:
+os.chdir( wdir )
+
+# job step class:
+jbsclass = utopya.ImportClass( "utopya.UtopyaJobStep" )
+# create job step object:
+jbs = jbsclass( "lekf.build", "/scratch-shared/slr/projects/Smoother_V2/SO2_Convertion_V1/run/lekf.rc", rcbase="jobtree", env=env )
+# write job file and start:
+jbs.Run()
+
+
+
+#
+# *** end
+#

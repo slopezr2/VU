@@ -1,0 +1,396 @@
+!#######################################################################
+!
+! Template for machine specific settings.
+!
+!#######################################################################
+
+!----------------------------------------------------------------------
+! user names
+!----------------------------------------------------------------------
+
+! used for output attributes ...
+
+! name of institution:
+user.institution             :  EAFIT
+
+! extract user long name from environment variable:
+user.longname                :  ${USER}
+
+
+!----------------------------------------------------------------------
+! tasks and threads Santiago
+!----------------------------------------------------------------------
+
+! number of MPI tasks in run step:
+#if "${par.mpi}" in ["True"] :
+my.run.ntask                      :  ${par.ntask}
+#elif "${par.mpi}" in ["False"] :
+my.run.ntask                      :  1
+#else
+#error Could not set number of MPI tasks for par.mpi "${par.mpi}"
+#endif
+
+! number of OpenMP threads in run step:
+#if "${par.openmp}" in ["True"] :
+my.run.nthread                    :  ${par.nthread}
+#elif "${par.openmp}" in ["False"] :
+my.run.nthread                    :  1
+#else
+#error Could not set number of OpenMP threads for par.openmp "${par.openmp}"
+#endif
+
+! total:
+my.run.nproc                  :  $(( ${my.run.ntask} * ${my.run.nthread} ))
+
+
+
+
+!----------------------------------------------------------------------
+! job scripts Santiago
+!----------------------------------------------------------------------
+
+! default class with the job script creator:
+*.script.class           :  utopya.UtopyaJobScriptForeground
+
+
+!----------------------------------------------------------------------
+! model data
+!----------------------------------------------------------------------
+
+! the user scratch directory ;
+! this is the base for the run directory:
+my.scratch                    :  ${HOME}/scratch
+
+! base path to input data files:
+my.data.dir                   :  /home/slopezr2/MAUI/input_data_2019
+
+! observation data:
+OBSERVATIONS                  :
+
+!! extra install tasks, see "install.tasks" in expert.rc:
+!my.install.tasks              :
+
+
+!----------------------------------------------------------------------
+! compiler settings
+!----------------------------------------------------------------------
+
+! settings for GNU Fortran compiler:
+#include proj/eafit/000/rc/compiler-gcc-8.2.0.rc
+!#include proj/eafit/000/rc/compiler-intel-17.0.1.rc
+
+! MPI wrappers: Santiago
+configure.compiler.fc.mpi                   :  mpifort
+configure.compiler.fc.mpi.openmp            :  mpifort
+
+
+!! template settings for Intel Fortran compiler:
+!#include ${my.pycasso.dir}/rc/compiler.intel-14.0.1.rc
+
+
+!----------------------------------------------------------------------
+! libraries
+!----------------------------------------------------------------------
+
+! (optional) macro to enable udunits library:
+!my.udunits.define             :  
+!my.udunits.define             :  with_udunits1
+my.udunits.define             :  with_udunits2
+
+
+!
+! * library flags
+!
+
+! NetCDF library:
+!NETCDF_HOME                     : /share/apps/netcdf-fortran/4.4.4/intel-2017_update-1
+NETCDF_HOME                     : /share/apps/netcdf-fortran/4.4.3/gcc-5.4.0
+NETCDF_FORTRAN_HOME             : ${NETCDF_HOME}
+compiler.lib.netcdf.fflags      : -I${NETCDF_FORTRAN_HOME}/include
+compiler.lib.netcdf.libs        : -L${NETCDF_HOME}/lib -lnetcdf          -Wl,-rpath -Wl,${NETCDF_HOME}/lib \
+                                  -L${NETCDF_FORTRAN_HOME}/lib -lnetcdff -Wl,-rpath -Wl,${NETCDF_FORTRAN_HOME}/lib
+
+!Santiago
+configure.lib.netcdf.fflags      : -I${NETCDF_FORTRAN_HOME}/include
+configure.lib.netcdf.ldflags        : -L${NETCDF_HOME}/lib -lnetcdf          -Wl,-rpath -Wl,${NETCDF_HOME}/lib \
+                                  -L${NETCDF_FORTRAN_HOME}/lib -lnetcdff -Wl,-rpath -Wl,${NETCDF_FORTRAN_HOME}/lib
+
+
+!! HDF4 library:
+!HDF4_HOME                       : /usr
+!compiler.lib.hdf4.fflags        : -I${HDF4_HOME}/include
+!compiler.lib.hdf4.libs          : -L${HDF4_HOME}/lib -lmfhdf -ldf -ljpeg -lz
+
+!! HDF5 library:
+!HDF5_HOME                       : /usr
+!compiler.lib.hdf5.fflags        : -I${HDF5_HOME}/include
+!compiler.lib.hdf5.libs          : -L${HDF5_HOME}/lib -lhdf5_hl -lhdf5_fortran -lhdf5
+
+!! Z library (used for compression in HDF)
+!compiler.lib.z.fflags           : 
+!compiler.lib.z.libs             : -lz
+
+!! JPEG library (used for compression in HDF)
+!JPEG_HOME                       : /usr
+!compiler.lib.jpeg.fflags        : 
+!compiler.lib.jpeg.libs          : -L${JPEG_HOME}/lib -ljpeg
+
+!! SZ library (used for compression in HDF)
+!SZIP_HOME                       : /usr
+!compiler.lib.sz.fflags          : -I${SZIP_HOME}/include
+!compiler.lib.sz.libs            : -L${SZIP_HOME}/lib -lsz
+
+!! UDUnits library (version 1):
+!UDUNITS1_HOME                    : /opt/udunits/1.12.11
+!compiler.lib.udunits1.fflags     : -I${UDUNITS1_HOME}/include
+!compiler.lib.udunits1.libs       : -L${UDUNITS1_HOME}/lib -ludunits
+
+
+!! UDUnits library (version 2):
+!UDUNITS2_HOME                    : /opt/udunits/2.1.24
+compiler.lib.udunits2.fflags     : -I/share/apps/udunits/2.2.26/gcc-5.4.0/include
+compiler.lib.udunits2.libs       : /share/apps/udunits/2.2.26/gcc-5.4.0/lib/libudunits2.so.0
+!Santiago
+configure.lib.udunits2.fflags     :
+configure.lib.udunits2.ldflags      : /share/apps/udunits/2.2.26/gcc-5.4.0/lib/libudunits2.so.0 -L/lib64 -lexpat
+                                   
+
+
+
+my.linalg.define             :  with_lapack
+
+
+
+
+
+!! Lapack library:
+LAPACK_HOME                     : /usr/lib64
+!compiler.lib.lapack.fflags      : -I${LAPACK_HOME}/include
+!compiler.lib.lapack.libs        : -L${LAPACK_HOME} -llapack
+!configure.lib.lapack.fflags      : -I${LAPACK_HOME}/include
+!configure.lib.lapack.libs        : -L${LAPACK_HOME} -llapack
+configure.lib.lapack.fflags      : 
+configure.lib.lapack.ldflags     : -L${LAPACK_HOME} -llapack
+
+! BLAS library:
+configure.lib.blas.fflags        : 
+configure.lib.blas.ldflags       : -L${LAPACK_HOME} -lblas
+
+!
+!! Intel Math Kernel Library (blas,lapack,...)
+!compiler.lib.mkl.fflags         :
+!#if "${par.openmp}" in ["T","True"]
+!compiler.lib.mkl.libs           :  -lmkl_intel -lmkl_intel_thread -lmkl_core -liomp5 -lpthread
+!#else
+!compiler.lib.mkl.libs           :  -lmkl_intel -lmkl_sequential   -lmkl_core
+!#endif
+
+
+!----------------------------------------------------------------------
+! makedep
+!----------------------------------------------------------------------
+
+! Is makedepf90 installed?
+! This flag is used in the 'expert.rc' settings Santiago was in False:
+my.with.makedep            :  True
+
+
+!----------------------------------------------------------------------
+! maker
+!----------------------------------------------------------------------
+
+!
+! make command:
+!
+! ~ default:
+maker               :  make
+!
+! ~ gmake with option to compile multiple source source 
+!   at the same time; the setup script will insert the 
+!   'build.jobs' number specified in the expert.rc
+!   or the number passed as using the '--jobs' argument:
+!maker               :  gmake --jobs=%{build.jobs}
+!
+
+! default number of build jobs that can be used,
+! this is passed to 'build.jobs' in the expert rc;
+! eventually set this with an environment variable:
+my.build.jobs       :  1
+
+
+!!----------------------------------------------------------------------
+!! runner
+!!----------------------------------------------------------------------
+!
+! Special command needed to run an executable ?
+! on some systems, this should be used:
+!   dplace -s1 test.x args
+! Specify the the special command if needed,
+! or keep comment if not necessary:
+!runner.command          :  dplace -s1
+
+! run model, pass evaluated rcfile as argument:
+le.run.command     :  ./lekf.x lekf.rc
+
+!!----------------------------------------------------------------------
+!! debugger
+!!----------------------------------------------------------------------
+!
+!!
+!! Used by 'submit_le' script with the '--debuger' flag.
+!!
+!
+!! debugger type: totalview | idb | kdbg
+!debugger                :  kdbg
+!
+!! command for debugger:
+!! o KDE debugger around gdb (Linux systems using gfortran)
+!debugger.command        :  kdbg
+!! o Intel debugger (for systems with Intel compiler)
+!!debugger.command        :  idb -gui
+!! o TotalView (IBM)
+!!debugger.command        :  totalview -searchPath=${build.sourcedir}
+
+
+!----------------------------------------------------------------------
+! jobs
+!----------------------------------------------------------------------
+
+! where to submit jobs to by default ?
+my.submit.to.default               : foreground
+
+! allowed destinations:
+my.submit.to.allowed               : foreground background
+!! if a queue system is available,
+!! a run is background is probably not allowed ...
+!my.submit.to.allowed               : foreground queue
+
+! shell to use in job scripts:
+! o python scripts:
+job.shell.python                   : /usr/bin/env python
+
+
+!----------------------------------------------------------------------
+! some run time settings ...
+!----------------------------------------------------------------------
+
+
+
+!----------------------------------------------------------------------
+! shell options
+!----------------------------------------------------------------------
+
+! for running in foreground or background;
+! add python code that is directly inserted in header
+
+shell.options.default       :
+
+shell.options.init          :  
+
+shell.options.run           :  \n\
+# machine specific settings:\n\
+import os\n\
+os.putenv( 'OMP_NUM_THREADS', '${my.run.ntask}' )
+
+shell.options.done          :
+
+
+!!----------------------------------------------------------------------
+!! settings for BSUB queue
+!!----------------------------------------------------------------------
+!
+!! queue system: bsub | qsub | loadleveler
+!queue        :  bsub
+!
+!! list of queue options (default and per step):
+!queue.bsub.options.default      :  J q
+!queue.bsub.options.init         :  oo eo
+!queue.bsub.options.run          :  oo eo n Rspan Rmem
+!queue.bsub.options.done         :  oo eo
+!
+!! * default settings, valid for all steps:
+!
+!! passed directly:
+!queue.bsub.args                 :  
+!
+!! job name:
+!queue.bsub.option.J             :  ${job.name}
+!
+!! queue name; use 'bqueues' for overview:
+!queue.bsub.option.q             :  normal
+!
+!! python code inserted directly in header;
+!! use "\n\" for newlines:
+!queue.bsub.code.default         :
+!
+!! * init step:
+!
+!! passed directly to bsub:
+!queue.bsub.args.init            :  
+!
+!!! host group:
+!!queue.bsub.option.init.m        :  hgregular
+!
+!! output and error, overwrite existing files:
+!queue.bsub.option.init.oo       :  <auto>
+!queue.bsub.option.init.eo       :  <auto>
+!
+!! python code inserted directly in header;
+!! use "\n\" for newlines:
+!queue.bsub.code.init            :   
+!
+!! * run step:
+!
+!! passed directly to bsub:
+!queue.bsub.args.run             : 
+!
+!! host groups
+!!  hgregular   : work nodes
+!!  hgiband     : work nodes, fast network
+!!  hgbigmem    : work nodes, large memory
+!!! host group:
+!!queue.bsub.option.run.m         :  hgregular
+!
+!! number of tasks:
+!queue.bsub.option.run.n         :  ${my.run.ntask}
+!
+!! resources: 
+!! - single node
+!queue.bsub.option.run.Rspan     :  -R "span[hosts=1]"
+!! - extra memory in MB
+!queue.bsub.option.run.Rmem      :  -R "rusage[mem=850]"
+!
+!! output and error, overwrite existing files:
+!queue.bsub.option.run.oo        :  <auto>
+!queue.bsub.option.run.eo        :  <auto>
+!
+!! python code inserted directly in header;
+!! use "\n\" for newlines:
+!queue.bsub.code.run             :  \n\
+!# machine specific settings:\n\
+!import os\n\
+!os.putenv( 'OMP_NUM_THREADS', '${my.run.ntask}' )
+!
+!! * done step:
+!
+!! passed directly to bsub:
+!queue.bsub.args.done            :  
+!
+!!! host group:
+!!queue.bsub.option.done.m        :  hgregular
+!
+!! output and error, overwrite existing files:
+!queue.bsub.option.done.oo       :  <auto>
+!queue.bsub.option.done.eo       :  <auto>
+!
+!! python code inserted directly in header;
+!! use "\n\" for newlines:
+!queue.bsub.code.done            :
+!    :
+
+
+!----------------------------------------------------------------------
+! end
+!----------------------------------------------------------------------
+
+

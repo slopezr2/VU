@@ -1,0 +1,557 @@
+! ======================================================================
+! ===
+! === LOTOS-EUROS run description,
+! === for inclusion in LEKF description.
+! ===
+! === Default settings for v2.1.001
+! ===
+! ======================================================================
+
+
+! ----------------------------------------
+! model location, version, etc
+! ----------------------------------------
+
+! base number:
+my.le.model.release  :  v2.1
+
+! patch number:
+my.le.patch.nr       :  001
+! full name of patch project directory:
+my.le.patch.dir      :  base/${my.le.patch.nr}
+
+! full version number:
+my.le.model.version  :  ${my.le.model.release}.${my.le.patch.nr}
+
+! base directory:
+my.le.dir            :  ../../lotos-euros/${my.le.model.release}
+
+
+! ----------------------------------------
+! source directories
+! ----------------------------------------
+
+! The code that will be compiled is collected from one
+! or more source directories. A list with the directories
+! should be provided, e.g.:
+!
+!   my.source.dirs  :  base/000 proj/newemis proj/mytest ...
+!
+! The content of the'src', 'bin', and other subdirs of 
+! these directories is copied to the build directory,
+! in the specified order. Thus, in this example, the files
+! in 'proj/newemis/src/' will replace those copied from
+! 'base/000/src' etc.
+!
+my.le.source.dirs      :  ${my.le.dir}/base/${my.le.patch.nr} \
+                          ${my.le.dir}/proj/python3/${my.le.patch.nr}
+
+
+
+
+! ######################################################################
+! ###
+! ### run settings : modify if necessary !
+! ###
+! ######################################################################
+
+!
+! --> All settings that setup your simulation.
+!
+
+! ----------------------------------------
+! time
+! ----------------------------------------
+
+!! timerange:
+!timerange.start             :  2012-07-01 00:00:00
+!timerange.end               :  2012-08-01 00:00:00
+
+! timerange:
+timerange.start             :  2013-07-01 00:00:00
+timerange.end               :  2013-07-01 01:00:00
+
+! run in forecast mode (T|F) ?
+! (thus, read forecast meteo series)
+forecast.mode               :  F
+! reference time for forecast;
+! from here onward, read from forecast files:
+forecast.timerange.base     :  2012-07-01 00:00:00
+
+! output time step in minutes:
+timestep.output     :   60
+
+
+! ----------------------------------------
+! horizontal grid
+! ----------------------------------------
+
+
+!
+! ~ either select one of the pre-defined grids:
+!
+
+!grid.name         : MACC
+!grid.name         : MACC-II
+!grid.name         : CAMS-II
+!grid.name         : NL-smogprog
+!grid.name         : wrfd02
+
+!! grid definitions:
+!#include ${my.le.dir}/base/${my.le.patch.nr}/rc/lotos-euros-regions.rc
+
+
+!
+! ~ or define the keys below ..
+!
+
+!! box within wrf grid:
+!!   [0,20] x [40,55]  =  20 x 15 deg
+!!  at 1/2 x 1/4 deg = 40 x 60 cells
+!
+!! define grid type:
+!grid.type        :  cartesian
+!
+!! south west corner:
+!grid.west         :  0.0
+!grid.south        : 40.0
+!! resolution: 
+!grid.dlon         : 0.50
+!grid.dlat         : 0.25
+!! spacing:
+!grid.nx           : 40
+!grid.ny           : 60
+!
+
+!! domain name in LEIP input:
+!my.leip.region     :  europe_w46e84n26n78
+
+! box over nld:
+!   [0,10] x [50,57]  =  10 x 7 deg
+!  at 1/2 x 1/4 deg = 20 x 28 cells
+
+! define grid type:
+grid.type        :  cartesian
+
+! south west corner:
+grid.west         :  0.0
+grid.south        : 50.0
+! resolution: 
+grid.dlon         : 0.50
+grid.dlat         : 0.25
+! spacing:
+grid.nx           : 20
+grid.ny           : 28
+
+! domain name in LEIP input:
+my.leip.region     :  europe_w46e84n26n78
+
+
+!
+! ~ subset of WRF grid
+!
+
+! define grid type:
+!grid.type        :  non-cartesian
+!
+!! sample file:
+!grid.file.name         :  /data/WRF/wrfout_d02_2014-01-01_00:00:00
+!! sample variable:
+!grid.file.var          :  var_name=HGT
+!! subset [i1,i2,j1,j2], negatives for all :
+!grid.file.subset       :  -999 -999 -999 -999
+!grid.file.subset       :  50 110 50 150
+
+! ----------------------------------------
+! vertical levels
+! ----------------------------------------
+
+! which type of model levels?
+!~ LE original:
+levels.type                :  mixlayer
+!!~ experimental:
+!levels.type                :  hybride_sigma_pressure
+! number of levels:
+!levels.nz           :  4
+levels.nz           :  5
+!levels.nz           :  8
+
+! mixlayer level definition, used by routine 'MixlayerVertexHeights' :
+!       :
+!  [ ------  top(5) ]
+! 
+!    ------  top(4)
+!       ___           "resid2"
+!    ---              "resid1"
+!       ___  blh
+!    __/              "max"
+!    ------  dsurf
+! -------------------
+!~ top of surface layer:
+mixlayer.surf_top              :  25.0
+! minimum top of mix layer:
+mixlayer.mix_topmin            :   50.0
+!~ top heights from 4th onwards ;
+! minimum thicknes of layers above mix,
+! and factors for orography std.dev. added to this:
+#if "${levels.nz}" == "4"
+mixlayer.top                   :  3500.0
+mixlayer.dmin                  :  500.0
+mixlayer.sdofac                :  1.0
+#elif "${levels.nz}" == "5"
+mixlayer.top                   :  3500.0 5000.0
+mixlayer.dmin                  :  500.0
+mixlayer.sdofac                :  1.0 0.5
+#elif "${levels.nz}" == "8"
+mixlayer.top                   :  3500.0 5000.0 6500.0 8000.0 10000.0
+mixlayer.dmin                  :  500.0
+mixlayer.sdofac                :  1.0 0.5 0.0 0.0 0.0
+#else
+#error could not level tops for levels.nz "${levels.nz}"
+#endif
+! thickness of layer to hold aloft boundary conditions:
+mixlayer.daloft                :  1000.0
+
+
+! ----------------------------------------
+! data
+! ----------------------------------------
+
+! definition of model data fields, currently meteo:
+#include ${my.le.dir}/base/${my.le.patch.nr}/rc/lotos-euros-data.rc
+
+
+! ----------------------------------------
+! meteo
+! ----------------------------------------
+
+! include detailed settings:
+#include ${my.le.dir}/base/${my.le.patch.nr}/rc/lotos-euros-meteo-ecmwf.rc
+
+! ----------------------------------------
+! input collection
+! ----------------------------------------
+
+! location of LEIP produced input,
+! region name is defined together with grid:
+my.leip.dir        :  ${my.data.dir}/LEIP/${my.leip.region}
+
+
+
+! ######################################################################
+! ###
+! ### tracers
+! ###
+! ######################################################################
+
+
+! Keywords to select tracers and reactions,
+! in the tables found in the "groups" column.
+! Group names supported by default (see expert.rc) :
+!
+!   cbm4              :  tracers/reactions of CBM4 scheme
+!   sulphur           :  sulphur-only scheme (SO2 and SO4a, OH read)
+!   methane           :  methane-only scheme (CH4, OH read)
+!   co2               :  CO2 tracer
+!   sf6               :  SF6 tracer
+!   ppm               :  primary particulate matter
+!   ec                :  elementary carbon
+!   pom               :  primary organic matter
+!   sia               :  secondary inorganic aerosols
+!   seasalt           :  sodium aerosols representing seasalt
+!   dust              :  dust aerosols
+!   m7                :  M7 aerosol scheme (so4a, bc, oc, seasalt, dust)
+!
+!   NB. for secondary organic aerosol you need both 'vbs' and 'soa'
+!   soa               :  TERP reactions used as input to VBS
+!   vbs               :  VBS tracers, TERP reactions used as input to VBS
+! 
+!   basecation        :  base-cat-ion aerosols
+!   hm                :  heavy metals
+!   pollen            :  allergenic pollen tracers
+!   ppm_ops			      :  primary-pm-tracers (4 size classes, following OPS model )
+!
+!   accum             :  accumulated species
+!   biascorr          :  bias corrected species
+!
+! selected tracer groups:
+genes.group.selected          :  cbm4 ppm ec pom sia seasalt dust accum biascorr
+
+! skip some of the tracers ?
+! (only used to check backwards compatibility):
+genes.tracers.skip            :   
+
+
+
+! ######################################################################
+! ###
+! ### sinks
+! ###
+! ######################################################################
+
+! ----------------------------------------
+! dry deposition
+! ----------------------------------------
+
+! compute ozone flux specials (T|F) ?
+deposition.ozone_flux_specials   :  F
+
+! NH4+/H+ ratio 
+! File created from budget output 'drynhx' 
+! from a run with gamma_water set to zero.
+! ~ zero gamma_water for production of the 'drynhx' budgets:
+!deposition.gammawater.file  :  zero
+! ~ actual file:
+deposition.gammawater.file  :  ${my.data.dir}/ammonium/v3/gammawater_w30e56n29n70_050x025.nc
+
+
+! ----------------------------------------
+! wet deposition
+! ----------------------------------------
+
+! wet deposition scheme:
+!le.wet_depos.type         :  EMEP
+le.wet_depos.type         :  CAMx
+
+! data file with properties for wet deposition routine for CAMx
+le.wet_depos.CAMx.datafile  : ${my.data.dir}/wet_depos/CAMx/depos_data_camx.csv
+
+
+! ######################################################################
+! ###
+! ### emissions
+! ###
+! ######################################################################
+
+! List of available emissions:
+! ~ anthropogenic reactive gasses and primary aerosols:
+!     parest           :   emissions used in PAREST project
+!     parest2          :   emissions used in PAREST2 project
+!     macc             :   MACC 2003-2007
+!     macc_ii          :   MACC-II 2003-2009   (NOTE: no PM composition tables taken from MACC-I !)
+!     co2op            :   similar, but also including CO2
+!     PN               :   particle-number emissions for use with M7
+!     edgar            :   global inventory
+!     ops			   :   Emissions used by OPS-model
+! ~ biogenic:
+!   ~ vegetation emissions, choose one of:
+!       bio            :   isoprene and terpene emissions
+!       megan          :   MEGAN bio emis model, instead of "bio"
+!   ~ for NOx emissions
+!     	bio-no         :   parametrization by Yienger and Levy
+! ~ natural:
+!     sea_salt
+!     dust-wind
+!     dust-resuspension
+!     dust-agriculture
+! ~ fires:
+!     fire_macc
+!     fire_silam
+! ~ pollen:
+!     silam-pollen     : Pollen emissions following SILAM model, M.Sofiev
+!
+! ~ heavy metals:
+!     hm              : Heavy metal emissions from MAPESI/PAREST database
+!     hm-natural      : Natural Heavy metal emissions
+!
+! ~ testing:
+!     point           : single point source
+!
+le.emis.sets         :  macc_iii \
+                        bio \
+                        bio-no \
+                        sea_salt \
+                        dust-wind dust-resuspension dust-agriculture \
+                        fire_macc
+
+! details per set:
+!~ latest set including settings for MACC-III emissions:
+#include ${my.le.dir}/base/${my.le.patch.nr}/rc/lotos-euros-emissions-v5.rc
+
+
+
+
+! ######################################################################
+! ###
+! ### land use / vegetation
+! ###
+! ######################################################################
+
+! which data set ?
+my.landuse  : smiatek
+!my.landuse  : glc
+
+! Use Corine Landcover 2006? This landuse will overwrite the others for locations available in this file
+my.landuse.clc2006.enabled    : F
+
+! Landuse accumulation types for stomatal ozone deposition
+le.landuse.accumulation.types        : 
+!le.landuse.accumulation.types        : Wheat Beech Spruce Clover
+
+! include detailed settings:
+#include ${my.le.dir}/base/${my.le.patch.nr}/rc/lotos-euros-landuse.rc
+
+
+
+! ######################################################################
+! ###
+! ### boundary conditions
+! ###
+! ######################################################################
+
+!
+! Boundaries are filled from a number of sources:
+!  ~~ climatologies:
+!   clim-isak    : output from 2D Isaksen model
+!   clim-const   : constant values for some aerosols, heavy-metals, and pops
+!   clim-logan   : Logan ozone climatology
+!   clim-emep    : EMEP report
+!   clim-steady  : apply steady state to o3/no/no2
+!  ~~ CAMS global CTM
+!   data         : use le_data structures to read and remap
+!                  boundary conditions from netcdf files
+!  ~~ LOTOS-EUROS boundary conditions:
+!   le           : output from previous LOTOS-EUROS run (conc-bound files)
+!
+! collected climatology boundary conditions:
+my.bound.clims    : clim-isak clim-const clim-logan clim-emep clim-steady
+!
+! Provide a list with sources to apply; later sources overwrite previous:
+le.bound.types            :  ${my.bound.clims} data
+
+! ~~
+
+! details of climatologies:
+#include ${my.le.dir}/base/${my.le.patch.nr}/rc/lotos-euros-bound-clim.rc
+
+! netcdf files:
+!~ macc-nrt as produced by leip similar to meteo:
+#include ${my.le.dir}/base/${my.le.patch.nr}/rc/lotos-euros-bound-nc-cams-nrt-fmt1.rc
+!#include ${my.le.dir}/base/${my.le.patch.nr}/rc/lotos-euros-bound-nc-cams-nrt-fmt2.rc
+!~ macc re-analysis (2003-2012):
+!#include ${my.le.dir}/base/${my.le.patch.nr}/rc/lotos-euros-bound-nc-macc-rea-fmt1.rc
+
+! ~~
+
+! If a run from Lotos-Euros is used as boundary,
+! specify the path/settings here:
+le.bound.le.path          :  /data/output/myproject/myrunid
+le.bound.le.key           :  model=LE;expid=myrunid;name=conc-bound
+le.bound.le.key.labeling  :  model=LE;expid=myrunid;name=label-bound
+
+
+! ######################################################################
+! ###
+! ### radiation
+! ###
+! ######################################################################
+
+! enabled (True|False) ?
+my.with.radiation      :  False
+
+! archive:
+my.radiation.lut.dir   :  ${my.data.dir}/Radiation
+
+! first version, only included for non updated tables
+le.radiation.lut.1     :  ${my.radiation.lut.dir}/TNO_AOP_LUT_01.nc
+
+! revised version, but lacks first 3 tables
+le.radiation.lut.2     :  ${my.radiation.lut.dir}/TNO_AOP_LUT_02.nc
+
+
+! ######################################################################
+! ###
+! ### bias correction
+! ###
+! ######################################################################
+!
+! Surface ozone bias correction:
+!   'none'
+!   'o3_smogprog_v19'
+!   'o3_smogprog_v110'
+le.biascorr.surface_ozone     :  o3_smogprog_v110
+
+!
+! Total PM bias correction factor applied to total PM output and AOD.
+!
+!   1.0    : default, no 'none'
+!   2.0    : quite good approximation for the missing PM ..
+!
+!le.biascorr.total_pm.factor   :  1.0
+le.biascorr.total_pm.factor   :  2.0
+!
+!le.biascorr.aod.factor        :  1.0
+le.biascorr.aod.factor        :  1.6
+
+
+
+! ######################################################################
+! ###
+! ### Labeling
+! ###
+! ######################################################################
+
+! enabled (True|False) ?
+my.with.labeling    :  False
+
+                      
+
+! ######################################################################
+! ###
+! ### output
+! ###
+! ######################################################################
+
+! settings for validation output:
+#include base/${my.patch.nr}/rc/lekf-lotos-euros-output.rc
+
+! to have your own specific output, either:
+!  - create a new include file
+!  - copy the required content from the template to here
+
+
+
+! ######################################################################
+! ###
+! ### restart
+! ###
+! ######################################################################
+
+! ~~ restore state from restart file ?
+
+! start from restart files (T|F) ?
+le.restart                    :  F
+
+! place where restart are read from;
+! file names : <model>_<expid>_<name>_<ccyymmdd>_<hhmm>.nc
+le.restart.path               :  ${my.project.dir}/restart
+le.restart.key                :  model=LE;expid=${run.id};name=state
+
+!! OPTIONAL: copy the restart file from a previous directory
+!! using the "install" facility in the "init" job to copy ;
+!! this will check the presence of the file too:
+!le.restart.install.files      :  LE_${run.id}_state_<yyyymmdd1>_<hhmm1>.nc
+!le.restart.install.arch       :  /old/project/runid/restart
+
+! ~~ save new restart files ?
+
+! write restart files (T|F) ? frequency in hours:
+le.restart.save               :  T
+le.restart.save.dhour         :  24.0
+
+! place where restart files are written to;
+! file names : <model>_<expid>_<name>_<ccyymmdd>_<hhmm>.nc
+le.restart.save.path          :  ${my.project.dir}/restart
+le.restart.save.key           :  model=LE;expid=${run.id};name=state
+
+! setting to ensure creatation of restart files directory,
+! need to include 'le.restart' in 'install.tasks' list:
+le.restart.install.dir       :  ${le.restart.save.path}
+
+
+! ######################################################################
+! ###
+! ### end
+! ###
+! ######################################################################
+

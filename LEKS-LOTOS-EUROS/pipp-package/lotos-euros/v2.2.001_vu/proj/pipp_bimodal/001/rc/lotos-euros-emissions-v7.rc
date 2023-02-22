@@ -1,0 +1,1202 @@
+! ######################################################################
+! ###
+! ### Emission settings.
+! ###
+! ### History:
+! ###   v1
+! ###     Defaults used for validation up to v1.10.004 .
+! ###   v2
+! ###     For MACC-II use latest release v20140110 .
+! ###   v3
+! ###     Added MACC-III emissions.
+! ###     Allow year-depenended time profiles for EDGAR.
+! ###     Added bio-nox emissions.
+! ###     Extended pollen emissions.
+! ###     Use wind-blown-dust lookup table in output directory.
+! ###   v4
+! ###     Added point emissions for testing.
+! ###     EDGAR emissions per year by default.
+! ###
+! ###   v5
+! ###     Updated Particle Number emissions to v5.
+! ###
+! ###   v7
+! ###     Including CAMS/REG emissions.
+! ###     Including CAMS/RWC emissions.
+! ###     Including GrETa emissions.
+! ###
+! ######################################################################
+
+!
+! Specify below the details for each set:
+!
+!   le.emis.<set>.<setting>  :  <value>
+!
+! First specify the filetype:
+!   le.emis.<set>.filetype  :  
+! Supported values:
+!   tno_nc             # TNO base emissions, NetCDF format
+!   bio                # biogenic emissions, LE implementation
+!   megan              #  "        "       , MEGAN
+!   fire_macc          # MACC fire emissions
+!   fire_silam         # SILAM global fire emissions
+!   sea_salt           # sea_salt emissions
+!   dust-wind          # wind blown dust
+!   dust-resuspension  # traffic resuspension
+!   dust-agriculture   # dust due to agriculture activities
+!   hm                 # heavy metals
+!   basecation         # base cat ions
+!
+! Other settings depend on the chosen types;
+! see the template settings below.
+!
+
+
+!===========================================================
+! ** checks
+!===========================================================
+
+! some combinations do not make sense ...
+#if ("bio" in "${le.emis.sets}".split()) and ("megan" in "${le.emis.sets}")
+#error found both "bio" and "megan" in "le.emis.sets", something wrong ...
+#endif
+
+
+!===========================================================
+! ** point emis for testing
+!===========================================================
+
+! "file" type:
+le.emis.point.filetype                  :  point
+
+! location "Utrecht":
+le.emis.point.lon                       :   5.12
+le.emis.point.lat                       :  52.08
+
+! target component:
+le.emis.point.tracer                    :  no
+
+! emission:
+le.emis.point.rate                      :  100.0 kg/hour
+
+! effective release height: 
+le.emis.point.height                    :  10.0 m
+
+! time range:
+le.emis.point.trange                    :  1900-01-01 00:00:00 ; 2099-01-01 00:00:00
+
+
+!===========================================================
+! ** LE Data structures for emissions
+!===========================================================
+
+! collection emission variables in 'le_data' structures:
+le.emis.data.vars               :  emis_wetlands_ch4
+
+
+! * wetlands
+
+! "file" type:
+le.emis.wetlands.filetype                 :  data
+! variables:
+le.emis.wetlands.vars                     :  emis_wetlands_ch4
+
+! target spec:
+le.emis.wetlands.emis_wetlands_ch4.spec   :  CH4
+
+! define variable:
+data.emis_wetlands_ch4.long_name          :  emissions of CH4 from wetlands
+data.emis_wetlands_ch4.units              :  kg/m2/s
+data.emis_wetlands_ch4.range              :  -Inf Inf
+data.emis_wetlands_ch4.gridtype           :  cell
+data.emis_wetlands_ch4.levtype            :  sfc
+data.emis_wetlands_ch4.datatype           :  constant_field_series
+data.emis_wetlands_ch4.input              :  emis.emis_wetlands_ch4
+
+! define input:
+emis.emis_wetlands_ch4.tinterp            :  1 month
+emis.emis_wetlands_ch4.input              :  2001-01-01 00:00, 2016-01-01 00:00, emis.emis_wetlands_ch4.file
+emis.emis_wetlands_ch4.file.name          :  /projects/CHE/GALES_CH4/Werkdocumenten/users/segersaj/wp-wetlands/WetCHARTs/v1.0/data/WetCHARTs_extended_ensemble_mean.nc
+emis.emis_wetlands_ch4.file.var           :  long_name=Wetland CH4 Emissions
+
+
+
+!===========================================================
+! ** MACC-III emissions
+!===========================================================
+
+! current version:
+my.macc_iii.emis.version          :  v20151005
+
+! base path:
+my.macc_iii.emis.home             :  ${my.data.dir}/emissions/MACC-III/${my.macc_iii.emis.version}
+
+! file type:
+le.emis.macc_iii.filetype                 :  tno
+
+! emission distribution scheme:
+le.emis.macc_iii.distribution             :  SNAP14x
+
+! emission file:
+le.emis.macc_iii.base.file                :  ${my.macc_iii.emis.home}/base-nc/TNO_MACC_III_emissions_%{year}.nc
+
+! last year available:
+le.emis.macc_iii.base.maxyear             :  9999
+
+! emission factors per country and category:
+!   file=${my.macc_iii.emis.home}/emisfac/scenario-template.csv[;sep=,][;comment=#][;format=csv]
+le.emis.macc_iii.scenario                 :  
+
+! height distribution for point and area sources:
+le.emis.macc_iii.height_distribution.p    :  file=${my.macc_iii.emis.home}/height-distribution/height-distribution-EURODELTA-EMEP-update.csv
+le.emis.macc_iii.height_distribution.a    :  file=${my.macc_iii.emis.home}/height-distribution/height-distribution-EURODELTA-EMEP-update.csv
+
+! time profiles:
+! possible to give list of different files (split by whitespace)
+! if type hourly-gridded is given in list (this will overwrite the others)
+!  type=unity
+!  type=mdh;file=${my.macc.emis.home}/time-distribution/time_var_emis_${le.emis.macc.distribution}_v2.txt
+!  type=hourly;file=${my.macc.emis.home}/time-distribution/time-nc/time_profiles_%{year}.nc
+!  type=hourly-gridded;file=${my.data.dir}/heating-days/time-distribution/time-distribution-heating-%{year}.nc;format=nc
+le.emis.macc_iii.time_profiles            :  type=hourly;file=${my.macc_iii.emis.home}/time-distribution/time_profiles_%{year}.nc
+
+! voc table (txt format):
+le.emis.macc_iii.voc_profiles             :  ${my.macc_iii.emis.home}/aux/voc_profiles_CBM4_${le.emis.macc_iii.distribution}.txt
+
+! location of other table files:
+le.emis.macc_iii.aux.dir                  :  ${my.macc_iii.emis.home}/aux
+!
+! Composition tables;
+! if query is 'special' then the distribution over tracers
+! is a selected case in the 'LE_Emis_TNO' module:
+le.emis.macc_iii.composition.nox          :  file=${my.macc_iii.emis.home}/composition/NOx/NOx_composition_3pct_NO2.csv;format=csv
+le.emis.macc_iii.composition.so2          :  file=${my.macc_iii.emis.home}/composition/SOx/SOx_composition_2pct_SO4a.csv;format=csv
+le.emis.macc_iii.composition.ch4          :  target_tracer=ch4
+le.emis.macc_iii.composition.co           :  special
+le.emis.macc_iii.composition.nh3          :  target_tracer=nh3
+le.emis.macc_iii.composition.nmvoc        :  special
+le.emis.macc_iii.composition.pm2_5        :  file=${my.macc_iii.emis.home}/composition/PM/PM_split_for_TNO_MACC_III_fine_%{year}.csv;format=csv
+le.emis.macc_iii.composition.pm25_pm10    :  file=${my.macc_iii.emis.home}/composition/PM/PM_split_for_TNO_MACC_III_coarse_%{year}.csv;format=csv
+!
+! skip some model species ? 
+le.emis.macc_iii.skip.species             :  
+
+
+!===========================================================
+! ** CAMS v2.2 emissions
+!===========================================================
+
+! current version:
+my.cams_v2_2.emis.version                  :  v2_2
+my.cams_v2_2.emis.patch                    :  ${my.cams_v2_2.emis.version}_1
+
+!~ updated PM split:
+my.cams_v2_2.emis.revision                 :  ${my.cams_v2_2.emis.patch}_rev_20190326
+
+! base path:
+my.cams_v2_2.emis.home                     :  ${my.data.dir}/emissions/CAMS/REG/${my.cams_v2_2.emis.patch}
+
+! loop over species group
+#for GROUP in AP GHG
+
+! file type:
+le.emis.cams_v2_2_GROUP.filetype                 :  tno
+
+! emission distribution scheme:
+le.emis.cams_v2_2_GROUP.distribution             :  GNFR
+
+! emission file; data for 2015 only:
+le.emis.cams_v2_2_GROUP.base.file                :  ${my.cams_v2_2.emis.home}/base-nc/CAMS-REG-GROUP_${my.cams_v2_2.emis.patch}_emissions_year%{year}.nc
+
+! last year available:
+le.emis.cams_v2_2_GROUP.base.maxyear             :  2015
+
+! emission factors per country and category:
+!   file=${my.cams_v2_2.emis.home}/emisfac/scenario-template_GROUP.csv[;sep=,][;comment=#][;format=csv]
+le.emis.cams_v2_2_GROUP.scenario                 :  
+
+! height distribution for point and area sources:
+!~ same height profiles for point and area sources:
+le.emis.cams_v2_2_GROUP.height_distribution.p    :  file=${my.cams_v2_2.emis.home}/height-distribution/TNO_height-distribution_GNFR.csv
+le.emis.cams_v2_2_GROUP.height_distribution.a    :  file=${my.cams_v2_2.emis.home}/height-distribution/TNO_height-distribution_GNFR.csv
+!!~ point sources and shipping as usual, other area sources in 0-20m:
+!le.emis.cams_v2_2_GROUP.height_distribution.p    :  file=${my.cams_v2_2.emis.home}/height-distribution/TNO_height-distribution_GNFR_point.csv
+!le.emis.cams_v2_2_GROUP.height_distribution.a    :  file=${my.cams_v2_2.emis.home}/height-distribution/TNO_height-distribution_GNFR_area.csv
+
+! time profiles:
+! possible to give list of different files (split by whitespace)
+! if type hourly-gridded is given in list (this will overwrite the others)
+!  type=unity
+!  type=mdh;file=${my.macc.emis.home}/time-distribution/time_var_emis_${le.emis.macc.distribution}_v2.txt
+!  type=hourly;file=${my.macc.emis.home}/time-distribution/time-nc/time_profiles_%{year}.nc
+!  type=hourly-gridded;file=${my.data.dir}/heating-days/time-distribution/time-distribution-heating-%{year}.nc;format=nc
+!le.emis.cams_v2_2_GROUP.time_profiles            :  type=hourly;file=${my.cams_v2_2.emis.home}/time-distribution/time_profiles_%{year}.nc
+!~ changed "non-road transport" categories:
+le.emis.cams_v2_2_GROUP.time_profiles            :  type=hourly;file=${my.cams_v2_2.emis.home}/time-distribution/time_profiles_v3_%{year}.nc
+
+! voc table (txt format);
+! not used, since composition tables are available:
+le.emis.cams_v2_2_GROUP.voc_profiles             :  
+
+! location of other table files:
+le.emis.cams_v2_2_GROUP.aux.dir                  :  ${my.cams_v2_2.emis.home}/aux
+!
+! Composition tables;
+! if query is 'special' then the distribution over tracers
+! is a selected case in the 'LE_Emis_TNO' module:
+!
+#if "GROUP" == "AP"
+!
+le.emis.cams_v2_2_GROUP.composition.nox                 :  file=${my.cams_v2_2.emis.home}/composition/NOx/NOx_composition_3pct_NO2.csv;format=csv
+le.emis.cams_v2_2_GROUP.composition.so2                 :  file=${my.cams_v2_2.emis.home}/composition/SOx/SOx_composition_2pct_SO4a.csv;format=csv
+le.emis.cams_v2_2_GROUP.composition.ch4                 :  target_tracer=ch4
+le.emis.cams_v2_2_GROUP.composition.co                  :  special
+le.emis.cams_v2_2_GROUP.composition.nh3                 :  target_tracer=nh3
+!
+le.emis.cams_v2_2_GROUP.composition.nmvoc               :    mass_split_file=${my.cams_v2_2.emis.home}/composition/NMVOC/NMVOC_split_for_CAMS-REG-${my.cams_v2_2.emis.version}_mass_split_table_ALL.csv;\
+                                                             molar_mass_file=${my.cams_v2_2.emis.home}/composition/NMVOC/NMVOC_split_for_CAMS-REG-${my.cams_v2_2.emis.version}_mol_weights.csv;\
+                                                           carbon_bonds_file=${my.cams_v2_2.emis.home}/composition/NMVOC/NMVOC_split_for_CAMS-REG-${my.cams_v2_2.emis.version}_ratios_CB4.csv
+!
+le.emis.cams_v2_2_GROUP.composition.pm2_5               :  file=${my.cams_v2_2.emis.home}/composition/PM/PM_split_for_CAMS-REG-GROUP_${my.cams_v2_2.emis.revision}_fine_%{year}.csv;format=csv
+le.emis.cams_v2_2_GROUP.composition.pm25_pm10           :  file=${my.cams_v2_2.emis.home}/composition/PM/PM_split_for_CAMS-REG-GROUP_${my.cams_v2_2.emis.revision}_coarse_%{year}.csv;format=csv
+!
+#elif "GROUP" == "GHG"
+!
+! skip CH4 from this set ...
+le.emis.cams_v2_2_GROUP.composition.ch4          :  None
+! distribute over labeled tracers
+le.emis.cams_v2_2_GROUP.composition.co2_ff       :  special
+le.emis.cams_v2_2_GROUP.composition.co2_bf       :  special
+!
+#else
+#error could not set composition for group "GROUP"
+#endif
+!
+! skip some model species ? 
+le.emis.cams_v2_2_GROUP.skip.species             :  
+
+#endfor
+! loop over species group
+
+
+!===========================================================
+! ** CAMS v3.1 emissions
+!===========================================================
+
+! current version:
+my.cams_v3_1.emis.version                  :  v3_1
+my.cams_v3_1.emis.patch                    :  ${my.cams_v3_1.emis.version}
+
+!~ updated PM split:
+my.cams_v3_1.emis.revision                 :  ${my.cams_v3_1.emis.patch}
+
+! base path:
+my.cams_v3_1.emis.home                     :  ${my.data.dir}/emissions/CAMS/REG/${my.cams_v3_1.emis.patch}
+
+! loop over species group
+#for GROUP in AP GHG
+
+! file type:
+le.emis.cams_v3_1_GROUP.filetype                 :  tno
+
+! emission distribution scheme:
+le.emis.cams_v3_1_GROUP.distribution             :  GNFR
+
+! emission file; data for 2015 only:
+le.emis.cams_v3_1_GROUP.base.file                :  ${my.cams_v3_1.emis.home}/base-nc/CAMS-REG-GROUP_${my.cams_v3_1.emis.patch}_emissions_year%{year}.nc
+
+! last year available:
+le.emis.cams_v3_1_GROUP.base.maxyear             :  2016
+
+! emission factors per country and category:
+!   file=${my.cams_v3_1.emis.home}/emisfac/scenario-template_GROUP.csv[;sep=,][;comment=#][;format=csv]
+le.emis.cams_v3_1_GROUP.scenario                 :  
+
+! height distribution for point and area sources:
+!~ same height profiles for point and area sources:
+le.emis.cams_v3_1_GROUP.height_distribution.p    :  file=${my.cams_v3_1.emis.home}/height-distribution/TNO_height-distribution_GNFR.csv
+le.emis.cams_v3_1_GROUP.height_distribution.a    :  file=${my.cams_v3_1.emis.home}/height-distribution/TNO_height-distribution_GNFR.csv
+!!~ point sources and shipping as usual, other area sources in 0-20m:
+!le.emis.cams_v3_1_GROUP.height_distribution.p    :  file=${my.cams_v3_1.emis.home}/height-distribution/TNO_height-distribution_GNFR_point.csv
+!le.emis.cams_v3_1_GROUP.height_distribution.a    :  file=${my.cams_v3_1.emis.home}/height-distribution/TNO_height-distribution_GNFR_area.csv
+
+! time profiles:
+! possible to give list of different files (split by whitespace)
+! if type hourly-gridded is given in list (this will overwrite the others)
+!  type=unity
+!  type=mdh;file=${my.macc.emis.home}/time-distribution/time_var_emis_${le.emis.macc.distribution}_v2.txt
+!  type=hourly;file=${my.macc.emis.home}/time-distribution/time-nc/time_profiles_%{year}.nc
+!  type=hourly-gridded;file=${my.data.dir}/heating-days/time-distribution/time-distribution-heating-%{year}.nc;format=nc
+le.emis.cams_v3_1_GROUP.time_profiles            :  type=hourly;file=${my.cams_v3_1.emis.home}/time-distribution/time_profiles_%{year}.nc
+
+! voc table (txt format);
+! not used, since composition tables are available:
+le.emis.cams_v3_1_GROUP.voc_profiles             :  
+
+! location of other table files:
+le.emis.cams_v3_1_GROUP.aux.dir                  :  ${my.cams_v3_1.emis.home}/aux
+!
+! Composition tables;
+! if query is 'special' then the distribution over tracers
+! is a selected case in the 'LE_Emis_TNO' module:
+!
+#if "GROUP" == "AP"
+!
+le.emis.cams_v3_1_GROUP.composition.nox                 :  file=${my.cams_v3_1.emis.home}/composition/NOx/NOx_composition_3pct_NO2.csv;format=csv
+le.emis.cams_v3_1_GROUP.composition.so2                 :  file=${my.cams_v3_1.emis.home}/composition/SOx/SOx_composition_2pct_SO4a.csv;format=csv
+le.emis.cams_v3_1_GROUP.composition.ch4                 :  target_tracer=ch4
+le.emis.cams_v3_1_GROUP.composition.co                  :  special
+le.emis.cams_v3_1_GROUP.composition.nh3                 :  target_tracer=nh3
+!
+le.emis.cams_v3_1_GROUP.composition.nmvoc               :    mass_split_file=${my.cams_v3_1.emis.home}/composition/NMVOC/NMVOC_split_for_CAMS-REG-v2_2_mass_split_table_ALL.csv;\
+                                                             molar_mass_file=${my.cams_v3_1.emis.home}/composition/NMVOC/NMVOC_split_for_CAMS-REG-v2_2_mol_weights.csv;\
+                                                             carbon_bonds_file=${my.cams_v3_1.emis.home}/composition/NMVOC/NMVOC_split_for_CAMS-REG-v2_2_ratios_CB4.csv
+!
+le.emis.cams_v3_1_GROUP.composition.pm2_5               :  file=${my.cams_v3_1.emis.home}/composition/PM/PM_split_for_CAMS-REG-GROUP_${my.cams_v3_1.emis.revision}_fine_%{year}.csv;format=csv
+le.emis.cams_v3_1_GROUP.composition.pm25_pm10           :  file=${my.cams_v3_1.emis.home}/composition/PM/PM_split_for_CAMS-REG-GROUP_${my.cams_v3_1.emis.revision}_coarse_%{year}.csv;format=csv
+le.emis.cams_v3_1_GROUP.ecsplit                          :  file=${my.cams_v3_1.emis.home}/composition/PM/Small_combustion_PM_share_biofuel_fine_%{year}.csv;format=csv
+!
+#elif "GROUP" == "GHG"
+!
+! skip CH4 from this set ...
+le.emis.cams_v3_1_GROUP.composition.ch4          :  None
+! distribute over labeled tracers
+le.emis.cams_v3_1_GROUP.composition.co2_ff       :  special
+le.emis.cams_v3_1_GROUP.composition.co2_bf       :  special
+!
+#else
+#error could not set composition for group "GROUP"
+#endif
+!
+! skip some model species ? 
+le.emis.cams_v3_1_GROUP.skip.species             :  
+
+#endfor
+! loop over species group
+
+
+!===========================================================
+! ** CAMS RWC emissions
+!===========================================================
+
+! current version:
+my.cams_RWC_AP.emis.version                  :  v1_1
+
+! base path:
+my.cams_RWC_AP.emis.home                     :  ${my.data.dir}/emissions/CAMS/RWC/${my.cams_RWC_AP.emis.version}
+
+! file type:
+le.emis.cams_RWC_AP.filetype                 :  tno
+
+! emission distribution scheme:
+le.emis.cams_RWC_AP.distribution             :  SNAP14
+
+! emission file; data for 2015 only:
+le.emis.cams_RWC_AP.base.file                :  ${my.cams_RWC_AP.emis.home}/base/CAMS-RWC-AP_%{year}_v1_1.nc
+
+! last year available:
+le.emis.cams_RWC_AP.base.maxyear             :  2015
+
+! emission factors per country and category: 
+!   file=${my.cams_RWC_AP.emis.home}/emisfac/scenario-template_AP.csv[;sep=,][;comment=#][;format=csv]
+le.emis.cams_RWC_AP.scenario                 :  
+
+! height distribution for point and area sources:
+le.emis.cams_RWC_AP.height_distribution.p    :  file=${my.cams_RWC_AP.emis.home}/height-distribution/height-distribution-EURODELTA-EMEP-update_AP.csv
+le.emis.cams_RWC_AP.height_distribution.a    :  file=${my.cams_RWC_AP.emis.home}/height-distribution/height-distribution-EURODELTA-EMEP-update_AP.csv
+
+! time profiles:
+! possible to give list of different files (split by whitespace)
+! if type hourly-gridded is given in list (this will overwrite the others)
+!  type=unity
+!  type=mdh;file=${my.macc.emis.home}/time-distribution/time_var_emis_${le.emis.macc.distribution}_v2.txt
+!  type=hourly;file=${my.macc.emis.home}/time-distribution/time-nc/time_profiles_%{year}.nc
+!  type=hourly-gridded;file=${my.data.dir}/heating-days/time-distribution/time-distribution-heating-%{year}.nc;format=nc
+le.emis.cams_RWC_AP.time_profiles            :  type=hourly;file=${my.cams_RWC_AP.emis.home}/time-distribution/time_profiles_%{year}_AP.nc
+
+! voc table (txt format):
+le.emis.cams_RWC_AP.voc_profiles             :  ${my.cams_RWC_AP.emis.home}/aux/AP/voc_profiles_CBM4_${le.emis.cams_RWC_AP.distribution}.txt
+
+! location of other table files:
+le.emis.cams_RWC_AP.aux.dir                  :  ${my.cams_RWC_AP.emis.home}/aux/AP
+!
+! Composition tables;
+! if query is 'special' then the distribution over tracers
+! is a selected case in the 'LE_Emis_TNO' module:
+!
+le.emis.cams_RWC_AP.composition.nox          :  file=${my.cams_RWC_AP.emis.home}/composition/NOx_composition_3pct_NO2_AP.csv;format=csv
+le.emis.cams_RWC_AP.composition.so2          :  file=${my.cams_RWC_AP.emis.home}/composition/SOx_composition_2pct_SO4a_AP.csv;format=csv
+le.emis.cams_RWC_AP.composition.ch4          :  target_tracer=ch4
+le.emis.cams_RWC_AP.composition.co           :  special
+le.emis.cams_RWC_AP.composition.nh3          :  target_tracer=nh3
+le.emis.cams_RWC_AP.composition.nmvoc        :  special
+le.emis.cams_RWC_AP.composition.pm2_5        :  file=${my.cams_RWC_AP.emis.home}/composition/PM_split_for_TNO_CAMS-RWC-Update_2015_fine_AP.csv;format=csv
+le.emis.cams_RWC_AP.composition.pm25_pm10    :  file=${my.cams_RWC_AP.emis.home}/composition/PM_split_for_TNO_CAMS-RWC-Update_2015_coarse_AP.csv;format=csv
+!
+! skip some model species ? 
+le.emis.cams_RWC_AP.skip.species             :  
+
+
+!===========================================================
+! ** emissions produced by emission model, 
+! **  same structure as MACC, but with extended category information
+! **  seperate timeprofile per component given
+!===========================================================
+
+! current version:
+my.emis-model.emis.version          :  v20151005
+
+! base path:
+my.emis-model.emis.home             :  /PROJECTS/KIP/Klimaat_en_Luchtkwaliteit/Emission-Modelling/users/kranenburgr/data/MACC-III-base/output-tst4
+
+! file type:
+le.emis.emis-model.filetype                 :  tno
+
+! emission distribution scheme:
+le.emis.emis-model.distribution             :  SNAP14
+
+! emission file:
+le.emis.emis-model.base.file                :  ${my.emis-model.emis.home}/base-nc/Base-emissions-MACC-III_2011.nc
+
+! last year available:
+le.emis.emis-model.base.maxyear             :  9999
+
+! emission factors per country and category:
+le.emis.emis-model.scenario                 :  
+
+! height distribution for point and area sources:
+le.emis.emis-model.height_distribution.p    :  file=${my.emis-model.emis.home}/height-distribution/height-distribution-EURODELTA-EMEP-update.csv
+le.emis.emis-model.height_distribution.a    :  file=${my.emis-model.emis.home}/height-distribution/height-distribution-EURODELTA-EMEP-update.csv
+
+! time profiles:
+! possible to give list of different files (split by whitespace)
+! if type hourly-gridded is given in list (this will overwrite the others)
+!  type=unity
+!  type=mdh;file=${my.macc.emis.home}/time-distribution/time_var_emis_${le.emis.macc.distribution}_v2.txt
+!  type=hourly;file=${my.macc.emis.home}/time-distribution/time-nc/time_profiles_%{year}.nc
+!  type=hourly-gridded;file=${my.data.dir}/heating-days/time-distribution/time-distribution-heating-%{year}.nc;format=nc
+!  type=hourly-comp;file=${my.emis-model.emis.home}/Time-Profiles/Timeprofiles-MACC-III_%{year]-v3.nc;format=nc
+le.emis.emis-model.time_profiles            :  type=hourly-comp;file=${my.emis-model.emis.home}/Time-Profiles/Timeprofiles-MACC-III_2011-v3.nc
+
+! voc table (txt format):
+le.emis.emis-model.voc_profiles             :  ${my.macc_iii.emis.home}/aux/voc_profiles_CBM4_${le.emis.emis-model.distribution}.txt
+
+! location of other table files:
+le.emis.emis-model.aux.dir                  :  ${my.emis-model.emis.home}/aux
+!
+! Composition tables;
+! if query is 'special' then the distribution over tracers
+! is a selected case in the 'LE_Emis_TNO' module:
+le.emis.emis-model.composition.nox          :  file=${my.emis-model.emis.home}/composition/NOx/NOx_composition_3pct_NO2.csv;format=csv
+le.emis.emis-model.composition.so2          :  file=${my.emis-model.emis.home}/composition/SOx/SOx_composition_2pct_SO4a.csv;format=csv
+le.emis.emis-model.composition.ch4          :  target_tracer=ch4
+le.emis.emis-model.composition.co           :  special
+le.emis.emis-model.composition.nh3          :  target_tracer=nh3
+le.emis.emis-model.composition.nmvoc        :  special
+le.emis.emis-model.composition.pm2_5        :  file=${my.emis-model.emis.home}/composition/PM/PM25_composition_MACC-III_%{year}.csv;format=csv
+le.emis.emis-model.composition.pm25_pm10    :  file=${my.emis-model.emis.home}/composition/PM/PM25_PM10_composition_MACC-III_%{year}.csv;format=csv
+!
+! skip some model species ? 
+le.emis.emis-model.skip.species             :  
+
+
+!===========================================================
+! ** OPS - emissions
+!===========================================================
+
+! shortcut ...
+my.ops.emis.home           : ${my.data.dir}/emissions/OPS
+
+! file type:
+le.emis.ops.filetype       : ops
+
+! which pollutants
+le.emis.ops.pollutants     : NOx PM10
+
+! basefiles
+le.emis.ops.NOx            : file=${my.ops.emis.home}/base/NOx_OPS_bronbestand.brn;sep=
+le.emis.ops.PM10           : file=${my.ops.emis.home}/base/PM10_OPS_bronbestand.brn;sep=
+
+le.emis.ops.pm_composition : file=${my.ops.emis.home}/aux/pmdpre-EUR.ops
+
+le.emis.ops.ec_fraction    : file=${my.ops.emis.home}/aux/fr_EC_pm25_Lotos_Euros.txt
+
+le.emis.ops.height_distribution   :  file=${my.ops.emis.home}/height-distribution/height-distribution-EURODELTA.csv
+
+le.emis.ops.time_profiles   :  type=hourly;file=${my.ops.emis.home}/time-distribution/time_profiles_%{year}.nc
+
+
+!===========================================================
+! ** Particle-number emissions
+!===========================================================
+
+! shortcut ...
+my.PN.emis.home             :  ${my.data.dir}/emissions/PN_emissions
+my.PN.emis.version          :  v5
+
+! file type:
+le.emis.PN.filetype                 :  tno
+
+! emission distribution scheme:
+le.emis.PN.distribution             :  PN
+! emission file:
+le.emis.PN.base.file                :  ${my.PN.emis.home}/${my.PN.emis.version}/base-nc/PN-to-M7numb_for_LE_2005_July2013.nc
+
+! last year available:
+le.emis.PN.base.maxyear             :  9999
+
+! no scenario factors yet:
+le.emis.PN.scenario                 :  
+
+! height distribution for point and area sources:
+le.emis.PN.height_distribution.p    :  file=${my.PN.emis.home}/${my.PN.emis.version}/aux/height-distribution-EURODELTA.csv
+le.emis.PN.height_distribution.a    :  file=${my.PN.emis.home}/${my.PN.emis.version}/aux/height-distribution-EURODELTA.csv
+! time profiles:
+!le.emis.PN.time_profiles            :  type=mdh;file=${my.PN.emis.home}/time-distribution/time_var_emis_${le.emis.PN.distribution}.txt
+le.emis.PN.time_profiles            :  type=hourly;file=${my.data.dir}/emissions/PN_emissions/v5/aux/time_profiles_2008.nc;format=nc
+! time profiles:
+!le.emis.PN.time_profiles            :  file=${my.PN.emis.home}/${my.PN.emis.version}/aux/time_profiles_%{year}.nc;years=%{year};format=nc
+
+! voc table (txt format):
+le.emis.PN.voc_profiles             :  
+
+! location of other table files:
+le.emis.PN.aux.dir                  :  ${my.PN.emis.home}/${my.PN.emis.version}/aux
+
+! no composition tables, emissions are added to tracers with same name:
+le.emis.PN.composition.so4ks        :  
+le.emis.PN.composition.so4as        :  
+le.emis.PN.composition.bcks         :  
+le.emis.PN.composition.bcas         :  
+le.emis.PN.composition.bcki         :  
+le.emis.PN.composition.ocks         :  
+le.emis.PN.composition.ocas         :  
+le.emis.PN.composition.ocki         :  
+le.emis.PN.composition.duas         :  
+le.emis.PN.composition.duai         :  
+le.emis.PN.composition.nais         :  
+le.emis.PN.composition.nacs         :  
+le.emis.PN.composition.naii         :  
+le.emis.PN.composition.naci         :  
+
+! skip some model species ? 
+le.emis.PN.skip.species             :  
+
+
+!===========================================================
+! ** Heavy metal emissions
+!===========================================================
+
+! shortcut ...
+my.hm.emis.home             :  ${my.data.dir}/emissions/tno_2005__uba_parest_project/
+my.hm.emis.version          :  v20121214
+
+! file type:
+le.emis.hm.filetype                 :  tno
+!
+! emission distribution scheme:
+le.emis.hm.distribution             :  SNAP14
+
+! emission file for oxidants:
+le.emis.hm.base.file                :  ${my.hm.emis.home}/base-nc/Mapesi_Export_Output_HM_new.nc
+
+! last year available:
+le.emis.hm.base.maxyear             :  9999
+
+! emission factors per country and category:
+le.emis.hm.scenario                 :  file=${my.hm.emis.home}/emisfac/scenario-hm-2005.csv
+!
+! height distribution for point and area sources:
+le.emis.hm.height_distribution.p    :  file=${my.hm.emis.home}/height-distribution/height-distribution-HM.csv
+le.emis.hm.height_distribution.a    :  file=${my.hm.emis.home}/height-distribution/height-distribution-HM.csv
+!
+! time profiles:
+! possible to give list of different files (split by whitespace)
+! if type hourly-gridded is given in list (this will overwrite the others)
+!  type=unity
+!  type=mdh;file=${my.macc.emis.home}/time-distribution/time_var_emis_${le.emis.macc.distribution}_v2.txt
+!  type=hourly;file=${my.macc.emis.home}/time-distribution/time-nc/time_profiles_%{year}.nc
+!  type=hourly-gridded;file=${my.data.dir}/heating-days/time-distribution/time-distribution-heating-%{year}.nc;format=nc
+le.emis.hm.time_profiles            :  type=hourly;file=${my.hm.emis.home}/time-distribution/time-nc/time_profiles_hm_%{year}.nc
+
+! voc table (txt format):
+le.emis.hm.voc_profiles             :  
+
+! location of other table files:
+le.emis.hm.aux.dir                  :  ${my.hm.emis.home}/${my.hm.emis.version}/aux
+!
+! Composition tables;
+! if query is 'special' then the distribution over tracers
+! is a selected case in the 'LE_Emis_TNO' module:
+le.emis.hm.composition.pb           :  file=${my.hm.emis.home}/composition/Pb/Pb_composition.csv;format=csv
+le.emis.hm.composition.cd           :  file=${my.hm.emis.home}/composition/Cd/Cd_composition.csv;format=csv
+!
+! skip some model species ? 
+le.emis.hm.skip.species             :  
+
+!===========================================================
+! ** natural heavy metal emissions
+!===========================================================
+
+! set filetype:
+le.emis.hm_natural.filetype             :  hm_natural
+
+
+!============================================================
+! ** EDGAR emissions v4.2
+!============================================================
+
+! set filetype:
+le.emis.edgar.filetype                  :  edgar
+
+! main path:
+my.edgar.dir				                    :  ${my.data.dir}/emissions/EDGAR/v42
+
+! valid timerange:
+le.emis.edgar.timerange_valid           :  year
+!le.emis.edgar.timerange_valid           :  month
+
+! which year ? automatic or fixed:
+my.edgar.year                           :  %{year}
+!my.edgar.year                           :  2008
+
+! input file:
+le.emis.edgar.file                      :  ${my.edgar.dir}/%{tracer}/v42_%{tracer}_${my.edgar.year}_IPCC_%{source}.0.1x0.1.nc
+
+! tracer names:
+!le.emis.edgar.tracers                   :  CH4 CO NH3 NMVOC NOx PM10 SO2 SF6
+le.emis.edgar.tracers                   :  CH4 CO NH3 NMVOC NOx PM10 SO2
+
+! file with list of source category codes:
+le.emis.edgar.sourcecodes               :  ${my.edgar.dir}/categories/allemiscats.csv
+
+! files with list of source category codes per tracer:
+le.emis.edgar.sources                   :  ${my.edgar.dir}/categories/cats-%{tracer}.txt
+
+! files with list of geographical zones:
+le.emis.edgar.zones                   :  ${my.edgar.dir}/zones/Geographical_zones_global.csv
+
+! height distribution for point and area sources:
+le.emis.edgar.height_distribution      :  file=${my.edgar.dir}/height-distribution/height_distribution_EURODELTA_global.csv
+
+! temperature variable emissions VOC:
+le.emis.edgar.temp_var_voc             :  file=${my.edgar.dir}/temp_var/temp_var_emis_VOC_global.csv
+le.emis.edgar.temp_var_co              :  file=${my.edgar.dir}/temp_var/temp_var_emis_CO_global.csv
+
+! time distribution:
+le.emis.edgar.time_profiles            :  files=${my.edgar.dir}/time-distribution/time_profiles_global_%{year}.nc;years=%{year};format=nc
+
+! Composition tables;
+! if query is 'special' then the distribution over tracers
+! is a selected case in the 'LE_Emis_TNO' module:
+le.emis.edgar.composition.NOx          :  file=${my.edgar.dir}/composition/NOx/NOx_composition_global.csv;format=csv
+le.emis.edgar.composition.SO2          :  file=${my.edgar.dir}/composition/SOx/SOx_composition_global.csv;format=csv
+le.emis.edgar.composition.CH4          :  target_tracer=ch4
+le.emis.edgar.composition.CO           :  target_tracer=co
+le.emis.edgar.composition.NH3          :  target_tracer=nh3
+le.emis.edgar.composition.PM10         :  file=${my.edgar.dir}/composition/PM/PM_composition_global_PM10.csv;format=csv
+le.emis.edgar.composition.NMVOC        :  file=${my.edgar.dir}/composition/NMVOC/VOC_composition_CBM4_IPCCcodes_global.csv;format=csv;nocheck=T
+le.emis.edgar.composition.SF6          :  target_tracer=sf6
+
+! skip species?
+le.emis.edgar.skip.species             :  
+
+
+!============================================================
+! ** EDGAR emissions v4.3
+!============================================================
+
+! set filetype:
+le.emis.edgar_v43.filetype                  :  edgar
+
+! main path:
+my.edgar_v43.dir                            :  ${my.data.dir}/emissions/EDGAR/v4.3/v4.3.2
+
+! valid timerange:
+le.emis.edgar_v43.timerange_valid           :  year
+!le.emis.edgar_v43.timerange_valid           :  month
+
+! maximum year in inventory:
+le.emis.edgar_v43.maxyear                   :  2012
+
+! input file:
+le.emis.edgar_v43.file                      :  ${my.edgar_v43.dir}/data/%{tracer}/%{year}/v432_%{tracer}_%{year}_IPCC_%{source}.0.1x0.1.nc
+
+
+! tracer names:
+le.emis.edgar_v43.tracers                   :  BC CH4 CO NH3 NMVOC NOx OC PM10 PM2.5_bio PM2.5_fossil SO2
+
+! file with list of source category codes:
+le.emis.edgar_v43.sourcecodes               :  ${my.edgar_v43.dir}/aux/sources.txt
+
+! files with list of source category codes per tracer:
+le.emis.edgar_v43.sources                   :  ${my.edgar_v43.dir}/aux/sources-%{tracer}.txt
+
+! files with list of geographical zones:
+le.emis.edgar_v43.zones                     :  ${my.edgar_v43.dir}/aux/Geographical_zones_global.csv
+
+! height distribution (all source types):
+le.emis.edgar_v43.height_distribution      :  file=${my.edgar_v43.dir}/aux/height_distribution_EURODELTA_global.csv
+
+
+! temperature variable emissions VOC:
+le.emis.edgar_v43.temp_var_voc             :  file=${my.edgar_v43.dir}/aux/temp_var_emis_VOC_global.csv
+le.emis.edgar_v43.temp_var_co              :  file=${my.edgar_v43.dir}/aux/temp_var_emis_CO_global.csv
+
+! time distribution:
+le.emis.edgar_v43.time_profiles            :  files=${my.edgar_v43.dir}/time-distribution/edgar_v43_time_profiles_global_%{year}.nc;years=%{year};format=nc
+
+! Composition tables;
+! if query is 'special' then the distribution over tracers
+! is a selected case in the 'LE_Emis_TNO' module:
+
+!Santiago
+#if  ("edgar" in "${le.emis.sets}")
+
+#if "m7" in "${genes.group.selected}".split()
+le.emis.edgar_v43.composition.BC           :  target_tracer=bcki
+le.emis.edgar_v43.composition.CH4          :  target_tracer=ch4
+le.emis.edgar_v43.composition.CO           :  target_tracer=co
+le.emis.edgar_v43.composition.NH3          :  target_tracer=nh3
+le.emis.edgar_v43.composition.NMVOC        :  file=${my.edgar_v43.dir}/composition/NMVOC/VOC_composition_CBM4_IPCCcodes_global.csv;format=csv;nocheck=T
+le.emis.edgar_v43.composition.NOx          :  file=${my.edgar_v43.dir}/composition/NOx/NOx_composition_global.csv;format=csv
+le.emis.edgar_v43.composition.OC           :  file=${edgar_v43.dir}/composition-M7/OC/OC_composition_global_M7.csv;format=csv
+le.emis.edgar_v43.composition.PM25_PM10    :  file=${edgar_v43.dir}/composition-M7/PM/PM_composition_global_PM25_PM10_M7_antoon.csv;format=csv
+le.emis.edgar_v43.composition.PM2.5_bio    :  file=${edgar_v43.dir}/composition-M7/PM/PM_composition_global_PM2.5_bio_M7_antoon.csv;format=csv
+le.emis.edgar_v43.composition.PM2.5_fossil :  file=${edgar_v43.dir}/composition-M7/PM/PM_composition_global_PM2.5_fossil_M7_antoon.csv;format=csv
+le.emis.edgar_v43.composition.SO2          :  file=${edgar_v43.dir}/composition-M7/SOx/SOx_composition_global_M7.csv;format=csv
+#else
+le.emis.edgar_v43.composition.BC           :  target_tracer=ec_f
+le.emis.edgar_v43.composition.CH4          :  target_tracer=ch4
+le.emis.edgar_v43.composition.CO           :  target_tracer=co
+le.emis.edgar_v43.composition.NH3          :  target_tracer=nh3
+le.emis.edgar_v43.composition.NMVOC        :  file=${my.edgar_v43.dir}/composition/NMVOC/VOC_composition_CBM4_IPCCcodes_global.csv;format=csv;nocheck=T
+le.emis.edgar_v43.composition.NOx          :  file=${my.edgar_v43.dir}/composition/NOx/NOx_composition_global.csv;format=csv
+le.emis.edgar_v43.composition.OC           :  target_tracer=pom_f
+le.emis.edgar_v43.composition.PM25_PM10    :  target_tracer=ppm_c
+le.emis.edgar_v43.composition.PM2.5_bio    :  target_tracer=ppm_f
+le.emis.edgar_v43.composition.PM2.5_fossil :  target_tracer=ppm_f
+le.emis.edgar_v43.composition.SO2          :  file=${my.edgar_v43.dir}/composition/SOx/SOx_composition_global.csv;format=csv
+#endif
+
+#endif
+! we currently don't have the emission nc files
+! le.emis.edgar_v43.composition.PM25_PM10    :  file= ${jianbing.edgar_v43.dir}/composition/PM/PM_composition_global_PM25_PM10_M7.csv;format=csv
+
+! skip species?
+le.emis.edgar_v43.skip.species             :  
+
+
+!============================================================
+! ** biogenic emissions, LE implementation
+!============================================================
+
+! set filetypes:
+le.emis.bio.filetype                   :  bio
+
+!============================================================
+! ** biogenic NOx emissions, LE implementation
+!============================================================
+
+! set filetypes:
+le.emis.bio-no.filetype                   :  bio-no
+
+
+!===========================================================
+! ** biogenic emissions MEGAN v2.04
+!===========================================================
+
+! set filetypes:
+le.emis.megan.filetype                 :  megan
+
+! archive:
+my.megan.resol            :  150sec
+my.megan.input            :  ${my.data.dir}/landuse/megan/MEGAN_V2_0/Input/NETCDF ${my.megan.resol}
+my.megan.input.version    :  20
+
+! PFT files:
+le.emis.megan.pft.fname   :  ${my.megan.input}/PFT/PFT${my.megan.input.version}/%{comp}%{year}_${my.megan.resol}.nc
+le.emis.megan.pft.vname   :  %{component}_cover_fraction_for_year_%{year}_(m2_per_m2)
+le.emis.megan.pft.year    :  2001
+
+! for some MEGAN representer species, 
+! the emission factors are available as maps;
+! specify a list of all species for which this map should be used:
+le.emis.megan.ef.maps     :  ISOP
+! EF files:
+le.emis.megan.ef.fname    :  ${my.megan.input}/EF/ef%{mt}${my.megan.input.version}/%{comp}all%{year}_${my.megan.resol}.nc
+le.emis.megan.ef.vname    :  %{component}_emission_factor_for_all_plants_for_year_%{year}_(microgram_per_m2_per_hr)
+le.emis.megan.ef.year     :  2000
+
+! LAI files:
+le.emis.megan.lai.fname   :  ${my.megan.input}/LAI/LAI${my.megan.input.version}/laiv%{year}%{month}_${my.megan.resol}.nc
+le.emis.megan.lai.vname   :  LAI_for_%{monthname}_%{year}_(m2_per_m2)
+le.emis.megan.lai.year    :  2003
+
+! meteo files:
+le.emis.megan.meteo.fname : ${my.leip.dir}/ECMWF/od/ifs/0001/fc/sfc/F640/%{year}/%{ftype}_%{year}%{month}%{day}_3h%{fc_ext}.nc
+le.emis.megan.meteo.fc_ext : 
+
+
+!===========================================================
+! ** SILAM pollen emissions
+!===========================================================
+
+! set filetypes:
+le.emis.silam-pollen.filetype                :  silam-pollen
+
+! set pollen types
+le.emis.silam-pollen.tracers                 :  pol_b pol_o pol_g
+
+!Version of grass pollen input files and code to be used:
+! 2 is working version until summer 2016 (linear fade-in/out)
+! 3 is experimental to be used in grass pollen exercise (gamma distribution source)
+le.emis.silam-pollen.pol_g.version           : 3
+
+! input files:
+le.emis.silam-pollen.pol_b.file              : ${my.data.dir}/pollenemis/Birch_new_map_20150218.nc
+le.emis.silam-pollen.pol_o.file              : ${my.data.dir}/pollenemis/Olive_pollen_data_v2.nc
+le.emis.silam-pollen.pol_g.file              : ${my.data.dir}/pollenemis/Grass_pollen_data_v2.nc
+le.emis.silam-pollen.pol_g.file3             : ${my.data.dir}/pollenemis/Grass_pollen_data_v3x.nc
+
+! Input scale factors to account for bi-annual productivity cycle available?
+le.emis.silam-pollen.pol_b.scale-factor.available         : T
+! Scale factors file
+le.emis.silam-pollen.pol_b.scale-factor.file              : ${my.data.dir}/pollenemis/BetulaFC_expanded2.grads.nc
+! Extrapolation for scale factors allowed?
+le.emis.silam-pollen.pol_b.scale-factor.extrapol_allowed  : T
+
+! start end of accumulation period
+le.emis.silam-pollen.pol_b.start_accum_period   :  %{year}-03-01
+le.emis.silam-pollen.pol_b.end_accum_period     :  %{year}-07-01
+
+! threshold temperature for ripening
+le.emis.silam-pollen.pol_b.temp_th              : 276.65
+le.emis.silam-pollen.pol_b.temp_th_unit         : K
+
+! threshold humidity for release of pollen
+le.emis.silam-pollen.pol_b.low_hum_th           : 50
+le.emis.silam-pollen.pol_b.low_hum_th_unit      : %
+le.emis.silam-pollen.pol_b.high_hum_th          : 80
+le.emis.silam-pollen.pol_b.high_hum_th_unit     : %
+
+! threshold rain for release of pollen
+le.emis.silam-pollen.pol_b.prec_th              : 0.5
+le.emis.silam-pollen.pol_b.prec_th_unit         : mm/hr
+
+! threshold windspeed for release of pollen
+le.emis.silam-pollen.pol_b.wspd_sat_lev         : 5
+le.emis.silam-pollen.pol_b.wspd_sat_lev_unit    : m/s
+le.emis.silam-pollen.pol_b.wspd_max_impact      : 1.5
+
+! uncertainty in start day of pollen release
+le.emis.silam-pollen.pol_b.unc_heatsum_start       : 20
+le.emis.silam-pollen.pol_b.unc_heatsum_start_unit  : %
+
+! maximum available grains with uncertainty
+le.emis.silam-pollen.pol_b.max_avail_grns       : 1.e9
+le.emis.silam-pollen.pol_b.unc_max_avail_grns      : 20
+le.emis.silam-pollen.pol_b.unc_max_avail_grns_unit : %
+
+! allow zero pollen for the rest of the year?
+le.emis.silam-pollen.pol_b.allow_zero           : T
+
+! GRASS pollen
+
+! uncertainty in startday of emission (absolute)
+le.emis.silam-pollen.pol_g.unc_startday         : 7
+
+! threshold humidity for release of pollen
+le.emis.silam-pollen.pol_g.low_hum_th           : 50
+le.emis.silam-pollen.pol_g.low_hum_th_unit      : %
+le.emis.silam-pollen.pol_g.high_hum_th          : 80
+le.emis.silam-pollen.pol_g.high_hum_th_unit     : %
+
+! threshold rain for release of pollen
+le.emis.silam-pollen.pol_g.prec_th              : 0.5
+le.emis.silam-pollen.pol_g.prec_th_unit         : mm/hr
+
+! threshold windspeed for release of pollen
+le.emis.silam-pollen.pol_g.wspd_sat_lev         : 5
+le.emis.silam-pollen.pol_g.wspd_sat_lev_unit    : m/s
+le.emis.silam-pollen.pol_g.wspd_max_impact      : 1.5
+
+! maximum available grains with uncertainty
+!le.emis.silam-pollen.pol_g.max_avail_grns       : 2.e8
+! New value used with gamma distribution source term
+le.emis.silam-pollen.pol_g.max_avail_grns       : 2.e7
+le.emis.silam-pollen.pol_g.unc_max_avail_grns      : 20
+le.emis.silam-pollen.pol_g.unc_max_avail_grns_unit : %
+
+! allow zero pollen for the rest of the year?
+le.emis.silam-pollen.pol_g.allow_zero           : T
+
+! Olive pollen
+
+le.emis.silam-pollen.pol_o.heatsum_diff         :  275
+le.emis.silam-pollen.pol_o.heatsum_diff_unit    :  degree_days
+
+le.emis.silam-pollen.pol_o.start_accum_period   :  %{year}-01-01
+le.emis.silam-pollen.pol_o.end_accum_period     :  %{year}-12-31
+
+! threshold temperature for ripening
+le.emis.silam-pollen.pol_o.temp_th              : 273.15
+le.emis.silam-pollen.pol_o.temp_th_unit         : K
+
+! threshold humidity for release of pollen
+le.emis.silam-pollen.pol_o.low_hum_th           : 50
+le.emis.silam-pollen.pol_o.low_hum_th_unit      : %
+le.emis.silam-pollen.pol_o.high_hum_th          : 80
+le.emis.silam-pollen.pol_o.high_hum_th_unit     : %
+
+! threshold rain for release of pollen
+le.emis.silam-pollen.pol_o.prec_th              : 0.5
+le.emis.silam-pollen.pol_o.prec_th_unit         : mm/hr
+
+! threshold windspeed for release of pollen
+le.emis.silam-pollen.pol_o.wspd_sat_lev         : 5
+le.emis.silam-pollen.pol_o.wspd_sat_lev_unit    : m/s
+le.emis.silam-pollen.pol_o.wspd_max_impact      : 1.5
+
+! uncertainty in start day of pollen release
+le.emis.silam-pollen.pol_o.unc_heatsum_start       : 10
+le.emis.silam-pollen.pol_o.unc_heatsum_start_unit  : %
+
+! maximum available grains with uncertainty
+le.emis.silam-pollen.pol_o.max_avail_grns          : 3.e8
+le.emis.silam-pollen.pol_o.unc_max_avail_grns      : 10
+le.emis.silam-pollen.pol_o.unc_max_avail_grns_unit : %
+
+! allow zero pollen for the rest of the year?
+le.emis.silam-pollen.pol_o.allow_zero           : T
+
+!===========================================================
+! ** MACC fire emissions
+!===========================================================
+
+! set filetype:
+le.emis.fire_macc_daily.filetype                :  fire_macc
+
+! files produced by LEIP:
+le.emis.fire_macc_daily.format                  :  compress
+
+! temporal resolution:
+le.emis.fire_macc_daily.tres                    :  daily
+
+! filename templates, first match is used:
+le.emis.fire_macc_daily.files                   :  ${my.leip.dir}/ECMWF/mc/gfas/0001/ga/sfc/R0.10x0.10/%{year}/FIRE_%{year}%{month}%{day}_1d.nc
+
+! allow missing files (T|F) ?
+le.emis.fire_macc_daily.allow_missing           :  F
+
+
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! hourly files
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! set filetype:
+le.emis.fire_macc_hourly.filetype                :  fire_macc
+
+! files produced by LEIP:
+le.emis.fire_macc_hourly.format                  :  compress
+
+! temporal resolution:
+le.emis.fire_macc_hourly.tres                    :  hourly
+
+! filename templates, first match is used:
+le.emis.fire_macc_hourly.files                   :  ${my.leip.dir}/ECMWF/mc/gfas/0010/ga/sfc/R0.10x0.10/%{year}/FIRE_%{year}%{month}%{day}_%{hour}_1h.nc
+
+! allow missing files (T|F) ?
+le.emis.fire_macc_hourly.allow_missing           :  F
+
+
+!===========================================================
+! ** SILAM fire emissions
+!===========================================================
+
+! set filetype for silam fire emissions:
+le.emis.fire_silam.filetype                :  fire_silam
+! location of silam fire emissions:
+le.emis.fire_silam.path                    :  ${my.data.dir}/IS4FIRES/reanal_v1_3/europe/emis_sa2/reanal_v1_3_europe_%{year4}%{month2}%{day2}.sa2
+! allow missing files ?
+le.emis.fire_silam.allow_missing           :  F
+
+
+!===========================================================
+! ** sea salt emissions
+!===========================================================
+
+! set filetype:
+le.emis.sea_salt.filetype                 :  sea_salt
+
+
+!===========================================================
+! ** dust emissions
+!===========================================================
+
+! set filetype:
+le.emis.dust-wind.filetype                :  dust-wind
+
+! look up table for wind blown dust
+le.emis.dust-wind.lut                     :  ${my.data.dir}/emissions/dust-wind/lut-${my.le.release}.nc
+
+! set filetype:
+le.emis.dust-agriculture.filetype         :  dust-agriculture
+
+! set filetype:
+le.emis.dust-resuspension.filetype        :  dust-resuspension
+! average gravimetric soil water file:
+le.emis.dust-resuspension.swg.file        :  ${my.data.dir}/landuse/soilwater_avg/v2/swg_avg_2008_v2x.nc
+
+
+
+!===========================================================
+! ** base cat ions
+!===========================================================
+
+! set filetype:
+le.emis.basecation.filetype       :  basecation
+
+! emission file for basecations
+le.emis.basecation.base.file      :  emis_basecation.txt
+
+! last year available:
+le.emis.basecation.base.maxyear   :  9999
+
+
+!
+! ** not tested yet ...
+!
+
+!! emission file for pops
+!emis.file.pop         :  pop_emis.dat
+
+
+
+!============================================================
+! ** EDGAR without china emissions
+!============================================================
+
+! set filetype:
+le.emis.edgar-without-china.filetype                  :  edgar
+
+! main path:
+my.edgar-without-china.dir				:  ${my.data.dir}/emissions/MEIC/EDGAR-without-china
+
+! which year ? automataic or fixed:
+!my.edgar-without-china.year                           :  %{year}
+my.edgar-without-china.year                           :  2008
+
+le.emis.edgar-without-china.timerange_valid           :  year
+
+! input file:
+le.emis.edgar-without-china.file                      :  ${my.data.dir}/emissions/MEIC/EDGAR-without-china/%{tracer}/mask_china_v42_%{tracer}_2008_IPCC_%{source}.0.1x0.1.nc
+
+! tracer name  (IN FUTURE: NAMES!)
+!le.emis.edgar-without-china.tracers                   :  CH4 CO NH3 NMVOC NOx PM10 SO2
+le.emis.edgar-without-china.tracers                   :  CH4 CO NH3 NMVOC NOx PM10 SO2
+
+! file with list of source category codes:
+le.emis.edgar-without-china.sourcecodes               :  ${my.data.dir}/emissions/MEIC/EDGAR-without-china/categories/allemiscats.csv
+
+! files with list of source category codes per tracer:
+!le.emis.edgar-without-china.sources                   :  ${my.edgar-without-china.dir}/categories/cats-%{tracer}.txt
+le.emis.edgar-without-china.sources                   :  ${my.data.dir}/emissions/MEIC/EDGAR-without-china/categories/cats-%{tracer}.txt
+
+! files with list of geographical zones:
+le.emis.edgar-without-china.zones                   :  ${my.data.dir}/emissions/MEIC/EDGAR-without-china/zones/Geographical_zones_global.csv
+
+! height distribution for point and area sources:
+le.emis.edgar-without-china.height_distribution      :  file=${my.data.dir}/emissions/MEIC/EDGAR-without-china/height-distribution/height_distribution_EURODELTA_global.csv
+
+! temperature variable emissions VOC:
+le.emis.edgar-without-china.temp_var_voc             :  file=${my.data.dir}/emissions/MEIC/EDGAR-without-china/temp_var/temp_var_emis_VOC_global.csv
+le.emis.edgar-without-china.temp_var_co              :  file=${my.data.dir}/emissions/MEIC/EDGAR-without-china/temp_var/temp_var_emis_CO_global.csv
+
+! time distribution:
+le.emis.edgar-without-china.time_profiles            :  files=${my.data.dir}/emissions/MEIC/EDGAR-without-china/time-distribution/time_profiles_global_%{year}.nc;years=%{year};format=nc
+
+! Composition tables;
+! if query is 'special' then the distribution over tracers
+! is a selected case in the 'LE_Emis_TNO' module:
+le.emis.edgar-without-china.composition.NOx          :  file=${my.data.dir}/emissions/MEIC/EDGAR-without-china/composition/NOx/NOx_composition_global.csv;format=csv
+le.emis.edgar-without-china.composition.SO2          :  file=${my.data.dir}/emissions/MEIC/EDGAR-without-china/composition/SOx/SOx_composition_global.csv;format=csv
+le.emis.edgar-without-china.composition.CH4          :  target_tracer=ch4
+le.emis.edgar-without-china.composition.CO           :  target_tracer=co
+le.emis.edgar-without-china.composition.NH3          :  target_tracer=nh3
+le.emis.edgar-without-china.composition.PM10         :  file=${my.data.dir}/emissions/MEIC/EDGAR-without-china/composition/PM/PM_composition_global_PM10.csv;format=csv
+le.emis.edgar-without-china.composition.NMVOC        :  file=${my.data.dir}/emissions/MEIC/EDGAR-without-china/composition/NMVOC/VOC_composition_CBM4_IPCCcodes_global.csv;format=csv;nocheck=T
+
+! skip species?
+le.emis.edgar-without-china.skip.species             :
+
+
+!============================================================
+! ** MEIC china emissions
+!============================================================
+
+! set filetype:
+le.emis.meic.filetype                  :  edgar
+
+! main path:
+my.meic.dir				:  ${my.data.dir}/emissions/MEIC
+
+! which year ? automataic or fixed:
+!my.meic.year                           :  %{year}
+my.meic.year                           :  2010
+my.meic.month                          :  %{month}
+
+! input file:
+le.emis.meic.file                      :  ${my.data.dir}/emissions/MEIC/base/2010monthly/ncnew/2010_%{month}__%{source}__%{tracer}.nc
+
+! Read in new emission file at the beginning of each ....?
+!le.emis.meic.timerange_valid           :  year
+le.emis.meic.timerange_valid           :  month
+
+! tracer name  (IN FUTURE: NAMES!)
+!le.emis.meic.tracers                   :  CH4 CO NH3 NMVOC NOx PM10 SO2
+le.emis.meic.tracers                   :  BC CO NH3 NOx OC PM2.5 PMcoarse SO2 CBIV_ALD2 CBIV_ETH CBIV_FORM CBIV_ISOP CBIV_OLE CBIV_PAR CBIV_TOL CBIV_XYL
+
+! file with list of source category codes:
+le.emis.meic.sourcecodes               :  ${my.data.dir}/emissions/MEIC/categories/allemiscats.csv
+
+! files with list of source category codes per tracer:
+!le.emis.meic.sources                   :  ${my.meic.dir}/categories/cats-%{tracer}.txt
+le.emis.meic.sources                   :  ${my.data.dir}/emissions/MEIC/categories/cats-%{tracer}.txt
+
+! files with list of geographical zones:
+le.emis.meic.zones                   :  ${my.data.dir}/emissions/MEIC/zones/Geographical_zones_global.csv
+
+! height distribution for point and area sources:
+le.emis.meic.height_distribution      :  file=${my.data.dir}/emissions/MEIC/height-distribution/height_distribution_EURODELTA_global.csv
+
+! temperature variable emissions VOC:
+le.emis.meic.temp_var_voc             :  file=${my.data.dir}/emissions/MEIC/temp_var/temp_var_emis_VOC_global.csv
+le.emis.meic.temp_var_co              :  file=${my.data.dir}/emissions/MEIC/temp_var/temp_var_emis_CO_global.csv
+
+! time distribution:
+le.emis.meic.time_profiles            :  files=${my.data.dir}/emissions/MEIC/time-distribution/time_profiles_global_%{year}_monthlyconstant.nc;years=%{year};format=nc
+
+! Composition tables;
+! if query is 'special' then the distribution over tracers
+! is a selected case in the 'LE_Emis_TNO' module:
+le.emis.meic.composition.NOx          :  file=${my.data.dir}/emissions/MEIC/composition/NOx/NOx_composition_global.csv;format=csv
+le.emis.meic.composition.SO2          :  file=${my.data.dir}/emissions/MEIC/composition/SOx/SOx_composition_global.csv;format=csv
+le.emis.meic.composition.CO           :  target_tracer=co
+le.emis.meic.composition.NH3          :  target_tracer=nh3
+le.emis.meic.composition.PM2.5        :  target_tracer=ppm_f
+le.emis.meic.composition.PMcoarse     :  target_tracer=ppm_c
+le.emis.meic.composition.BC           :  target_tracer=ec_f
+le.emis.meic.composition.OC           :  target_tracer=pom_f
+le.emis.meic.composition.CBIV_ALD2    :  target_tracer=ald
+le.emis.meic.composition.CBIV_ETH     :  target_tracer=eth
+le.emis.meic.composition.CBIV_FORM    :  target_tracer=form
+le.emis.meic.composition.CBIV_ISOP    :  target_tracer=iso
+le.emis.meic.composition.CBIV_OLE     :  target_tracer=ole
+le.emis.meic.composition.CBIV_PAR     :  target_tracer=par
+le.emis.meic.composition.CBIV_TOL     :  target_tracer=tol
+le.emis.meic.composition.CBIV_XYL     :  target_tracer=xyl
+
+! skip species?
+le.emis.meic.skip.species             :
+

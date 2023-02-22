@@ -1,0 +1,355 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+! Boundary conditions from nc files.
+!
+! Settings from:
+!   C-IFS, interim-reanalysis
+!   CAMS50 2016 validated-re-analysis ("2016.vra")
+!
+!
+! spec          climatologies                   ifs-moz c-ifs
+!                                               rea     ira
+! ------------  ------------------------------- ------- -----
+! no2           isak              emep  steady  grg     ira
+! no            isak              emep  steady  grg     ira
+! o3            isak        logan       steady  grg     ira
+! co            isak              emep          grg     ira
+! form          isak              emep          grg     ira
+!      ethane                                   grg     ira
+!      propane                                          ira
+! ald           isak              emep        
+! pan           isak              emep          grg     ira
+! mgly          isak                          
+! par           isak                          
+! ole           isak                          
+! eth           isak              emep        
+! tol           isak                          
+! cres          isak                          
+! xyl           isak                          
+! so2           isak              emep          grg     ira
+! hno2          isak                          
+! ch4           isak                            grg     ira
+! nh3                 const                   
+! no3         -                             
+! oh                                            grg     ira
+! ho2         -                               
+! n2o5        -                                         ira
+! so4a_f              const       emep          
+! so4a_c                                      
+!       so4a                                    aer     ira
+! nh4a_f              const       emep        
+! no3a_f      -                               
+! no3a_c      -                               
+! c2o3        -                               
+! xo2         -                               
+! xo2n        -                               
+! cro         -                               
+! hno3                            emep          grg     ira
+! h2o2        -                               
+! iso                                           grg     ira
+! ispd        -                               
+! to2         -                               
+! open        -                               
+! terp        -                               
+! ec_f        ?                               
+! ec_c        ?                               
+!        bc                                         aer ira
+!       hbc                                         aer ira
+! pom_f       ?                               
+! pom_c       ?                               
+!        om                                         aer ira
+!       hom                                         aer ira
+! na_ff                                         aer     ira
+! na_f                                          aer     ira
+! na_c                                          aer     ira
+! na_cc       ?                               
+! na_ccc      ?                               
+! dust_ff                                       aer     ira
+! dust_f                                        aer     ira
+! dust_c                                        aer     ira
+! dust_cc     ?                               
+! dust_ccc    ?                               
+!
+! CLIMATOLOGIES
+!
+! * isak (Isaksen 2D model)
+!     Ancient.
+!     Seems defined for [30N,80N].
+! * emep climatology
+!     Including scale factors for SO2/NOx/CH4 per year.
+!     Seems defined for [30N,70N]
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! assign data variables to boundary conditions:
+le.bound.data.no2          :  cams_vra_no2
+le.bound.data.no           :  cams_vra_no
+le.bound.data.o3           :  cams_vra_o3
+le.bound.data.co           :  cams_vra_co
+le.bound.data.form         :  cams_vra_form
+le.bound.data.ald          :  None
+le.bound.data.pan          :  cams_vra_pan
+le.bound.data.mgly         :  None
+le.bound.data.par          :  None
+le.bound.data.ole          :  None
+le.bound.data.eth          :  None
+le.bound.data.tol          :  None
+le.bound.data.cres         :  None
+le.bound.data.xyl          :  None
+le.bound.data.so2          :  cams_vra_so2
+le.bound.data.hno2         :  None
+le.bound.data.ch4          :  cams_vra_ch4
+le.bound.data.nh3          :  None
+le.bound.data.no3          :  None
+le.bound.data.oh           :  cams_vra_oh
+le.bound.data.ho2          :  None
+le.bound.data.n2o5         :  cams_vra_n2o5
+le.bound.data.so4a_f       :  cams_vra_so4
+le.bound.data.so4a_c       :  None
+le.bound.data.nh4a_f       :  None
+le.bound.data.no3a_f       :  None
+le.bound.data.no3a_c       :  None
+le.bound.data.c2o3         :  None
+le.bound.data.xo2          :  None
+le.bound.data.xo2n         :  None
+le.bound.data.cro          :  None
+le.bound.data.hno3         :  cams_vra_hno3
+le.bound.data.h2o2         :  None
+le.bound.data.iso          :  cams_vra_isop
+le.bound.data.ispd         :  None
+le.bound.data.to2          :  None
+le.bound.data.open         :  None
+le.bound.data.terp         :  None
+le.bound.data.ec_f         :  cams_vra_bc + cams_vra_hbc
+le.bound.data.ec_c         :  None
+le.bound.data.pom_f        :  cams_vra_om + cams_vra_hom
+le.bound.data.pom_c        :  None
+le.bound.data.ppm_f        :  None
+le.bound.data.ppm_c        :  None
+le.bound.data.pol_b        :  None
+le.bound.data.pol_g        :  None
+le.bound.data.pol_o        :  None
+!
+! Dust and sea-salt following:
+!   ${PROJECTS}/SMO/Space/LAOS/users/mandersamm/Dust_seaspray_CIFS.docx
+!
+! ~ distribute sum of IFS dust modes over ff/f/ccc/cc/c : 2%/8%/10%/40%/40%
+!
+le.bound.data.dust_ff      :  0.02 * cams_vra_dust_u + \
+                              0.02 * cams_vra_dust_f + \
+                              0.02 * cams_vra_dust_c
+le.bound.data.dust_f       :  0.08 * cams_vra_dust_u + \
+                              0.08 * cams_vra_dust_f + \
+                              0.08 * cams_vra_dust_c
+le.bound.data.dust_ccc     :  0.10 * cams_vra_dust_u + \
+                              0.10 * cams_vra_dust_f + \
+                              0.10 * cams_vra_dust_c
+le.bound.data.dust_cc      :  0.40 * cams_vra_dust_u + \
+                              0.40 * cams_vra_dust_f + \
+                              0.40 * cams_vra_dust_c
+le.bound.data.dust_c       :  0.40 * cams_vra_dust_u + \
+                              0.40 * cams_vra_dust_f + \
+                              0.40 * cams_vra_dust_c
+!
+! ~ Assign IFS sea-salt to LE bins:
+!     mode 1 to ff         : 100%
+!     mode 2 to f/ccc/cc/c : 10%/20%/40%/30%
+!     mode 3 not used (too coarse)
+!
+le.bound.data.na_ff        :         cams_vra_ss_u / 4.3 * xm_Na / xm_seasalt
+le.bound.data.na_f         :  0.10 * cams_vra_ss_f / 4.3 * xm_Na / xm_seasalt
+le.bound.data.na_ccc       :  0.20 * cams_vra_ss_f / 4.3 * xm_Na / xm_seasalt
+le.bound.data.na_cc        :  0.40 * cams_vra_ss_f / 4.3 * xm_Na / xm_seasalt
+le.bound.data.na_c         :  0.30 * cams_vra_ss_f / 4.3 * xm_Na / xm_seasalt
+
+! data variables used for boundary conditions:
+my.bound.vars              :  ${my.cams_vra_vars}
+
+
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! Boundary conditions from CAMS50 validated re-analysis
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+! 
+! Boundary conditions for Europe to be used in CAMS-50 Validated-Reanalysis.
+! Obtained from C-IFS (interim) re-analysis.
+!
+
+! data variables to be defined for boundary conditions ;
+! names with leading "__" are fields on input levels:
+my.cams_vra_vars   :  __cams_vra_hp __cams_vra_temper __cams_vra_halt \
+                       __cams_vra_o3      cams_vra_o3      \
+                       __cams_vra_no      cams_vra_no      \
+                       __cams_vra_no2     cams_vra_no2     \
+                       __cams_vra_n2o5    cams_vra_n2o5    \
+                       __cams_vra_ch4     cams_vra_ch4     \
+                       __cams_vra_hno3    cams_vra_hno3    \
+                       __cams_vra_so2     cams_vra_so2     \
+                       __cams_vra_co      cams_vra_co      \
+                       __cams_vra_isop    cams_vra_isop    \
+                       __cams_vra_pan     cams_vra_pan     \
+                       __cams_vra_form    cams_vra_form    \
+                       __cams_vra_ethane  cams_vra_ethane  \
+                       __cams_vra_propane cams_vra_propane \
+                       __cams_vra_oh      cams_vra_oh      \
+                       __cams_vra_ss_u    cams_vra_ss_u    \
+                       __cams_vra_ss_f    cams_vra_ss_f    \
+                       __cams_vra_ss_c    cams_vra_ss_c    \
+                       __cams_vra_dust_u  cams_vra_dust_u  \
+                       __cams_vra_dust_f  cams_vra_dust_f  \
+                       __cams_vra_dust_c  cams_vra_dust_c  \
+                       __cams_vra_so4     cams_vra_so4     \
+                       __cams_vra_om      cams_vra_om      \
+                       __cams_vra_hom     cams_vra_hom     \
+                       __cams_vra_bc      cams_vra_bc      \
+                       __cams_vra_hbc     cams_vra_hbc
+
+! concentration species:
+my.cams_vra_specs                       :  o3 no2 no n2o5 ch4 hno3 so2 co isop pan form ethane propane oh \
+                                           ss_u ss_f ss_c dust_u dust_f dust_c \
+                                           om hom bc hbc so4
+
+! loop over species:
+#for SPEC in ${my.cams_vra_specs}
+
+! boundary conditions at model levels ;
+! conversion to tracer units will be done on application;
+! computed from input fields as mass weighted average to conserve total mass:
+data.cams_vra_SPEC.long_name            :  boundary conditions of SPEC
+data.cams_vra_SPEC.units                :  kg/kg
+data.cams_vra_SPEC.range                :  0.0 Inf
+data.cams_vra_SPEC.gridtype             :  cell_bnds
+data.cams_vra_SPEC.levtype              :  levels_top
+data.cams_vra_SPEC.datatype             :  instant_field
+data.cams_vra_SPEC.call                 :  LayerAverage( __cams_vra_hp, __cams_vra_SPEC, hp )
+
+! boundary conditions at input model levels:
+data.__cams_vra_SPEC.long_name          :  boundary conditions of SPEC at input model levels
+data.__cams_vra_SPEC.units              :  kg/kg
+data.__cams_vra_SPEC.range              :  0.0 Inf
+data.__cams_vra_SPEC.gridtype           :  cell_bnds
+data.__cams_vra_SPEC.levtype            :  input_levels
+data.__cams_vra_SPEC.datatype           :  instant_field_series
+data.__cams_vra_SPEC.input              :  __input_cams_vra_SPEC
+
+#endfor
+
+! half level pressure from boundary condition model:
+data.__cams_vra_hp.long_name          :  half-level pressure
+data.__cams_vra_hp.units              :  Pa
+data.__cams_vra_hp.range              :  0.0 Inf
+data.__cams_vra_hp.gridtype           :  cell_bnds
+data.__cams_vra_hp.levtype            :  input_halflevels
+data.__cams_vra_hp.datatype           :  instant_field_series
+data.__cams_vra_hp.input              :  __input_cams_vra_hp
+
+! temperature from boundary condition model:
+data.__cams_vra_temper.long_name      :  temperature
+data.__cams_vra_temper.units          :  K
+data.__cams_vra_temper.range          :  0.0 Inf
+data.__cams_vra_temper.gridtype       :  cell_bnds
+data.__cams_vra_temper.levtype        :  input_levels
+data.__cams_vra_temper.datatype       :  instant_field_series
+data.__cams_vra_temper.input          :  __input_cams_vra_temper
+
+! compute halflevel altitudes from temperature and halflevel pressure,
+! no specific humidity present (use zero), and use orography from model:
+data.__cams_vra_halt.long_name        :  half-level heights
+data.__cams_vra_halt.units            :  m
+data.__cams_vra_halt.range            :  0.0 Inf
+data.__cams_vra_halt.gridtype         :  cell_bnds
+data.__cams_vra_halt.levtype          :  input_halflevels
+data.__cams_vra_halt.datatype         :  instant_field
+data.__cams_vra_halt.call             :  HalflevelAltitudes( oro, __cams_vra_temper, None, __cams_vra_hp )
+
+
+! ** input descriptions
+
+! interpolate between 3-hourly records, single set of files:
+__input_cams_vra_hp.tinterp              :  3 hour
+__input_cams_vra_hp.input                :  2013-12-01 03:00, 2018-01-01 00:00, __files_cams_vra_hp.file
+
+! temperature field, used for computation of heights:
+__input_cams_vra_temper.tinterp          :  3 hour
+__input_cams_vra_temper.input            :  2013-12-01 03:00, 2018-01-01 00:00, __files_cams_vra_temper.file
+
+! tracers:
+#for VAR in ${my.cams_vra_specs}
+__input_cams_vra_VAR.tinterp             :  3 hour
+__input_cams_vra_VAR.input               :  2013-12-01 03:00, 2018-01-01 00:00, __files_cams_vra_VAR.file
+#endfor
+
+
+! ** file descriptions
+
+
+! archive location:
+!my.cams_vra_dir         :  ${MODAS_ARCHIVE}/models/CAMS/CAMS_BC_EU_EVA/%{yyyy}
+my.cams_vra_dir         :  /lustre3/projects/CAMS50/ntouros/scratch/2017vra/BCs
+
+!
+! Compute half-level pressures from surface pressueand hybride sigma-pressure coefficients ; 
+!
+! Note that in this data set the cf-conventions are not followed exactly:
+! - surface pressure is only contained in the LNSP files (as lnsp),
+!   but does not have the hybride coefficients;
+! - the concentration file only contain the hybride coeffs however (on 61 half-layers),
+!   but not the (log) surface pressure.
+! - none of the files have formula terms
+!
+! The hybride coeff variables 'a' and 'b' have been added to the LNSP files using ncks;
+! this leads to files that can be used to form the half-level pressures.
+! But still need to provide explicitly the number of levels ...
+!
+! Provide in the variable description that half-level pressure should be obtained from:
+! - compuation from lnsp (which implies that also hybride coeff should be used);
+! - hybride coeffs with the suplied variable names.
+!
+__files_cams_vra_hp.file.name            :  ${my.cams_vra_dir}/CAMS_BC_%{yyyymmdd}_EU_EVA.nc
+!__files_cams_vra_hp.file.name            :  ${my.cams_vra_dir}/CAMS_BC_LNSP_%{yyyymmdd}_EU_EVA.nc
+__files_cams_vra_hp.file.name_dtsec      :  -1
+!__files_cams_vra_hp.file.name_dtsec      :  0
+__files_cams_vra_hp.file.var             :  long_name=Logarithm of surface pressure
+__files_cams_vra_hp.file.special         :  compute=lnsp_to_hp;nlev=60;hyb_api_name=a;hyb_bi_name=b;swap_levels=T
+
+! temperature and tracers:
+#for VAR in temper ${my.cams_vra_specs}
+__files_cams_vra_VAR.file.name           :  ${my.cams_vra_dir}/CAMS_BC_%{yyyymmdd}_EU_EVA.nc
+__files_cams_vra_VAR.file.name_dtsec     :  -1
+!__files_cams_vra_VAR.file.name_dtsec     :  0
+__files_cams_vra_VAR.file.special        :  swap_levels=T
+#endfor
+__files_cams_vra_temper.file.var         :  long_name=Temperature
+__files_cams_vra_o3.file.var             :  long_name=GEMS Ozone
+__files_cams_vra_no2.file.var            :  long_name=Nitrogen dioxide
+__files_cams_vra_no.file.var             :  long_name=Nitrogen monoxide
+__files_cams_vra_n2o5.file.var           :  long_name=Dinitrogen pentoxide
+__files_cams_vra_ch4.file.var            :  long_name=Methane (chemistry)
+!__files_cams_vra_ch4.file.var            :  long_name=Methane
+__files_cams_vra_hno3.file.var           :  long_name=Nitric acid
+__files_cams_vra_so2.file.var            :  long_name=Sulphur dioxide
+__files_cams_vra_co.file.var             :  long_name=Carbon monoxide
+__files_cams_vra_isop.file.var           :  long_name=Isoprene
+__files_cams_vra_pan.file.var            :  long_name=Peroxyacetyl nitrate
+__files_cams_vra_form.file.var           :  long_name=Formaldehyde
+__files_cams_vra_ethane.file.var         :  long_name=Ethane
+__files_cams_vra_propane.file.var        :  long_name=Propane
+__files_cams_vra_oh.file.var             :  long_name=Hydroxyl radical
+__files_cams_vra_ss_u.file.var           :  long_name=Sea Salt Aerosol (0.03 - 0.5 um) Mixing Ratio
+__files_cams_vra_ss_f.file.var           :  long_name=Sea Salt Aerosol (0.5 - 5 um) Mixing Ratio
+__files_cams_vra_ss_c.file.var           :  long_name=Sea Salt Aerosol (5 - 20 um) Mixing Ratio
+__files_cams_vra_dust_u.file.var         :  long_name=Dust Aerosol (0.03 - 0.55 um) Mixing Ratio
+__files_cams_vra_dust_f.file.var         :  long_name=Dust Aerosol (0.55 - 0.9 um) Mixing Ratio
+__files_cams_vra_dust_c.file.var         :  long_name=Dust Aerosol (0.9 - 20 um) Mixing Ratio
+__files_cams_vra_hom.file.var            :  long_name=Hydrophilic Organic Matter Aerosol Mixing Ratio
+__files_cams_vra_om.file.var             :  long_name=Hydrophobic Organic Matter Aerosol Mixing Ratio
+__files_cams_vra_hbc.file.var            :  long_name=Hydrophilic Black Carbon Aerosol Mixing Ratio
+__files_cams_vra_bc.file.var             :  long_name=Hydrophobic Black Carbon Aerosol Mixing Ratio
+__files_cams_vra_so4.file.var            :  long_name=Sulphate Aerosol Mixing Ratio
+
+
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! end
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+

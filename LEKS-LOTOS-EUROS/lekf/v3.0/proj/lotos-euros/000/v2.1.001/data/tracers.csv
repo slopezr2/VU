@@ -1,0 +1,319 @@
+#
+# Tracers used in LOTOS-EUROS.
+#
+# The 'genes' scripts will use this table to generate the tracer indices.
+#
+# File format:
+#
+# - Comment lines starting with '#' are ignored, as well as empty lines.
+#
+# - The 'name' is the short name that will appear in the indices, e.g. 'i_no2', 'i_no3', etc.
+#
+# - The 'description' is a long name which might be used in output.
+#
+# - Units are probably 'ppb' for gasses and 'ug/m3' for aersols.
+#   These will end up in the 'specunit' array.
+#
+# - The molecure 'formula' are used to compute the molecule mass.
+#   Names correspond to atom masses, the value "R" denotes an unspecified group 
+#   and is given a dummy mass (1e3 kg/mol or so).
+#   The formula are also used to scan for certain atoms as used in the labeling,
+#   for example all tracers with a 'N' to trace the origin of nitrogen mass.
+#
+# - aerosol density in kg/m3
+# - aerosol hygroscopy
+#
+# - The 'groups' are space seperated lists with group names that are used to select tracers.
+#
+# - The 'properties' are space seperate list of properties assigned to a tracer.
+#   Fore example used to create index groups, for example the array 'ispecs_seasalt'
+#   with all indices for seasalt tracers.
+#
+# History
+#   2011, Richard Kranenburg, TNO
+#     Collected tracers from model version v1.7.3 .
+#   2011-09, Arjo Segers, TNO
+#     Updated for model version v1.7.8 .
+#     Tracer order following reactions in original Iter routine.
+#   2011-10, Arjo Segers, TNO
+#     Added "units" column to explicitly define the tracer units;
+#     before, if the "aerosol" property was set the units were "ug/m3"
+#     and otherwise the units were "ppb" (gasses).
+#   2012-11, Arjo Segers, TNO
+#     Added M7 tracers for v1.8.007 .
+#   2012-11, Arjo Segers, TNO
+#     Added VBS tracers for v1.8.008 .
+#   2013-07, Arjo Segers, TNO
+#     Updated M7 settings for v1.9.003 .
+#   2013-08, Richard Kranenburg, TNO
+#     Added Pollen tracer for v1.9.006 .
+#     Added property pollen_mode (for pollen aerosol)
+#     Added group pollen
+#  2014-02, Astrid Manders, TNO
+#     Added columns for aerosl properties need for radiation calcuations:
+#       aerdens   aerhygro
+#   
+name    , description                                                       , units, formula              , aerdens   , aerhygro , groups              , properties
+#                                                                                                            kg/m3         1
+
+#
+# CBM4 tracers (1)
+#
+NO2     , Nitrogen dioxide                                                  , ppb  , N + O 2              ,           ,          , cbm4                , snox
+NO      , Nitric oxide                                                      , ppb  , N + O                ,           ,          , cbm4                , 
+O3      , Ozone                                                             , ppb  , O 3                  ,           ,          , cbm4                , 
+CO      , Carbon monoxide                                                   , ppb  , C + O                ,           ,          , cbm4                , 
+FORM    , Formaldehyde                                                      , ppb  , H + C + H + O        ,           ,          , cbm4                , nmvoc
+ALD     , Aldehyde                                                          , ppb  , C 2 + H 3 + O        ,           ,          , cbm4                , nmvoc
+PAN     , Peroxyacetyl nitrate                                              , ppb  , C 2 + H 3 + N + O 5  ,           ,          , cbm4                , snox
+MGLY    , Methylglyoxal and other aromatic products                         , ppb  , C 3 + H 4 + O 2      ,           ,          , cbm4                , nmvoc
+PAR     , Paraffin carbon bond (C-C)                                        , ppb  , C + H 3              ,           ,          , cbm4                , nmvoc soa_prec
+OLE     , Terminal olefin carbon bond (R-C=C)                               , ppb  , C 2 + H 3            ,           ,          , cbm4                , nmvoc soa_prec
+ETH     , Ethene                                                            , ppb  , C 2 + H 4            ,           ,          , cbm4                , nmvoc
+TOL     , Toluene and other monoalkyl aromatics                             , ppb  , C 7 + H 8            ,           ,          , cbm4                , nmvoc soa_prec
+CRES    , Cresol and higher molecular weight phenols                        , ppb  , C 7 + H 8 + O        ,           ,          , cbm4                , nmvoc
+XYL     , Xylene and other polyalkyl aromatics                              , ppb  , C 8 + H 10           ,           ,          , cbm4                , nmvoc soa_prec
+#
+# green-house gasses
+#
+CO2     , Carbon dioxide                                                    , ppb  , C + O 2              ,           ,          , co2                 ,    
+#
+# SOx tracers; keep in order SO4a,SO2 for sulphur conservation:
+#
+SO4a_f  , Sulfate aerosol fine mode                                         , ug/m3, S + O 4              , 1.77e3    , 0.8      , sia sulphur         , sia aerosol fine_modes
+SO2     , Sulfur dioxide                                                    , ppb  , S + O 2              ,           ,          , cbm4 sulphur        ,
+#
+# CBM4 tracers (2)
+#
+HNO2    , Nitrous acid                                                      , ppb  , H + N + O 2          ,           ,          , cbm4                , 
+CH4     , Methane                                                           , ppb  , C + H 4              ,           ,          , cbm4 methane        , 
+NH3     , Ammonia                                                           , ppb  , N + H 3              ,           ,          , cbm4                , snox
+NO3     , Nitrate radical                                                   , ppb  , N + O 3              ,           ,          , cbm4                , snox radical
+OH      , Hydroxyl radical                                                  , ppb  , O + H                ,           ,          , cbm4 sulphur methane, radical
+HO2     , Hydroperoxy radical                                               , ppb  , H + O 2              ,           ,          , cbm4                , radical
+N2O5    , Dinitrogen pentoxide                                              , ppb  , N 2 + O 5            ,           ,          , cbm4                , radical
+#
+# secondary inorganic aerosols (1)
+#
+SO4a_c  , Sulfate aerosol coarse mode                                       , ug/m3, S + O 4              , 1.77e3    , 0.8      , sia                 , sia aerosol coarse_mode
+NH4a_f  , Ammonium aerosol fine mode                                        , ug/m3, N + H 4              , 1.7e3     , 0.8      , sia                 , sia aerosol fine_modes snox
+NO3a_f  , Nitrate aerosol fine mode                                         , ug/m3, N + O 3              , 1.5e3     , 0.7      , sia                 , sia aerosol fine_modes snox
+NO3a_c  , Nitrate aerosol coarse mode                                       , ug/m3, N + O 3              , 1.5e3     , 0.7      , sia                 , sia aerosol coarse_mode snox
+#
+# CBM4 tracers (3)
+#
+C2O3    , Acetylperoxy radical                                              , ppb  , C 2 + O 3            ,           ,          , cbm4                , radical
+XO2     , NO to NO2 conversion from alkylperoxy (RO2) radical               , ppb  , R + O 2              ,           ,          , cbm4                , radical
+XO2N    , NO to organic nitrate conversion from alkylperoxy (RO2) radical   , ppb  , R + O 2 + N          ,           ,          , cbm4                , radical
+CRO     , Methylphenoxy radical                                             , ppb  , C 7 + R              ,           ,          , cbm4                , radical
+HNO3    , Nitric acid                                                       , ppb  , H + N + O 3          ,           ,          , cbm4                , snox
+H2O2    , Hydrogen peroxide                                                 , ppb  , H 2 + O 2            ,           ,          , cbm4                ,
+ISO     , Isoprene                                                          , ppb  , C 5 + H 8            ,           ,          , cbm4                , nmvoc soa_prec
+ISPD    , Isoprene product (lumped methacrolein/methyl vinyl/ketone etc.)   , ppb  , C 4 + R              ,           ,          , cbm4                ,
+TO2     , Toluene-hydroxyl radical adduct                                   , ppb  , C 7 + R              ,           ,          , cbm4                ,
+OPEN    , Aromatic ring opening product                                     , ppb  , C 4 + R              ,           ,          , cbm4                ,
+TERP    , Terpene                                                           , ppb  , C 10 + H 16          ,           ,          , cbm4                , nmvoc soa_prec
+
+#
+# validation tracers
+#
+SF6     , Sulfur hexafluoride                                               , ppb  , S + F 6              ,           ,          , sf6                 ,
+
+#
+# elementary carbon aerosols
+#
+EC_f   , elementary carbon aerosol fine mode                                , ug/m3, R                    , 1.0e3     , 0.0      , ec                  , aerosol fine_modes
+EC_c   , elementary carbon aerosol coarse mode                              , ug/m3, R                    , 1.0e3     , 0.0      , ec                  , aerosol coarse_mode
+
+#
+# primary organic carbon aerosols
+#
+POM_f  , primary organic matter aerosol fine mode                           , ug/m3, R                    , 1.9e3     , 0.1      , pom                 , pom aerosol fine_modes
+POM_c  , primary organic matter aerosol coarse mode                         , ug/m3, R                    , 1.9e3     , 0.1      , pom                 , pom aerosol coarse_mode
+
+#
+# primary aerosols
+#
+PPM_f   , primary particulate matter fine mode                              , ug/m3, R                    , 1.9e3     , 0.1      , ppm                 , aerosol fine_modes
+PPM_c   , primary particulate matter coarse mode                            , ug/m3, R                    , 1.9e3     , 0.1      , ppm                 , aerosol coarse_mode
+
+#
+# Primary PM components used with OPS input
+#
+PPM_1   , particulate matter ultra_fine mode                                , ug/m3, R                    , 1.9e3     , 0.1       , ppm_ops             , aerosol ultra_fine_mode
+PPM_1_25, particulate matter ultra_fine to fine mode                        , ug/m3, R                    , 1.9e3     , 0.1       , ppm_ops             , aerosol ultra_fine_fine_mode  
+PPM_25_4, particulate matter fine mode to medium mode                       , ug/m3, R                    , 1.9e3     , 0.1       , ppm_ops             , aerosol fine_medium_mode
+PPM_4_10, particulate matter medium mode to coarse mode                     , ug/m3, R                    , 1.9e3     , 0.1       , ppm_ops             , aerosol medium_coarse_mode
+EC_1    , Elemental carbon ultra_fine mode                                  , ug/m3, R                    , 1.9e3     , 0.1       , ppm_ops             , aerosol ultra_fine_mode
+EC_1_25 , Elemental carbon ultra_fine mode to fine mode                     , ug/m3, R                    , 1.9e3     , 0.1       , ppm_ops             , aerosol ultra_fine_fine_mode
+
+#
+#
+# sodium aerosol, represent seasalt;
+#  density of seaalt is used 
+#
+Na_ff   , Sodium aerosol fine mode                                          , ug/m3, Na                   , 2.165e3   , 1.0      , seasalt basecation  , seasalt basecation aerosol ff_modes
+Na_f    , Sodium aerosol fine mode                                          , ug/m3, Na                   , 2.165e3   , 1.0      , seasalt basecation  , seasalt basecation aerosol fine_modes
+Na_c    , Sodium aerosol coarse mode                                        , ug/m3, Na                   , 2.165e3   , 1.0      , seasalt basecation  , seasalt basecation aerosol coarse_mode
+Na_cc   , Sodium aerosol coarse mode                                        , ug/m3, Na                   , 2.165e3   , 1.0      , seasalt basecation  , seasalt basecation aerosol cc_mode
+Na_ccc  , Sodium aerosol coarse mode                                        , ug/m3, Na                   , 2.165e3   , 1.0      , seasalt basecation  , seasalt basecation aerosol ccc_mode
+
+#
+# dust aerosol:
+#
+dust_ff , dust aerosol fine mode                                            , ug/m3, R                    , 2.65e3    , 0.0      , dust                , dust aerosol ff_modes
+dust_f  , dust aerosol fine mode                                            , ug/m3, R                    , 2.65e3    , 0.0      , dust                , dust aerosol fine_modes
+dust_c  , dust aerosol coarse mode                                          , ug/m3, R                    , 2.65e3    , 0.0      , dust                , dust aerosol coarse_mode
+dust_cc , dust aerosol coarse mode                                          , ug/m3, R                    , 2.65e3    , 0.0      , dust                , dust aerosol cc_mode
+dust_ccc, dust aerosol coarse mode                                          , ug/m3, R                    , 2.65e3    , 0.0      , dust                , dust aerosol ccc_mode
+
+#
+# pollen particles
+#
+pol_b   , birch pollen                                                      , grns/m3, R                  , 0.80e3     ,          , pollen              , aerosol pollen pollen_mode
+pol_g   , grass pollen                                                      , grns/m3, R                  , 0.80e3     ,          , pollen              , aerosol pollen pollen_mode
+pol_o   , olive pollen                                                      , grns/m3, R                  , 0.80e3     ,          , pollen              , aerosol pollen pollen_mode
+
+#
+# M7 tracers
+#
+h2so4   , sulphuric acid                                                    , mlc/cm3, H 2 + S + O 4      ,           ,          , m7                  , m7
+#
+# sulphate aersols
+so4ns   , sulphate aerosol nucle. mode soluble                              , mlc/cm3, S + O 4            ,   1.77e3     ,  1.0        , m7                  , m7 aerosol nucl_mode   soluble
+so4ks   , sulphate aerosol aitken mode soluble                              , mlc/cm3, S + O 4            ,   1.77e3     ,  1.0       , m7                  , m7 aerosol aitken_mode soluble
+so4as   , sulphate aerosol accum. mode soluble                              , mlc/cm3, S + O 4            ,   1.77e3     ,  1.0       , m7                  , m7 aerosol accum_mode  soluble
+so4cs   , sulphate aerosol coarse mode soluble                              , mlc/cm3, S + O 4            ,   1.77e3     ,  1.0      , m7                  , m7 aerosol coarse_mode soluble
+#
+# black carbon aersols (similar to ec?)
+bcks    , black carbon aerosol aitken mode soluble                          , ug/m3 , C                   ,  1.0e3    ,   0.5      , m7                  , m7 aerosol aitken_mode soluble
+bcas    , black carbon aerosol accum. mode soluble                          , ug/m3 , C                   ,  1.0e3    ,    0.5      , m7                  , m7 aerosol accum_mode  soluble
+bccs    , black carbon aerosol coarse mode soluble                          , ug/m3 , C                   ,  1.0e3    ,    0.5      , m7                  , m7 aerosol coarse_mode soluble
+bcki    , black carbon aerosol aitken mode insoluble                        , ug/m3 , C                   ,  1.0e3    ,    0.0     , m7                  , m7 aerosol aitken_mode insoluble
+#
+# organic carbon aersols (similar to pom?)
+ocks    , organic carbon aerosol aitken mode soluble                        , ug/m3 , C                   ,   1.9e3   ,    0.5     , m7                  , m7 aerosol aitken_mode soluble
+ocas    , organic carbon aerosol accum. mode soluble                        , ug/m3 , C                   ,   1.9e3   ,    0.5     , m7                  , m7 aerosol accum_mode  soluble
+occs    , organic carbon aerosol coarse mode soluble                        , ug/m3 , C                   ,   1.9e3   ,    0.5     , m7                  , m7 aerosol coarse_mode soluble
+ocki    , organic carbon aerosol aitken mode insoluble                      , ug/m3 , C                   ,   1.9e3   ,    0.0     , m7                  , m7 aerosol aitken_mode insoluble
+#
+# seasalt aersols, mass is probably seasalt and not just Na
+ssas    , sea salt aerosol accum. mode soluble                              , ug/m3 , R                   ,   2.165e3   ,  1.0        , m7                  , m7 seasalt aerosol accum_mode  soluble
+sscs    , sea salt aerosol coarse mode soluble                              , ug/m3 , R                   ,   2.165e3   ,  1.0        , m7                  , m7 seasalt aerosol coarse_mode soluble
+                                                                                                              
+#
+# dust aerosols
+duas    , dust aerosol accum. mode soluble                                  , ug/m3 , R                   ,  2.65e3    ,    0.5      , m7                  , m7 dust aerosol accum_mode  soluble
+ducs    , dust aerosol coarse mode soluble                                  , ug/m3 , R                   ,  2.65e3    ,    0.5      , m7                  , m7 dust aerosol coarse_mode soluble
+duai    , dust aerosol accum. mode insoluble                                , ug/m3 , R                   ,  2.65e3    ,    0.0     , m7                  , m7 dust aerosol accum_mode  insoluble
+duci    , dust aerosol coarse mode insoluble                                , ug/m3 , R                   ,  2.65e3    ,    0.0     , m7                  , m7 dust aerosol coarse_mode insoluble
+#
+# number concentrations
+nnus    , number concentration nucle. mode soluble                          , 1/cm3 , R                   ,           ,          , m7                  , m7 aerosol numberconc nucl_mode   soluble
+nais    , number concentration aitken mode soluble                          , 1/cm3 , R                   ,           ,          , m7                  , m7 aerosol numberconc aitken_mode soluble
+nacs    , number concentration accum. mode soluble                          , 1/cm3 , R                   ,           ,          , m7                  , m7 aerosol numberconc accum_mode  soluble
+ncos    , number concentration coarse mode soluble                          , 1/cm3 , R                   ,           ,          , m7                  , m7 aerosol numberconc coarse_mode soluble
+naii    , number concentration aitken mode insoluble                        , 1/cm3 , R                   ,           ,          , m7                  , m7 aerosol numberconc aitken_mode insoluble
+naci    , number concentration accum. mode insoluble                        , 1/cm3 , R                   ,           ,          , m7                  , m7 aerosol numberconc accum_mode  insoluble
+ncoi    , number concentration coarse mode insoluble                        , 1/cm3 , R                   ,           ,          , m7                  , m7 aerosol numberconc coarse_mode insoluble
+      
+      
+#
+# base cat ions
+#
+Ca_f    , calcium aerosol fine mode                                         , ug/m3, Ca                   ,           ,          , basecation          , basecation aerosol fine_modes
+Ca_c    , calcium aerosol coarse mode                                       , ug/m3, Ca                   ,           ,          , basecation          , basecation aerosol coarse_mode
+K_f     , potasium aerosol fine mode                                        , ug/m3, K                    ,           ,          , basecation          , basecation aerosol fine_modes
+K_c     , potasium aerosol coarse mode                                      , ug/m3, K                    ,           ,          , basecation          , basecation aerosol coarse_mode
+Mg_f    , magnesium aerosol fine mode                                       , ug/m3, Mg                   ,           ,          , basecation          , basecation aerosol fine_modes
+Mg_c    , magnesium aerosol coarse mode                                     , ug/m3, Mg                   ,           ,          , basecation          , basecation aerosol coarse_mode
+
+#
+# VBS
+#
+
+# condensable gasses ;
+# the molecule formula is translated to molecule mass of 150 g/mole
+vbs_cg1 , vbs condensable gas 1                                             , ppb  , mm150                ,           ,          , vbs                 , vbs vbs_cg
+vbs_cg2 , vbs condensable gas 2                                             , ppb  , mm150                ,           ,          , vbs                 , vbs vbs_cg
+vbs_cg3 , vbs condensable gas 3                                             , ppb  , mm150                ,           ,          , vbs                 , vbs vbs_cg
+vbs_cg4 , vbs condensable gas 4                                             , ppb  , mm150                ,           ,          , vbs                 , vbs vbs_cg
+vbs_cg5 , vbs condensable gas 5                                             , ppb  , mm150                ,           ,          , vbs                 , vbs vbs_cg
+vbs_cg6 , vbs condensable gas 6                                             , ppb  , mm150                ,           ,          , vbs                 , vbs vbs_cg
+vbs_cg7 , vbs condensable gas 7                                             , ppb  , mm150                ,           ,          , vbs                 , vbs vbs_cg
+vbs_cg8 , vbs condensable gas 8                                             , ppb  , mm150                ,           ,          , vbs                 , vbs vbs_cg
+vbs_cg9 , vbs condensable gas 9                                             , ppb  , mm150                ,           ,          , vbs                 , vbs vbs_cg
+
+# secondary organic aerosols:
+vbs_soa1, vbs secondary organic aerosol 1                                   , ug/m3, R                 ,  1.9e3    ,    0.1  , vbs                 , vbs vbs_soa aerosol fine_modes
+vbs_soa2, vbs secondary organic aerosol 1                                   , ug/m3, R                 ,  1.9e3    ,    0.1  , vbs                 , vbs vbs_soa aerosol fine_modes
+vbs_soa3, vbs secondary organic aerosol 1                                   , ug/m3, R                 ,  1.9e3    ,    0.1  , vbs                 , vbs vbs_soa aerosol fine_modes
+vbs_soa4, vbs secondary organic aerosol 1                                   , ug/m3, R                 ,  1.9e3    ,    0.1  , vbs                 , vbs vbs_soa aerosol fine_modes
+vbs_soa5, vbs secondary organic aerosol 1                                   , ug/m3, R                 ,  1.9e3    ,    0.1  , vbs                 , vbs vbs_soa aerosol fine_modes
+vbs_soa6, vbs secondary organic aerosol 1                                   , ug/m3, R                 ,  1.9e3    ,    0.1  , vbs                 , vbs vbs_soa aerosol fine_modes
+vbs_soa7, vbs secondary organic aerosol 1                                   , ug/m3, R                 ,  1.9e3    ,    0.1  , vbs                 , vbs vbs_soa aerosol fine_modes
+vbs_soa8, vbs secondary organic aerosol 1                                   , ug/m3, R                 ,  1.9e3    ,    0.1  , vbs                 , vbs vbs_soa aerosol fine_modes
+vbs_soa9, vbs secondary organic aerosol 1                                   , ug/m3, R                 ,  1.9e3    ,    0.1  , vbs                 , vbs vbs_soa aerosol fine_modes
+
+
+#
+# heavy metals
+#
+Pb_f    , lead aerosol fine mode                                            , ug/m3, Pb                   ,           ,          , hm                  , hm aerosol fine_modes
+Pb_c    , lead aerosol coarse mode                                          , ug/m3, Pb                   ,           ,          , hm                  , hm aerosol coarse_mode
+Cd_f    , cadmium aerosol fine mode                                         , ug/m3, Cd                   ,           ,          , hm                  , hm aerosol fine_modes
+Cd_c    , cadmium aerosol coarse mode                                       , ug/m3, Cd                   ,           ,          , hm                  , hm aerosol coarse_mode
+
+#
+# CB99 tracers, indices are sometimes used in the code
+#
+O       , Oxygen atom in the O3(P) electronic state                         , ppb  ,  R                   ,           ,          , cb99                , 
+O1D     , Oxygen atom in the O1(D) electronic state                         , ppb  ,  R                   ,           ,          , cb99                , 
+PNA     , Peroxynitric acid (HNO4)                                          , ppb  ,  H + N + O 4         ,           ,          , cb99                , 
+ALD2    , Acetaldehyde                                                      , ppb  ,  C + R               ,           ,          , cb99                , 
+ALDX    , Propionaldehyde and higher aldehydes                              , ppb  ,  C 2 + R             ,           ,          , cb99                , 
+CXO3    , C3 and higher acylperoxy radicals                                 , ppb  ,  C 2 + R             ,           ,          , cb99                , 
+PANX    , C3 and higher peroxyacyl nitrates                                 , ppb  ,  C 2 + N + R         ,           ,          , cb99                , 
+NTR     , Organic nitrate (RNO3)                                            , ppb  ,  R + N + O 3         ,           ,          , cb99                , 
+ETOH    , Ethanol                                                           , ppb  ,  C 2 + H 6 + O       ,           ,          , cb99                , 
+MEO2    , Methylperoxy radical                                              , ppb  ,  C + R               ,           ,          , cb99                , 
+MEOH    , Methanol                                                          , ppb  ,  C + H 4 + O         ,           ,          , cb99                , 
+MEPX    , Methylhydroperoxide                                               , ppb  ,  C + R               ,           ,          , cb99                , 
+FACD    , Formic acid                                                       , ppb  ,  C + R               ,           ,          , cb99                , 
+ETHA    , Ethane                                                            , ppb  ,  C 2 + R             ,           ,          , cb99                , 
+ROOH    , Higher organic peroxide                                           , ppb  ,  C + R               ,           ,          , cb99                , 
+AACD    , Acetic and higher carboxylic acids                                , ppb  ,  C 2 + R             ,           ,          , cb99                , 
+PACD    , Peroxyacetic and higher peroxycarboxylic acids                    , ppb  ,  C 2 + R             ,           ,          , cb99                , 
+ROR     , Secondary alkoxy radical                                          , ppb  ,  R                   ,           ,          , cb99                , 
+IOLE    , Internal olefin carbon bond (R-C=C-R)                             , ppb  ,  C 4 + R             ,           ,          , cb99                , 
+SULF    , Sulfuric acid (gaseous)                                           , ppb  ,  S + R               ,           ,          , cb99                , 
+HCO3    , Bicarbonate                                                       , ppb  ,  H + C + O 3         ,           ,          , cb99                , 
+
+#
+# bias corrected tracers; ensure that these:
+# - only property is 'biascorr', otherwise processes might be applied;
+# - are listend in this file BEFORE the accumulated tracers to ensure that they
+#   are included in the (1:nspec) range
+#
+
+tpm10_biascorr, total particulate matter 0-10um biascorrected               , ug/m3, R                    ,           ,          , biascorr            , biascorr
+tpm25_biascorr, total particulate matter 0-2.5um biascorrected              , ug/m3, R                    ,           ,          , biascorr            , biascorr
+o3_biascorr   , ozone biascorrected                                         , ppb  , O 3                  ,           ,          , biascorr            , biascorr 
+
+#
+# accumulated tracers; ensure that these: 
+# - only property is 'accum', otherwise processes might be applied;
+#
+tpm10         , total particulate matter 0-10um                             , ug/m3, R                    ,           ,          , accum               , accum
+tpm25         , total particulate matter 0-2.5um                            , ug/m3, R                    ,           ,          , accum               , accum
+tss           , total seasalt aerosol                                       , ug/m3, R                    ,           ,          , accum               , accum
+tdust         , total dust aerosol                                          , ug/m3, R                    ,           ,          , accum               , accum
+tc            , total carbon aerosol                                        , ug/m3, R                    ,           ,          , accum               , accum
+tcg           , total concensible gasses                                    , ppb  , R                    ,           ,          , accum               , accum
+tsoa          , total secondary organic aerosol                             , ug/m3, R                    ,           ,          , accum               , accum
+tnmvoc        , total nmvoc                                                 , ug/m3, R                    ,           ,          , accum               , accum
+SOxa          , SOx aerosol                                                 , ug/m3, R                    ,           ,          , accum               , accum
+NOya          , NOy aerosol                                                 , ug/m3, R                    ,           ,          , accum               , accum
+NHxa          , NHx aerosol                                                 , ug/m3, R                    ,           ,          , accum               , accum
+NO2_obs       , Nitrogen dioxide reported by observation devices            , ppb  , N + O 2              ,           ,          , accum               , accum
+

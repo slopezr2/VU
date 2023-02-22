@@ -1,0 +1,47 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!
+!!! OpenLE meteo production settings
+!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!-----------------------------------------------------------------------
+! source code build                                       
+!-----------------------------------------------------------------------
+
+! executable from Fortran source to coarsen levels
+
+! source location:
+!leip.prefix                   :  ${TOOLS_METEO_DIR}
+leip.prefix                   :  ${HOME}/lotos-euros/v2.2/tools/meteo
+
+! build directory:
+!leip.build.prefix             :  ${WORK_DIR}/build
+leip.build.prefix             :  ${PWD}/build
+
+! subdirs to be copied:
+leip.build.copy.dirs          :  src
+
+! names of executables to be used ;
+! will be searched in <prefix>/bin :
+leip.build.x.coarselevs       :  c3po_coarselevs.x
+
+! switch:
+#if "${HOST}".startswith('app-hpc')
+
+! ECMWF ecgate settings:
+#include ${leip.prefix}/rc/host-tno-hpc.rc
+
+#elif 'ecgb' in "${HOST}"
+
+! ECMWF ecgate settings:
+#include ${leip.prefix}/rc/host-ecmwf-ecgate.rc
+
+#else
+#error could not include machine specific settings based for HOST "${HOST}"
+#endif
+
+! flag groups:
+!leip.build.compiler.flags           :  wp-r8 optim-none check
+leip.build.compiler.flags           :  wp-r8 optim-fast
+

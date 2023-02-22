@@ -1,0 +1,123 @@
+#! /usr/bin/env python
+
+"""
+Store meteo files produced at ECMWF ecgate server at the tape.
+
+Filennames:
+  europe_w46e84n26n78__ECMWF__od__ifs__0001__an__sfc__F640__0000__orog.nc
+  :
+  
+On storge, filename parts '__' are translated into path seperations.
+
+Uses the ecaccess tools to get data.
+"""
+
+#-------------------------------------------------
+# modules
+#-------------------------------------------------
+
+# modules:
+import sys
+import os
+import subprocess
+
+
+#-------------------------------------------------
+# settings
+#-------------------------------------------------
+
+# source directory in ecaccess form:
+srcdir = 'scratch:OpenLE/meteo'
+
+# exptected extension:
+ext = 'nc'
+
+# start of files:
+filestart = 'europe_w30e70s5n75'
+
+# target archive:
+ecbase = 'ectmp:/nl5/tmp/ARCHIVE'
+
+# renew files already present?
+renew = False
+
+
+#-------------------------------------------------
+# begin
+#-------------------------------------------------
+
+# info ...
+print( '' )
+print( '** OpenLE meteo store' )
+print( '' )
+
+# info ...
+print( 'list ECMWF files in "%s" ...' % srcdir )
+# files in current directory:
+filenames = os.listdir(os.curdir)
+
+# info ...
+print( 'loop over files ...' )
+# loop:
+for filename in filenames :
+
+    # filter ...
+    if not filename.endswith(ext) : continue
+    if not filename.startswith(filestart) : continue
+    
+    # info ...
+    print( '  %s ..' % filename )
+    
+    # target file:
+    target = filename.replace('__',os.sep)
+    # combine:
+    ectarget = os.path.join(ecbase,target)
+
+    # target directory:
+    dirname = os.path.dirname( target )
+    # combine:
+    ecdirname = os.path.join( ecbase, dirname )
+    
+    # info ...
+    print( '    make directory %s ...' % ecdirname )
+    # create if necessary:
+    subprocess.check_call( ['emkdir','-p',ecdirname] )
+
+    # loop:
+    while True :
+        # info ...
+        print( '    put ...' )
+        # temporary target:
+        tmpfile = ectarget+'.tmp'
+        # run:
+        subprocess.check_call(  [ 'ecp', filename, tmpfile ] )
+        # check ..
+        #   -rw-r--r--   1 nl5      nl              44267 Apr 26 15:05 test.nc
+        line = subprocess.check_output( ['els','-l',tmpfile] )
+        ecsize = int(line.split()[4])
+        fsize = os.stat( filename ).st_size
+        if ecsize == fsize :
+            # rename:
+            subprocess.check_call( ['emove',tmpfile,ectarget] )
+            # leave:
+            break
+        #endif
+        print( '  WARNING - size of temporary target is %i, while source has size %; try again ...' % (ecsize,fsize) )
+    #endwhile
+        
+    # rename:
+    #os.rename( filename, filename+'.stored' )
+    
+#endfor # filenames
+    
+# info ...
+print( 'done' )
+
+# info ...
+print( '' )
+print( '** end' )
+print( '' )
+
+#-------------------------------------------------
+# end
+#-------------------------------------------------

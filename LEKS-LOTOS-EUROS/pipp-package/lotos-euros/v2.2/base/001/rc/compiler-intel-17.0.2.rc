@@ -1,0 +1,98 @@
+!
+! compiler specific settings : Intel compiler v17.0.2
+!
+
+! fortran compiler:
+configure.compiler.fc                         :  ifort
+
+! same compiler for openmp, since this is enabled via the flags:
+configure.compiler.fc.openmp                  :  ${configure.compiler.fc}
+
+! allow extended source lines (up to 132 characters) for fixed form:
+configure.compiler.f77                        :  ifort -extend-source
+
+!
+! * default flags:
+!
+! -traceback          :   Generate extra information in the object file to provide
+!                         source file traceback information. This option increases
+!                         the size of the executable program, but has no impact on
+!                         run-time execution speeds.
+!
+! -warn warn errors   :   Tells the compiler to change all warning-level messages to
+!                         error-level messages; this includes warnings about Fortran
+!                         standards violations.
+!
+! -warn declarations  :   Enables error messages about any undeclared symbols. 
+!                         This option makes the default data type undefined
+!                         (IMPLICIT NONE)
+!
+					 
+configure.compiler.default.fflags       : -traceback -warn errors -warn declarations
+configure.compiler.default.ldflags      : 
+
+! * precision flags:
+
+configure.compiler.real8.fflags         :  -r8
+configure.compiler.real8.ldflags        : 
+
+! * MPI flags:
+
+! mimic the '_OPENMP' macro for MPI:
+configure.compiler.mpi.fflags           :  -D_MPI
+configure.compiler.mpi.ldflags          :  -D_MPI
+
+
+! * OpenMP flags:
+
+configure.compiler.openmp.fflags        :  -qopenmp
+configure.compiler.openmp.ldflags       :  -qopenmp
+
+
+!
+! * optim
+!
+!    -ip                 :  enable interprocedural optimizations for single-file compilation
+!
+!    -vec-report[n]      :  Controls the diagnostic information reported by the vectorizer.
+!
+!    -fp-model strict    :  strictly adhere to value-safe optimizations when implementing 
+!                           floating-point calculations.
+!
+              
+configure.compiler.optim-none.fflags        :  -O0
+configure.compiler.optim-none.ldflags       : 
+
+! less fast:
+configure.compiler.optim-lfast.fflags       :  -O2
+configure.compiler.optim-lfast.ldflags      :  
+
+! fast:
+configure.compiler.optim-fast.fflags        :  -O3
+configure.compiler.optim-fast.ldflags       :  
+
+! very fast:
+configure.compiler.optim-vfast.fflags       :  -Ofast
+configure.compiler.optim-vfast.ldflags      :  
+
+! stict floating point operations,
+! otherwise impact of optim on result:
+configure.compiler.optim-strict.fflags      :  -fp-model strict
+configure.compiler.optim-strict.ldflags     :
+
+! * check
+
+configure.compiler.check-all.fflags         :  -check all -check noarg_temp_created -fpe0 -ftrapuv
+configure.compiler.check-all.ldflags        : 
+
+! * debug
+
+configure.compiler.debug.fflags             :  -g -debug all
+configure.compiler.debug.ldflags            :
+
+! * specials:
+
+! flags to allow implicit typing :
+configure.compiler.implicit.fflags          :  -warn nodeclarations
+configure.compiler.implicit.ldflags         :  
+

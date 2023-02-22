@@ -1,0 +1,366 @@
+!#################################################################
+!
+! NAME
+!
+!   MAORI_DataFile_CSV  -  read observation data from CSV files.
+!
+! DATA FILE
+!
+!   Example of data file:
+!
+!    ---[201504150000_dust_c.csv]--------------------------
+!    compound, concentration, location
+!    dust_c,   092,             China001
+!    dust_c,   553,             China002
+!    dust_c,   397,             China003
+!    :
+!    :
+!    ---------------------------------------------------------------------
+!
+! USAGE
+!
+!   use MAORI_DataFile_CSV
+!
+!   type(T_MAORI_DataFile_CSV)        ::  file
+!   character(len=1024)                  ::  keys
+!   character(len=32)                    ::  code
+!   character(len=32)                    ::  comp
+!   real                                 ::  value
+!   character(len=32)                    ::  units
+!
+!   ! Specify header names to be used for needed variables:
+!   !    code, comp, value, units
+!   ! If no units are defined in the file, enclose value by double quotes:
+!   !    units="ug/m3"
+!   ! If no component name is in the file, the calling program should handle:
+!   !    comp=None
+!   ! Optional:
+!   !     comment=#
+!   !     sep=,          : default is ';'
+!   ! Specification for above example:
+!   keys = 'code=id;name=longname;longitude=lon;latitude=lat;altitude=alt;sep=,'
+!
+!   ! open file:
+!   call file%Init( '201504150000_dust_c.csv', status )
+!   if (status/=0) stop
+!
+!   ! loop over records:
+!   do
+!     ! read next record:
+!     call self%ReadRecord( code, comp, value, units, status )
+!     if (status<0) exit ! eof
+!     if (status/=0) stop
+!   end do
+!  
+!   ! close:
+!   call self%Done( status )
+!   if (status/=0) stop
+!  
+!
+!### macro's #####################################################
+!
+#define TRACEBACK write (gol,'("in ",a," (",a,i6,")")') rname, __FILE__, __LINE__ ; call goErr
+!
+#define IF_NOTOK_RETURN(action) if (status/=0) then; TRACEBACK; action; return; end if
+#define IF_ERROR_RETURN(action) if (status> 0) then; TRACEBACK; action; return; end if
+!
+!#################################################################
+
+module MAORI_DataFile_CSV
+
+  use GO, only : gol, goPr, goErr
+
+  implicit none
+  
+  
+  ! --- in/out ----------------------------
+  
+  private
+  
+  public  ::  T_MAORI_DataFile_CSV
+
+
+  ! --- const ------------------------------
+    
+  character(len=*), parameter   ::  mname = 'MAORI_DataFile_CSV'
+  
+  
+  ! --- types ----------------------------------
+   
+  type T_MAORI_DataFile_CSV
+    ! file name:
+    character(len=512)          ::  fname
+    ! seperation character:
+    character(len=1)            ::  sep
+    character(len=1)            ::  comment
+    ! file unit:
+    integer                     ::  fu
+    ! line number:
+    integer                     ::  iline
+    ! column indices:
+    integer                     ::  icol_code
+    integer                     ::  icol_comp
+    integer                     ::  icol_value
+    integer                     ::  icol_units
+    ! fixed values:
+    character(len=32)           ::  units
+    character(len=32)           ::  comp
+  contains
+    procedure :: Init         => CSV_Init
+    procedure :: Done         => CSV_Done
+    procedure :: ReadRecord   => CSV_ReadRecord
+  end type T_MAORI_DataFile_CSV
+
+
+contains
+
+
+  ! ======================================================================
+
+
+  subroutine CSV_Init( self, fname, keys, status )
+  
+    use GO, only : goGetFU
+    use GO, only : goVarValue, goSplitString, goMatchValue
+    
+    ! --- in/out --------------------------------
+    
+    class(T_MAORI_DataFile_CSV), intent(out)      ::  self
+    character(len=*), intent(in)                  ::  fname
+    character(len=*), intent(in)                  ::  keys
+    integer, intent(out)                          ::  status
+
+    ! --- const --------------------------------
+    
+    character(len=*), parameter   ::  rname = mname//'/CSV_Init'
+    
+    ! --- local ----------------------------------
+    
+    logical               ::  exist
+    character(len=4000)   ::  line
+    character(len=128)    ::  key
+    character(len=128)    ::  headers(10)
+    integer               ::  nheader
+    integer               ::  l
+    
+    ! --- begin ----------------------------------
+    
+    ! set special characers:
+    self%comment = '#'
+      call goVarValue( keys, ';', 'comment', '=', self%comment, status )
+      IF_ERROR_RETURN(status=1)
+    self%sep     = ';'
+      call goVarValue( keys, ';', 'sep', '=', self%sep, status )
+      IF_ERROR_RETURN(status=1)
+    
+    ! store file name:
+    self%fname = trim(fname)
+    
+    ! check ...
+    inquire( file=trim(self%fname), exist=exist )
+    if ( .not. exist ) then
+      write (gol,'("data file not found:")'); call goErr
+      write (gol,'("  ",a)') trim(self%fname); call goErr
+      TRACEBACK; status=1; return
+    end if
+    
+    ! free file unit:
+    call goGetFU( self%fu, status )
+    IF_NOTOK_RETURN(status=1)
+    
+    ! open file:
+    open( self%fu, file=trim(self%fname), status='old', form='formatted', iostat=status )
+    if ( status/=0 ) then
+      write (gol,'("opening data file:")'); call goErr
+      write (gol,'("  ",a)') trim(self%fname); call goErr
+      TRACEBACK; status=1; return
+    end if
+
+    ! init line counter:
+    self%iline = 0
+
+    ! loop over header lines:
+    do
+      ! next line ...
+      self%iline = self%iline + 1
+      ! read line:
+      read (self%fu,'(a)',iostat=status) line
+      if ( status/=0 ) then
+        write (gol,'("reading line from EMEP data file:")'); call goErr
+        write (gol,'("  file   : ",a)') trim(self%fname); call goErr
+        write (gol,'("  line   : ",i6)') self%iline; call goErr
+        TRACEBACK; status=1; return
+      end if
+      ! skip blank lines:
+      if ( len_trim(line) == 0 ) cycle
+      ! skip comment:
+      if ( line(1:1) == self%comment ) cycle
+      ! first non-blank line, quit:
+      exit
+    end do   ! lines
+    
+    ! split:
+    call goSplitString( line, nheader, headers, status, sep=self%sep )
+    IF_NOTOK_RETURN(status=1)
+    ! search column:
+    call goVarValue( keys, ';', 'code', '=', key, status, verbose=.true. )
+    IF_NOTOK_RETURN(status=1)
+    call goMatchValue( key, headers(1:nheader), self%icol_code, status )
+    IF_NOTOK_RETURN(status=1)
+    ! search column:
+    call goVarValue( keys, ';', 'comp', '=', key, status, verbose=.true. )
+    IF_NOTOK_RETURN(status=1)
+    if ( trim(key) == 'None' ) then
+      ! dumy index:
+      self%icol_comp = -999
+      ! store value, this will be returned:
+      self%comp = trim(key)
+    else
+      ! name of comp column:
+      call goMatchValue( key, headers(1:nheader), self%icol_comp, status )
+      IF_NOTOK_RETURN(status=1)
+      ! dummy:
+      self%comp = '*'
+    end if
+    ! search column:
+    call goVarValue( keys, ';', 'value', '=', key, status, verbose=.true. )
+    IF_NOTOK_RETURN(status=1)
+    call goMatchValue( key, headers(1:nheader), self%icol_value, status )
+    IF_NOTOK_RETURN(status=1)
+    ! search column:
+    call goVarValue( keys, ';', 'units', '=', key, status, verbose=.true. )
+    IF_NOTOK_RETURN(status=1)
+    if ( key(1:1) == '"' ) then
+      ! dummy:
+      self%icol_units = -999
+      ! fill actual value, strip quotes:
+      l = len_trim(key)
+      self%units = key(2:l-1)
+    else
+      ! search column:
+      call goMatchValue( key, headers(1:nheader), self%icol_value, status )
+      IF_NOTOK_RETURN(status=1)
+      ! dummy ...
+      self%units = ''
+    end if
+       
+    ! ok
+    status = 0
+    
+  end subroutine CSV_Init
+  
+  
+  ! ***
+  
+  
+  subroutine CSV_Done( self, status )
+  
+    ! --- in/out --------------------------------
+    
+    class(T_MAORI_DataFile_CSV), intent(inout)   ::  self
+    integer, intent(out)                            ::  status
+
+    ! --- const --------------------------------
+    
+    character(len=*), parameter   ::  rname = mname//'/CSV_Done'
+    
+    ! --- local ----------------------------------
+    
+    ! --- begin ----------------------------------
+    
+    ! close file:
+    close( self%fu, iostat=status )
+    if ( status/=0 ) then
+      write (gol,'("closing data file:")'); call goErr
+      write (gol,'("  ",a)') trim(self%fname); call goErr
+      TRACEBACK; status=1; return
+    end if
+    
+    ! ok
+    status = 0
+    
+  end subroutine CSV_Done
+  
+
+  ! ***
+  
+  
+  subroutine CSV_ReadRecord( self, code, comp, value, units, status )
+
+    use GO, only : goSplitString
+
+    ! --- in/out --------------------------------
+    
+    class(T_MAORI_DataFile_CSV), intent(inout)      ::  self
+    character(len=*), intent(out)                   ::  code
+    character(len=*), intent(out)                   ::  comp
+    real, intent(out)                               ::  value
+    character(len=*), intent(out)                   ::  units
+    integer, intent(out)                            ::  status
+
+    ! --- const --------------------------------
+    
+    character(len=*), parameter   ::  rname = mname//'/CSV_ReadRecord'
+    
+    ! --- local ----------------------------------
+    
+    character(len=4000)   ::  line
+    integer                ::  nvalue
+    character(len=128)     ::  values(10)
+    
+    ! --- begin ----------------------------------
+    
+    ! loop until first non-empty line or end-of-file:
+    do
+      ! next line:
+      self%iline = self%iline + 1
+      ! read line:
+      read (self%fu,'(a)',iostat=status) line
+      if (status<0) then
+        status=-1; return   ! eof
+      end if
+      if ( status/=0 ) then
+        write (gol,'("reading line from CSV loclist file:")'); call goErr
+        write (gol,'("  file   : ",a)') trim(self%fname); call goErr
+        write (gol,'("  line   : ",i6)') self%iline; call goErr
+        TRACEBACK; status=1; return
+      end if
+      ! skip empty lines:
+      if ( len_trim(line) == 0 ) cycle
+      ! skip comment:
+      if ( line(1:1) == self%comment ) cycle
+      ! not empty ? then leave:
+      if ( len_trim(line) > 0 ) exit
+    end do
+    
+    ! split:
+    call goSplitString( line, nvalue, values, status, sep=self%sep )
+    IF_NOTOK_RETURN(status=1)
+    ! copy:
+    code = trim(values(self%icol_code))
+    comp = trim(values(self%icol_comp))
+    ! read:
+    read (values(self%icol_value),*,iostat=status) value
+    if ( status /= 0 ) then
+      write (gol,'("could not read value from column ",i0," : ",a)') &
+                      self%icol_value, trim(values(self%icol_value)); call goErr
+      write (gol,'("  file   : ",a)') trim(self%fname); call goErr
+      write (gol,'("  line   : ",i6)') self%iline; call goErr
+    end if 
+    ! units:
+    if ( self%icol_units < 0 ) then
+      ! copy fixed value:
+      units = trim(self%units)
+    else
+      ! read:
+      units = trim(values(self%icol_units))
+    end if
+
+    ! ok
+    status = 0
+    
+  end subroutine CSV_ReadRecord
+  
+
+end module MAORI_DataFile_CSV
+

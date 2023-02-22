@@ -1,0 +1,80 @@
+!
+! GNU Compiler Collection v8.2.0
+!
+
+! fortran compiler:
+configure.compiler.fc                         :  gfortran
+
+! same compiler for openmp, since this is enabled via the flags:
+configure.compiler.fc.openmp                  :  ${configure.compiler.fc}
+
+!! optional: f77 compiler (default same as fc):
+!configure.compiler.f77                        :  gfortran
+
+! * default flags:
+
+configure.compiler.default.fflags           :  -ffree-line-length-none -ffixed-line-length-none -fimplicit-none
+configure.compiler.default.ldflags          : 
+
+! * precision flags:
+
+configure.compiler.real8.fflags             :  -fdefault-real-8
+configure.compiler.real8.ldflags            : 
+
+! * MPI flags:
+
+! adhoc: define macro "_MPI" to allow constructs:
+!    #if _MPI
+!      ...
+!    #endif
+configure.compiler.mpi.fflags               :  -D_MPI
+configure.compiler.mpi.ldflags              :  
+
+! * OpenMP flags:
+
+configure.compiler.openmp.fflags            :  -fopenmp
+configure.compiler.openmp.ldflags           :  -fopenmp
+
+! * optim
+
+configure.compiler.optim-none.fflags        :  -O0
+configure.compiler.optim-none.ldflags       : 
+    
+configure.compiler.optim-strict.fflags      : 
+configure.compiler.optim-strict.ldflags     : 
+
+configure.compiler.optim-fast.fflags        :  -O3
+configure.compiler.optim-fast.ldflags       : 
+
+configure.compiler.optim-vfast.fflags       :  -Ofast
+configure.compiler.optim-vfast.ldflags      : 
+
+! * check
+
+configure.compiler.check-all.fflags         :  -fbacktrace \
+                                               -fbounds-check \
+                                               -ffpe-trap=invalid,zero \
+                                               -Wall \
+                                               -Wno-unused-variable \
+                                               -Wno-unused-function \
+                                               -Wno-unused-dummy-argument \
+                                               -Wno-unused-label \
+                                               -Wno-conversion \
+                                               -Wno-zerotrip
+configure.compiler.check-all.ldflags        : 
+
+! * debug
+
+configure.compiler.debug.fflags             :  -g
+configure.compiler.debug.ldflags            : 
+
+! * specials:
+
+! flags to allow implicit typing:
+! - not available for gfortran, implicit type is allowed
+!   if 'implicit' statements are included the code;
+! - do not warn on unitialized variables in this case
+configure.compiler.implicit.fflags          :  -Wno-maybe-uninitialized
+configure.compiler.implicit.ldflags         :  
+
+

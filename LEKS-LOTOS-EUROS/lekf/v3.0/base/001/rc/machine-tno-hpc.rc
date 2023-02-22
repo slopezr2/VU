@@ -1,0 +1,381 @@
+!#######################################################################
+!
+! TNO / HPC computing server
+!
+! Modules loaded:
+!  compilers/intel/14.0.1
+!  openmpi/3.0.0
+!
+!#######################################################################
+
+
+!----------------------------------------------------------------------
+! user names
+!----------------------------------------------------------------------
+
+! used for output attributes ...
+
+! name of institution:
+user.institution             :  TNO
+
+! extract user long name from environment variable:
+user.longname                :  ${USERLONGNAME}
+
+
+!----------------------------------------------------------------------
+! compiler settings
+!----------------------------------------------------------------------
+
+! Intel or GCC compiler suite, selected with environment variables:
+#include base/${my.patch.nr}/rc/compiler-${COMPILER_SUITE}-${COMPILER_VERSION}.rc
+
+
+!----------------------------------------------------------------------
+! mpi wrapper
+!----------------------------------------------------------------------
+
+! compiler wrappers for MPI:
+mpi.compiler.fc                     :  mpifort
+mpi.compiler.fc.openmp              :  mpifort
+
+
+!----------------------------------------------------------------------
+! libraries
+!----------------------------------------------------------------------
+
+! (optional) macro to enable udunits library:
+!my.udunits.define             :  
+!my.udunits.define             :  with_udunits1
+my.udunits.define             :  with_udunits2
+
+! (optional) macro to enable linear algebra library:
+!my.linalg.define             :  
+!my.linalg.define             :  with_lapack
+!my.linalg.define             :  with_lapack95
+my.linalg.define             :  with_mkl
+
+! define libraries:
+#if "${COMPILER_SUITE}" == "intel"
+my.spblas.define              :  with_mkl
+#elif "${COMPILER_SUITE}" == "gcc"
+my.spblas.define              :  with_spblas
+#else
+#error unknown compiler-suite
+#endif
+
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+!! HDF5 library:
+!compiler.lib.hdf5.fflags        : 
+!compiler.lib.hdf5.libs          : -L${HDF5_HOME}/lib -lhdf5_hl -lhdf5
+
+! NetCDF library (actually netcdf4 ...)
+compiler.lib.netcdf.fflags      : ${compiler.lib.netcdf4.fflags}
+compiler.lib.netcdf.libs        : ${compiler.lib.netcdf4.libs}
+
+! NetCDF4 library:
+compiler.lib.netcdf4.fflags     : -I${NETCDF4_FORTRAN_HOME}/include
+compiler.lib.netcdf4.libs       : -L${NETCDF4_FORTRAN_HOME}/lib -lnetcdff -Wl,-rpath -Wl,${NETCDF4_FORTRAN_HOME}/lib \
+                                  -L${NETCDF4_HOME}/lib -lnetcdf -Wl,-rpath -Wl,${NETCDF4_HOME}/lib \
+                                  -L${HDF5_HOME}/lib -lhdf5_hl -lhdf5 -Wl,-rpath -Wl,${HDF5_HOME}/lib
+                                  
+!! UDUnits library:
+!compiler.lib.udunits1.fflags    : -I${UDUNITS_HOME}/include
+!compiler.lib.udunits1.libs      : -L${UDUNITS_HOME}/lib -ludunits
+
+! UDUnits2 library:
+compiler.lib.udunits2.fflags    : 
+#if "2.1.24" in "${UDUNITS2_HOME}"
+compiler.lib.udunits2.libs      : -L${UDUNITS2_HOME}/lib -ludunits2 -lexpat
+#else
+compiler.lib.udunits2.libs      : -L${UDUNITS2_HOME}/lib -ludunits2
+#endif
+
+! MPI library:
+compiler.lib.mpi.fflags         : 
+compiler.lib.mpi.libs           : 
+
+! BLAS library:
+compiler.lib.blas.fflags        : -I${LAPACK_HOME}/include
+compiler.lib.blas.libs          : -L${LAPACK_HOME}/lib -lblas
+
+! Lapack library:
+compiler.lib.lapack.fflags      : -I${LAPACK_HOME}/include
+compiler.lib.lapack.libs        : -L${LAPACK_HOME}/lib -llapack
+
+! Sparse BLAS library:
+compiler.lib.spblas.fflags      : -I${SPBLAS_HOME}/include
+compiler.lib.spblas.libs        : -L${SPBLAS_HOME}/lib -lspblas
+
+#if "${COMPILER_SUITE}" == "intel"
+!
+! Math-Kernel-Library, includes BLAS, LAPACK
+!
+! Use the "link-line-advisor" for the required flags:
+!   https://software.intel.com/en-us/articles/intel-mkl-link-line-advisor
+! Settings:
+!   Intel product       :  Intel Composer XE 2013
+!   OS                  :  Linux
+!   Intel Xeon model    :  None
+!   Compiler            :  Intel Fortran
+!   Architecture        :  Intel 64
+!   Linking             :  dynamic
+!   Interface layer     :  LP64
+!   Threading layer     :  sequential   |   OpenMP threading
+!   Fortan95 interfaces :  [x] LAPACK95
+!   Link explicitly     :  [x]
+!
+! switch:
+#if "${par.openmp}" in ["True"]
+
+! threaded version:
+compiler.lib.mkl.fflags         : -mkl=parallel
+compiler.lib.mkl.libs           : -L${MKL_HOME}/lib/intel64 \
+                                    -lmkl_lapack95_lp64 -lmkl_intel_lp64 -lmkl_core \
+                                    -lmkl_intel_thread -lpthread -lm -ldl \
+                                    -Wl,-rpath -Wl,${MKL_HOME}/lib/intel64
+
+#elif "${par.openmp}" in ["False"]
+
+! sequential version:
+compiler.lib.mkl.fflags         : -mkl=sequential
+compiler.lib.mkl.libs           : -L${MKL_HOME}/lib/intel64 \
+                                    -lmkl_lapack95_lp64 -lmkl_intel_lp64 -lmkl_core \
+                                    -lmkl_sequential -lpthread -lm -ldl \
+                                    -Wl,-rpath -Wl,${MKL_HOME}/lib/intel64
+#else
+#error could not configure mkl for par.openmp "${par.openmp}"
+#endif
+
+#endif
+! Intel compiler suite
+
+
+!----------------------------------------------------------------------
+! makedep
+!----------------------------------------------------------------------
+
+! Is makedepf90 installed?
+! This flag is used in the 'expert.rc' settings:
+my.with.makedep            :  True
+
+
+!----------------------------------------------------------------------
+! maker
+!----------------------------------------------------------------------
+
+! default number of build jobs that can be used,
+! this is passed to 'build.jobs' in the expert rc;
+! on this machine, use the number of allocated processes:
+my.build.jobs       :  ${LSB_DJOB_NUMPROC}
+
+! make command; 
+! the setup script will insert the 'build.jobs' specified in the expert.rc
+! or passed as argument to the setup script:
+!
+maker               :  gmake -j %{build.jobs}
+
+
+!----------------------------------------------------------------------
+! MPI runner
+!----------------------------------------------------------------------
+
+! command and arguments
+! no command file written, thus executable and arguments are added
+! common arguments:
+!   -np <ntask>
+!   --tag-output      # add processor prompts "[1,0]<stdout>:" to each line of output/error
+!
+mpirun.command     :  mpiexec
+mpirun.args        :  -np ${par.ntask}
+
+! name of command file; if empty, then executable and arguments are added to the command line
+mpirun.cmdfile     :  
+
+! name of host file:
+mpirun.hostfile    :
+
+
+!----------------------------------------------------------------------
+! debugger
+!----------------------------------------------------------------------
+
+! debugger type: totalview | idb | kdbg
+debugger                :  idb
+
+! command for debugger:
+debugger.command        :  idb
+
+
+!----------------------------------------------------------------------
+! jobs
+!----------------------------------------------------------------------
+
+! where to submit jobs to by default ?
+my.submit.to.default               : queue
+
+! allowed destinations:
+my.submit.to.allowed               : foreground queue
+
+! shell to use in job scripts:
+! o python scripts:
+job.shell.python                   : /usr/bin/env python
+
+
+!----------------------------------------------------------------------
+! some run time settings ...
+!----------------------------------------------------------------------
+
+! number of MPI tasks in run step:
+#if "${par.mpi}" in ["yes","T","True"] :
+my.ntask                      :  ${par.ntask}
+#elif "${par.mpi}" in ["no","F","False"] :
+my.ntask                      :  1
+#else
+#error Could not set number of MPI tasks for par.mpi "${par.mpi}"
+#endif
+
+! number of OpenMP threads in run step:
+#if "${par.openmp}" in ["yes","T","True"] :
+my.nthread                    :  ${par.nthread}
+#elif "${par.openmp}" in ["no","F","False"] :
+my.nthread                    :  1
+#else
+#error Could not set number of OpenMP threads for par.openmp "${par.openmp}"
+#endif
+
+! total:
+my.run.ntask                  :  $(( ${my.ntask} * ${my.nthread} ))
+
+
+!----------------------------------------------------------------------
+! shell options
+!----------------------------------------------------------------------
+
+! for running in foreground or background;
+! add python code that is directly inserted in header
+
+shell.options.default       :
+
+shell.options.init          :  
+
+shell.options.run           :  \n\
+# machine specific settings:\n\
+import os\n\
+os.putenv( 'OMP_NUM_THREADS', '${my.nthread}' )
+
+shell.options.done          :
+
+
+!----------------------------------------------------------------------
+! settings for BSUB queue
+!----------------------------------------------------------------------
+
+! if necesary, define extra memory; default is 850 MB:
+my.mem       :  8000
+
+! queue system: bsub | qsub | loadleveler
+queue        :  bsub
+
+! list of queue options (default and per step):
+queue.bsub.options.default      :  J q m
+queue.bsub.options.init         :  oo eo
+queue.bsub.options.run          :  oo eo n Rspan Rmem
+queue.bsub.options.done         :  oo eo
+
+! * default settings, valid for all steps:
+
+! passed directly:
+queue.bsub.args                 :  
+
+! job name:
+queue.bsub.option.J             :  ${job.name}-${run.id}
+
+! queue name; use 'bqueues' for overview:
+queue.bsub.option.q             :  normal
+
+! select general nodes:
+queue.bsub.option.m             :  "app-hpc02 app-hpc03 app-hpc04 app-hpc05 app-hpc06 app-hpc07 app-hpc08 app-hpc09"
+
+! python code inserted directly in header;
+! use "\n\" for newlines:
+queue.bsub.code.default         :
+
+! * init step:
+
+! passed directly to bsub:
+queue.bsub.args.init            :  
+
+
+! output and error, overwrite existing files:
+queue.bsub.option.init.oo       :  <auto>
+queue.bsub.option.init.eo       :  <auto>
+
+! python code inserted directly in header;
+! use "\n\" for newlines:
+queue.bsub.code.init            :   
+
+! * run step:
+
+! passed directly to bsub:
+queue.bsub.args.run             : 
+
+! host groups
+!  hgregular   : work nodes
+!  hgiband     : work nodes, fast network
+!  hgbigmem    : work nodes, large memory
+!! host group:
+!queue.bsub.option.run.m         :  hgregular
+
+! number of tasks:
+queue.bsub.option.run.n         :  ${my.run.ntask}
+
+! resources: 
+! - single node
+queue.bsub.option.run.Rspan     :  -R "span[hosts=1]"
+! - extra memory in MB
+queue.bsub.option.run.Rmem      :  -R "rusage[mem=${my.mem}]"
+
+!! selected host:
+!queue.bsub.option.run.m         :  app-hpc08
+
+! output and error, overwrite existing files:
+queue.bsub.option.run.oo        :  <auto>
+queue.bsub.option.run.eo        :  <auto>
+
+! python code inserted directly in header;
+! use "\n\" for newlines:
+queue.bsub.code.run             :  \n\
+# machine specific settings:\n\
+import os\n\
+os.putenv( 'OMP_NUM_THREADS', '${my.nthread}' )
+
+! * done step:
+
+! passed directly to bsub:
+queue.bsub.args.done            :  
+
+!! host group:
+!queue.bsub.option.done.m        :  hgregular
+
+! output and error, overwrite existing files:
+queue.bsub.option.done.oo       :  <auto>
+queue.bsub.option.done.eo       :  <auto>
+
+! python code inserted directly in header;
+! use "\n\" for newlines:
+queue.bsub.code.done            :
+
+
+!----------------------------------------------------------------------
+! model data
+!----------------------------------------------------------------------
+
+! the user scratch directory:
+my.scratch                    :  ${SCRATCH}
+
+! base path to input data files:
+my.data.dir                   :  ${LE_DATA}
+
+!! extra install tasks:
+!my.install.tasks              :

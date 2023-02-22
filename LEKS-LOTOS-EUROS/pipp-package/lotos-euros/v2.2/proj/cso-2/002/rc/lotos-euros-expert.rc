@@ -1,0 +1,319 @@
+! ######################################################################
+! ###
+! ### generate source files
+! ###
+! ######################################################################
+
+!
+! Group names are used to select tracers and reactions:
+!
+!   cbm4              :  tracers/reactions of CBM4 scheme
+!   sulphur           :  sulphur-only scheme (SO2 and SO4a, OH read)
+!   methane           :  methane-only scheme (CH4, OH read)
+!   co2               :  CO2 tracer
+!   sf6               :  SF6 tracer
+!   ppm               :  primary particulate matter
+!   ec                :  elementary carbon
+!   pom               :  primary organic matter
+!   sia               :  secondary inorganic aerosols
+!   seasalt           :  sodium aerosols representing seasalt
+!   dust              :  dust aerosols
+!   m7                :  M7 aerosol scheme (so4a, bc, oc, seasalt, dust)
+!   soa               :  TERP reactions used as input to VBS
+!   vbs               :  VBS tracers
+!   basecation        :  base-cat-ion aerosols
+!   hm                :  heavy metals
+!   pollen            :  allergenic pollen tracers
+!
+!   accum             :  accumulated species
+!   biascorr          :  bias corrected species
+!
+! Properties are keywords to enable special settings for some tracers:
+!
+!   nmvoc             :  non-methane volotile organic carbon
+!   snox              :  all deposited N in reservoir: nh3 nh4 no2 hno3 no3 pan
+!   radical           :  radical
+!   gas               :  gaseous tracer
+!   aerosol           :  aerosol tracer
+!   pollen            :  pollen tracer
+!   fine_mode         :  fine mode aerosol
+!   coarse_mode       :  coarse mode aerosol
+!   all_modes         :  total aerosol collecting all size modes
+!   vbs_cg vbs_soa    :  VBS condensible gasses and sec. organic aerosols
+!   soa_prec          :  soa precursors
+!
+! These keywords are set automically by the scripts if necessary,
+! depending on settings in the rcfile:
+!
+!   in-cloud          :  if cloud chemistry module is not enabled
+!
+! All supported groups, used for checking:
+genes.group.supported    :  cbm4 cb99 sulphur methane co2 sf6 \
+                               ppm ec pom sia seasalt dust m7 \
+                               basecation hm \
+                               vbs soa pollen \
+                               accum accum_label biascorr in-cloud \
+                               ppm_ops
+!
+! All supported properties, used for checking:
+genes.prop.supported     :  sia nmvoc radical \
+                               pom seasalt dust m7 \
+                               basecation hm \
+                               vbs vbs_cg vbs_soa soa soa_prec \
+                               vbs_pog vbs_sisog vbs_asog vbs_bsog \
+                               vbs_poa vbs_sisoa vbs_asoa vbs_bsoa \
+                               snox \
+                               aerosol pollen \
+                               f1_mode fine_mode \
+                               c1_mode c2_mode coarse_mode all_modes \
+                               ultra_fine_mode ultra_fine_fine_mode \
+                               fine_medium_mode medium_coarse_mode \
+                               pollen_mode\
+                               nucl_mode aitken_mode accum_mode \
+                               soluble insoluble numberconc \
+                               accum accum_label biascorr
+
+! for which properties should an index group be created ?
+! index group 'advected' is created automatically based on the
+! presence of the 'radical' property and the value of 'advection.radicals' :
+genes.indgroup.props      : advected aerosol pollen \
+                             sia dust seasalt m7 basecation hm \
+                             vbs vbs_cg vbs_soa soa_prec \
+                             vbs_pog vbs_sisog vbs_asog vbs_bsog \
+                             nmvoc biascorr \
+                             pops snox pom
+
+! for which properties should a per-index flag list be created ?
+genes.flaglist.props      : aerosol m7 soluble numberconc pollen seasalt dust
+
+! file with tracer table ;
+! provide absolute path or relateve to 'src' directory:
+genes.tracers.file            :  ../data/tracers.csv
+
+! aerosol radius file:
+genes.radius.file             :  ../data/aerosol-radius.csv
+
+! file with reactions table ;
+! provide absolute path or relateve to 'src' directory:
+genes.reactions.file          :  ../data/reactions.csv
+
+! files to be created:
+genes.files                   :  le_indices.inc le_chem_work.F90
+
+! optional shell command to show generated files:
+genes.show.command            :  
+!genes.show.command            :  nedit ${genes.files} &
+
+! gas-phase chemistry solver:
+genes.solver                  :  TWOSTEP
+
+! add labeling code (True|False) ?
+genes.labeling                :  ${my.with.labeling}
+
+! add VBS code (True|False) ?
+genes.vbs                     :  ${my.with.vbs}
+
+
+
+! ######################################################################
+! ###
+! ### operator splitting
+! ###
+! ######################################################################
+
+
+! operator order in half-step:
+!  c = chemistry
+!  v = vertical diffusion
+!  s = sedimentation
+!  d = dry deposition
+!  w = wet deposition
+!  e = emisssion
+!  a = advection
+!
+!~ advection as half step, chemistry at begin/end:
+!
+!     eeee    eeee       # emissions on double step
+!    aa  aa  aa  aa      # even number of advection steps
+!    ww  ww  ww  ww      # processes on size of advection step
+!    dd  dd  dd  dd
+!    ss  ss  ss  ss
+!    vv  vv  vv  vv
+!    cc   cccc   cc      # chemistry on double step if possible
+!
+le.operator.sequence        :   c v s d w a e
+
+
+
+! ######################################################################
+! ###
+! ### chemistry
+! ###
+! ######################################################################
+
+! minimum and maximum number of iteration in the chemistry:
+le.chem.solver.iter.min       :  10
+le.chem.solver.iter.max       :  15
+
+! NO2 photolysis correction table: (DEPRICATED ?)
+le.chem.JNO2_corr.file        :  ${my.data.dir}/standard/JNO2_correction.txt
+
+!
+! OH fields for sulphur- and methane-only chemistries
+! are read from a model run with output including
+! hourly OH fields on all levels (see le.output flags)
+! Specify:
+!  o path to model output
+!  o filename description key; example below is for files
+!      /output/myproj/base/LE_base_conc-3d_20010203.nc ...
+! Example:
+!   le.chem.OH              :  T
+!   le.chem.OH.path         :  /output/myproj/base
+!   le.chem.OH.key          :  format=netcdf;model=LE;runid=base;type=conc-3d
+!
+#if ("sulphur" in "${genes.group.selected}".split()) or ("methane" in "${genes.group.selected}".split()) :
+le.chem.OH              :  T
+le.chem.OH.path         :  ${my.project.dir}/${run.project}/base
+le.chem.OH.key          :  format=netcdf;model=LE;runid=base;type=conc-3d
+#else
+le.chem.OH              :  F
+#endif
+
+! enable explicit cloud chemistry (T|F) ?
+!  o requires the ml22 cloud meteo files
+#if "sia" in "${genes.group.selected}".split() and "cbm4" in "${genes.group.selected}"
+le.chem.cloud       :  T
+#else
+le.chem.cloud       :  F
+#endif
+
+! Catch if you try to run with sia without cbm4 of cbm4 without sia
+#if "sia" in "${genes.group.selected}".split() and not "cbm4" in "${genes.group.selected}"
+#error WARNING, Model run with SIA components without cbm4 precursor components --> \
+       Define also cbm4 in selected groups of tracers
+#endif
+
+#if "cbm4" in "${genes.group.selected}".split() and not "sia" in "${genes.group.selected}"
+#error WARNING, Model run with CBM4 chemistry, but without aerosol chemistry to form SIA-components --> \
+       Define also sia in selected groups of tracers
+#endif
+
+! * SIA
+
+! which equilibrium code ? 
+! ~ only this one is supported:
+le.chem.sia.scheme      :  isorropia2
+! ~ fast and no particular problems:
+!le.chem.sia.scheme      :  equisam
+
+! * VBS
+
+! Switch on VBS (T/F) ?
+#if "vbs" in "${genes.group.selected}".split()
+my.with.vbs          : T
+my.vbs.define        :  with_vbs
+#else
+my.with.vbs          : F
+my.vbs.define        :
+#endif
+
+! VBS gas-to-aerosol condensation:
+! ~ POM emissions directly into vbs classes (T|F) ? (initially set true if VBS is switched on)
+le.vbs.pom_to_vbs        :  ${my.with.vbs}
+! ~ soa chemistry leading to production into vbs classes (T|F) ? (initially set true if VBS is switched on)
+le.vbs.soa.chemistry     :  ${my.with.vbs}
+
+! * M7
+! switch on M7
+#if "m7" in "${genes.group.selected}".split()
+my.m7.define        :  with_m7
+#else
+my.m7.define        : 
+#endif
+
+! * Pollen
+! switch on Pollen?
+#if "pollen" in "${genes.group.selected}".split()
+my.pollen.define    : with_pollen
+#else
+my.pollen.define    :
+#endif
+
+
+
+! ######################################################################
+! ###
+! ### advection
+! ###
+! ######################################################################
+
+! advect radicals too (T|F) ?
+advection.radicals      :  F
+
+
+
+! ######################################################################
+! ###
+! ### Labeling
+! ###
+! ######################################################################
+
+! macro definition:
+#if "${my.with.labeling}" == "True"
+my.labeling.define  :  with_labeling ${my.spblas.define}
+#else
+my.labeling.define  :  
+#endif
+
+N_tracers           : no no2 no3 hno3 hno2 n2o5 pan nh3 no3a_c no3a_f nh4a_f
+S_tracers           : so2 so4a_c so4a_f
+C_tracers           : ald xyl form eth par tol ole cres co c2o3 ch4 cro iso ispd to2 open terp mgly
+unreactive_tracers  : na_f1 na_f2 na_c1 na_c2 na_c3 ppm_f ppm_c ec_f ec_c pom_f pom_c dust_f1 dust_f2 dust_c1 dust_c2 dust_c3
+
+                      
+! ######################################################################
+! ###
+! ### radiation
+! ###
+! ######################################################################
+
+! macro definition:
+#if "${my.with.radiation}" == "True"
+my.radiation.define  :  with_radiation
+#else
+my.radiation.define  :  
+#endif
+
+
+! ######################################################################
+! ###
+! ### logging
+! ###
+! ######################################################################
+
+! suppress printed output (yes,no) ?
+log.suppress    :  no
+
+! debug output (yes,no) ?
+log.debug       :  no
+
+! for yes, specifify the grid cell for which debug output should be written:
+log.debug.cell  :  1 1
+! cell '0 0' indicates min/max/aver over 2D field:
+!log.debug.cell  :  0 0
+
+
+
+! ######################################################################
+! ###
+! ### cf-conventions
+! ###
+! ######################################################################
+
+! cf conventions:
+cf.convention           :  CF-1.6
+
+! table with standard names:
+cf.standard.table       :  ${my.data.dir}/cf-standard/cf-standard-name-table-v30.xml
+
+
