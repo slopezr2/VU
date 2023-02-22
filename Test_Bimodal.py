@@ -60,9 +60,9 @@ Bimodal_run = DataManager_LE('/Users/santiago/Documents/LE_outputs/2008_Complete
 
 
 
-Janot_radii_polder.graph_map(variable='ys',vmin=0,vmax=0.6,n_levels_plot=10,grid=True,save=save,save_title='Janot_radii_polder_V1',title='LE-Janot_radii-AOD565nm 2008',cmap=demuth.reversed(),date=False,facecolor=(1,1,1),extend='max')
+Janot_radii_polder.graph_map(variable='ys',vmin=0,vmax=0.6,n_levels_plot=10,grid=True,save=save,save_title='Bimodal_2008_LE_POLDER_AOD565',title='LE-AOD565nm 2008',cmap=demuth.reversed(),date=False,facecolor=(1,1,1),extend='max')
 
-Janot_radii_polder.graph_map(variable='ys',vmin=0,vmax=0.6,n_levels_plot=10,grid=True,save=save,save_title='Janot_radii_polder_V1',title='LE-Janot_radii-AOD565nm 2008',cmap=demuth.reversed(),date=False,facecolor=(1,1,1),extend='max')
+Janot_radii_polder.graph_map(variable='yr',vmin=0,vmax=0.6,n_levels_plot=10,grid=True,save=save,save_title='Bimodal_2008_POLDER_AOD565',title='POLDER-AOD565nm 2008',cmap=demuth.reversed(),date=False,facecolor=(1,1,1),extend='max')
 Janot_radii_run.graph_map(variable='angstrom_aeronet',vmin=0,vmax=2,n_levels_plot=10,grid=True,save=save,save_title='LE_Angstrom_Janot_radii_V1',title='LE-Janot_radii Angstrom 2008',cmap=RdYlGn.reversed(),date=False,facecolor=(1,1,1),extend='max')
 Bimodal_run.graph_map(variable='angstrom_aeronet',vmin=0,vmax=2,n_levels_plot=10,grid=True,save=save,save_title='LE_Angstrom_Bimodal',title='LE-Bimodal Angstrom 2008',cmap=RdYlGn.reversed(),date=False,facecolor=(1,1,1),extend='max')
 

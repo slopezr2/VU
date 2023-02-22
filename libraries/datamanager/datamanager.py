@@ -254,7 +254,7 @@ class DataManager_GRIDDED:
             print('Root Mean Square Error: '+ str(rmse))
             print('R^2: ' +str(r2))
        return pearson[0],mfb,rmse,r2    
-   def hist2d(self,biascorr=[2.5,1],cmap='Oranges',xlabel='Satellite',ylabel='LE',xlim=[0,1],ylim=[0,1],log=False,save=True,title=''):
+   def hist2d(self,biascorr=[2.5,1],cmap='Oranges',xlabel='Satellite',ylabel='LE',xlim=[0,1],ylim=[0,1],log=False,save=True,title='',save_title='scatterplot'):
        aod_sat=self.nc.variables['yr'][:]
        aod_le=self.nc.variables['ys'][:]
        if aod_sat.ndim==4:
@@ -299,7 +299,7 @@ class DataManager_GRIDDED:
        
             
        if save==True:
-           plt.savefig('./Figures/'+title+'.png',format='png', dpi=1000,bbox_inches = "tight")
+           plt.savefig('./Figures/'+save_title+'.png',format='png', dpi=1000,bbox_inches = "tight")
        plt.show()
 
        return aod_sat,aod_le
@@ -612,7 +612,7 @@ class DataManager_GRIDDED:
            if relation==True:
                aux = aux_yr/aux
            else:
-               aux = aux_yr-aux
+               aux = aux - aux_yr
            aux_mask=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:,level])
        
        else:
@@ -629,13 +629,13 @@ class DataManager_GRIDDED:
            if relation==True:
                aux = aux_yr/aux
            else:
-               aux = aux_yr-aux
+               aux = aux - aux_yr
            aux_mask=np.ma.masked_invalid(self.nc.variables['yr'][:,:,:])
        aux.mask=aux_mask.mask
        
        if relation==False:
            if title=='default':
-               variable_title = 'diff obs-LE'
+               variable_title = 'diff LE-obs'
            else:
                variable_title = title
            if porcentage_diff==True:

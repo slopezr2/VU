@@ -36,8 +36,8 @@ gridded_nh3=DataManager_GRIDDED('/Users/santiago/Documents/LE_outputs/2008_Compl
 gridded_so2=DataManager_GRIDDED('/Users/santiago/Documents/LE_outputs/2008_Complete/LE_m_iasi-so2_2008.nc')
 
 
-gridded_nh3.graph_map(variable='yr',facecolor=(1,1,1),biascorr=17.03052*1000,vmin=0,vmax=4,n_levels_plot=10,cmap=redgreen,type_graph='mean',date=False,save=True,title='IASI NH$_{3}$ total column',ocean=True,grid=True)
-gridded_nh3.graph_map(variable='ys',facecolor=(1,1,1),biascorr=17.03052*1000,vmin=0,vmax=4,n_levels_plot=10,cmap=redgreen,type_graph='mean',date=False,save=True,title='LE NH$_{3}$ total column',ocean=True,grid=True)
+gridded_nh3.graph_map(variable='yr',facecolor=(1,1,1),biascorr=17.03052*1000,vmin=0,vmax=4,n_levels_plot=10,cmap=redgreen,type_graph='mean',date=False,save=True,title='IASI NH$_{3}$ total column (mg/m$^2$)',ocean=True,grid=True,save_title='IASI NH3 mapa paper')
+gridded_nh3.graph_map(variable='ys',facecolor=(1,1,1),biascorr=17.03052*1000,vmin=0,vmax=4,n_levels_plot=10,cmap=redgreen,type_graph='mean',date=False,save=True,title='LE NH$_{3}$ total column (mg/m$^2$)',ocean=True,grid=True,save_title='LE NH3 mapa paper')
 
 gridded_so2.graph_map(variable='yr',facecolor=(1,1,1),biascorr=64.0638*1000,vmin=0,vmax=100,n_levels_plot=10,cmap=redblue,type_graph='mean',date=False,save=True,title='IASI SO$_{2}$ total column',ocean=False)
 gridded_so2.graph_map(variable='ys',facecolor=(1,1,1),biascorr=64.0638*1000,vmin=0,vmax=100,n_levels_plot=10,cmap=redblue,type_graph='mean',date=False,save=True,title='LE SO$_{2}$ total column',ocean=False)

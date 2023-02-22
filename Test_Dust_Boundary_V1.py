@@ -65,8 +65,8 @@ Dust_boundary_ens = {}
 for i in range(1,11):
     ens = f'{i:02d}'
     print(ens)
-    Dust_boundary_ens[ens] = DataManager_LE('/Users/santiago/Documents/LE_outputs/Smoother/LE_m_aod_Dust_Boundary_xi'+ens+'_V2.nc')
-    Dust_boundary_ens[ens].graph_map(variable='aod_550nm',vmin=0,vmax=0.7,n_levels_plot=10,grid=True,save=save,save_title='LE_Dust_Bounday_Ens_'+ens+'_V2',
+    Dust_boundary_ens[ens] = DataManager_LE('/Users/santiago/Documents/LE_outputs/Smoother/LE_m_aod_Dust_Boundary_xi'+ens+'_V3.nc')
+    Dust_boundary_ens[ens].graph_map(variable='aod_533nm',vmin=0,vmax=1.5,n_levels_plot=10,grid=True,save=save,save_title='LE_Dust_Bounday_Ens_'+ens+'_V3',
                           title='LE-Ens '+ens+' AOD 550nm 200805',cmap=demuth.reversed(),date=True
                           ,facecolor=(1,1,1),extend='max')
 
